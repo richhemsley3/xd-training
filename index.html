@@ -8751,12 +8751,19 @@ init();
 const mainEl = document.getElementById('main-scroll');
 const progressBar = document.getElementById('scroll-progress');
 if (mainEl && progressBar) {
-  mainEl.addEventListener('scroll', function() {
+  function updateProgressBar() {
     const scrollTop = mainEl.scrollTop;
     const scrollHeight = mainEl.scrollHeight - mainEl.clientHeight;
     const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
-    progressBar.style.width = progress + '%';
-  });
+    const sidenav = document.getElementById('secondary-sidenav');
+    const sidenavWidth = (sidenav && sidenav.style.display !== 'none') ? sidenav.offsetWidth : 0;
+    progressBar.style.left = sidenavWidth + 'px';
+    progressBar.style.width = (mainEl.offsetWidth * progress / 100) + 'px';
+  }
+  mainEl.addEventListener('scroll', updateProgressBar);
+  // Update position when page changes (sidenav may appear/disappear)
+  const origShowPage = window.showPage;
+  window.showPage = function(id) { origShowPage(id); setTimeout(updateProgressBar, 50); };
 }
 </script>
 

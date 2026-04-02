@@ -333,9 +333,8 @@ ul, ol { list-style: none; }
   position: fixed;
   top: 56px;
   left: 0;
-  right: 0;
   height: 2px;
-  background: #013D5B;
+  background: #D0CBC3;
   width: 0%;
   z-index: 51;
   pointer-events: none;
