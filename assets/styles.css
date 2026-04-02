@@ -857,7 +857,7 @@ p:last-child { margin-bottom: 0; }
 
 /* ── Home Hero ─────────────────────────────────────── */
 .hero {
-  padding: clamp(64px, 10vw, 120px) 0 clamp(56px, 8vw, 100px);
+  padding: clamp(40px, 5vw, 64px) 0 clamp(32px, 4vw, 48px);
   margin-bottom: 0;
   text-align: center;
   background: linear-gradient(160deg, #F2F7F7 0%, #FFFFFF 40%, #FAF8F5 100%);
@@ -879,7 +879,7 @@ p:last-child { margin-bottom: 0; }
 }
 .hero h1 {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(36px, 4.5vw, 52px);
+  font-size: clamp(28px, 3.5vw, 40px);
   font-weight: 400;
   color: #013D5B;
   line-height: 1.1;
@@ -891,7 +891,7 @@ p:last-child { margin-bottom: 0; }
   color: #54514D;
   line-height: 1.7;
   max-width: 520px;
-  margin: 0 auto 36px;
+  margin: 0 auto 24px;
 }
 
 /* ── Feature Cards (Home) ──────────────────────────── */
@@ -927,91 +927,130 @@ p:last-child { margin-bottom: 0; }
   overflow: hidden;
 }
 
-/* Pattern: Waves — concentric arcs */
-.pattern-waves {
-  background:
-    radial-gradient(ellipse 200% 100% at 10% 120%, transparent 58%, #A6CBD6 58.5%, transparent 59.5%),
-    radial-gradient(ellipse 200% 100% at 10% 140%, transparent 58%, #C1DDE3 58.5%, transparent 59.5%),
-    radial-gradient(ellipse 200% 100% at 10% 160%, transparent 58%, #D9EBED 58.5%, transparent 59.5%),
-    #F2F7F7;
+/* Pattern: Neural — connected nodes (Claude / how AI thinks) */
+.pattern-neural {
+  background: #F2F7F7;
 }
-
-/* Pattern: Dots — scattered dot grid */
-.pattern-dots {
-  background:
-    radial-gradient(circle 3px at 20% 30%, #A6CBD6 100%, transparent),
-    radial-gradient(circle 2px at 45% 20%, #C1DDE3 100%, transparent),
-    radial-gradient(circle 4px at 70% 55%, #D9EBED 100%, transparent),
-    radial-gradient(circle 2.5px at 85% 25%, #A6CBD6 100%, transparent),
-    radial-gradient(circle 3px at 30% 70%, #C1DDE3 100%, transparent),
-    radial-gradient(circle 2px at 60% 80%, #D9EBED 100%, transparent),
-    radial-gradient(circle 3.5px at 15% 50%, #D9EBED 100%, transparent),
-    radial-gradient(circle 2px at 90% 65%, #C1DDE3 100%, transparent),
-    radial-gradient(circle 4px at 50% 45%, #A6CBD6 100%, transparent),
-    radial-gradient(circle 2px at 75% 15%, #D9EBED 100%, transparent),
-    radial-gradient(circle 3px at 40% 85%, #A6CBD6 100%, transparent),
-    radial-gradient(circle 2.5px at 55% 60%, #C1DDE3 100%, transparent),
-    #F2F7F7;
-}
-
-/* Pattern: Chevrons — stacked V shapes */
-.pattern-chevrons {
-  background: #F4FAEB;
-}
-.pattern-chevrons::before {
-  content: '';
-  position: absolute;
-  right: -10px;
-  top: -10px;
-  width: 120px;
-  height: 120px;
-  background:
-    linear-gradient(135deg, transparent 42%, #D1E0B1 42.5%, #D1E0B1 44%, transparent 44.5%),
-    linear-gradient(135deg, transparent 50%, #BBCF8A 50.5%, #BBCF8A 52%, transparent 52.5%),
-    linear-gradient(135deg, transparent 58%, #AAC267 58.5%, #AAC267 60%, transparent 60.5%),
-    linear-gradient(135deg, transparent 66%, #98B43B 66.5%, #98B43B 68%, transparent 68.5%);
-}
-
-/* Pattern: Diagonal lines */
-.pattern-diagonals {
-  background:
-    repeating-linear-gradient(
-      -45deg,
-      transparent,
-      transparent 8px,
-      #D9EBED 8px,
-      #D9EBED 9.5px
-    ),
-    #F2F7F7;
-}
-
-/* Pattern: Concentric circles */
-.pattern-circles {
-  background:
-    radial-gradient(circle at 75% 50%, transparent 25px, #E2EDCC 25.5px, #E2EDCC 27px, transparent 27.5px),
-    radial-gradient(circle at 75% 50%, transparent 35px, #D1E0B1 35.5px, #D1E0B1 37px, transparent 37.5px),
-    radial-gradient(circle at 75% 50%, transparent 45px, #E2EDCC 45.5px, #E2EDCC 47px, transparent 47.5px),
-    radial-gradient(circle at 75% 50%, transparent 55px, #D1E0B1 55.5px, #D1E0B1 57px, transparent 57.5px),
-    #F4FAEB;
-}
-
-/* Pattern: Confetti / sprinkles */
-.pattern-confetti {
-  background: #FFF6F5;
-}
-.pattern-confetti::before {
+.pattern-neural::before {
   content: '';
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(35deg, transparent 48%, #F2BDB6 48.5%, #F2BDB6 51.5%, transparent 52%) 10px 10px / 20px 8px,
-    linear-gradient(-25deg, transparent 48%, #EEA79E 48.5%, #EEA79E 51.5%, transparent 52%) 50px 30px / 16px 6px,
-    linear-gradient(60deg, transparent 48%, #F7CCC6 48.5%, #F7CCC6 51.5%, transparent 52%) 80px 15px / 18px 7px,
-    linear-gradient(-40deg, transparent 48%, #F2BDB6 48.5%, #F2BDB6 51.5%, transparent 52%) 30px 60px / 14px 6px,
-    linear-gradient(15deg, transparent 48%, #EEA79E 48.5%, #EEA79E 51.5%, transparent 52%) 70px 55px / 20px 7px,
-    linear-gradient(-55deg, transparent 48%, #F7CCC6 48.5%, #F7CCC6 51.5%, transparent 52%) 15px 40px / 16px 6px;
-  background-repeat: repeat;
+    radial-gradient(circle 5px at 30% 35%, #A6CBD6 100%, transparent),
+    radial-gradient(circle 4px at 65% 25%, #A6CBD6 100%, transparent),
+    radial-gradient(circle 6px at 80% 60%, #C1DDE3 100%, transparent),
+    radial-gradient(circle 4px at 45% 70%, #A6CBD6 100%, transparent),
+    radial-gradient(circle 3px at 20% 75%, #C1DDE3 100%, transparent),
+    radial-gradient(circle 5px at 55% 45%, #D9EBED 100%, transparent),
+    radial-gradient(circle 3px at 90% 30%, #C1DDE3 100%, transparent);
 }
+.pattern-neural::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(25deg, transparent 49.5%, #C1DDE3 49.5%, #C1DDE3 50.5%, transparent 50.5%) 0 0 / 100% 100% no-repeat,
+    linear-gradient(-15deg, transparent 49.5%, #D9EBED 49.5%, #D9EBED 50.5%, transparent 50.5%) 0 0 / 100% 100% no-repeat,
+    linear-gradient(50deg, transparent 49.5%, #C1DDE3 49.5%, #C1DDE3 50.5%, transparent 50.5%) 0 0 / 100% 100% no-repeat;
+}
+
+/* Pattern: Layers — stacked horizontal bands (Context Engineering / layered context) */
+.pattern-layers {
+  background:
+    linear-gradient(0deg,
+      #F2F7F7 0%, #F2F7F7 15%,
+      #D9EBED 15%, #D9EBED 18%,
+      #F2F7F7 18%, #F2F7F7 32%,
+      #C1DDE3 32%, #C1DDE3 35%,
+      #F2F7F7 35%, #F2F7F7 50%,
+      #D9EBED 50%, #D9EBED 52.5%,
+      #F2F7F7 52.5%, #F2F7F7 68%,
+      #A6CBD6 68%, #A6CBD6 70.5%,
+      #F2F7F7 70.5%, #F2F7F7 85%,
+      #D9EBED 85%, #D9EBED 87%,
+      #F2F7F7 87%
+    );
+}
+
+/* Pattern: Blocks — modular grid (Skills / reusable building blocks) */
+.pattern-blocks {
+  background: #F4FAEB;
+}
+.pattern-blocks::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, transparent 0%, transparent 48%, #E2EDCC 48%, #E2EDCC 52%, transparent 52%) 0 0 / 36px 100%,
+    linear-gradient(to bottom, transparent 0%, transparent 48%, #E2EDCC 48%, #E2EDCC 52%, transparent 52%) 0 0 / 100% 36px;
+}
+.pattern-blocks::after {
+  content: '';
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+  width: 28px;
+  height: 28px;
+  background: #D1E0B1;
+  border-radius: 4px;
+  box-shadow:
+    -36px 0 0 #BBCF8A,
+    0 -36px 0 #D1E0B1,
+    -36px -36px 0 #E2EDCC;
+}
+
+/* Pattern: Brush — flowing curves (Designing with Claude / creative exploration) */
+.pattern-brush {
+  background: #F2F7F7;
+}
+.pattern-brush::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 300% 80% at -20% 150%, transparent 56%, #A6CBD6 56.3%, transparent 57%),
+    radial-gradient(ellipse 250% 90% at 120% -50%, transparent 56%, #C1DDE3 56.3%, transparent 57%),
+    radial-gradient(ellipse 280% 70% at -10% 180%, transparent 60%, #D9EBED 60.3%, transparent 61%);
+}
+
+/* Pattern: Radiate — expanding search rings (UX Research / finding insights) */
+.pattern-radiate {
+  background:
+    radial-gradient(circle at 70% 55%, transparent 15px, #D1E0B1 15.5px, #D1E0B1 17px, transparent 17.5px),
+    radial-gradient(circle at 70% 55%, transparent 28px, #BBCF8A 28.5px, #BBCF8A 30px, transparent 30.5px),
+    radial-gradient(circle at 70% 55%, transparent 41px, #D1E0B1 41.5px, #D1E0B1 43px, transparent 43.5px),
+    radial-gradient(circle at 70% 55%, transparent 54px, #E2EDCC 54.5px, #E2EDCC 56px, transparent 56.5px),
+    radial-gradient(circle at 70% 55%, transparent 67px, #D1E0B1 67.5px, #D1E0B1 69px, transparent 69.5px),
+    #F4FAEB;
+}
+
+/* Pattern: Scaffold — wireframe grid (Prototyping / building structure) */
+.pattern-scaffold {
+  background: #FFF6F5;
+}
+.pattern-scaffold::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, #F7CCC6 1px, transparent 1px) 20px 0 / 40px 100%,
+    linear-gradient(to bottom, #F7CCC6 1px, transparent 1px) 0 16px / 100% 32px;
+}
+.pattern-scaffold::after {
+  content: '';
+  position: absolute;
+  right: 20px;
+  top: 16px;
+  width: 80px;
+  height: 32px;
+  border: 2px solid #EEA79E;
+  border-radius: 4px;
+  box-shadow:
+    -120px 0 0 0 transparent,
+    0 32px 0 -1px #F7CCC6,
+    -40px 32px 0 0 transparent;
+}
+
 
 /* Card icon (sits on the pattern) */
 .feature-card .feature-icon {
@@ -1027,7 +1066,7 @@ p:last-child { margin-bottom: 0; }
   position: absolute;
   top: 16px;
   left: 20px;
-  box-shadow: 0 2px 8px rgba(0, 19, 43, 0.10);
+  box-shadow: none;
 }
 
 /* Card body */
@@ -2239,7 +2278,7 @@ blockquote strong { color: #1C1A17; }
   display: flex;
   justify-content: center;
   gap: 32px;
-  margin-top: 32px;
+  margin-top: 20px;
   flex-wrap: wrap;
 }
 .stat-pill {
