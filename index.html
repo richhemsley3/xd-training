@@ -75,7 +75,7 @@
             <h1>Claude Code Training and Best Practices</h1>
             <p>Learn to direct code-generation with creative precision — built for the experience design team.</p>
             <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-              <a class="sds-btn sds-btn--primary sds-btn--md" href="#" onclick="showPage('getting-started'); return false;"><span class="material-symbols-outlined" style="font-size:18px">download</span> Get set up</a>
+              <a class="sds-btn sds-btn--primary sds-btn--md" href="#" disabled style="opacity:0.4;pointer-events:none;"><span class="material-symbols-outlined" style="font-size:18px">download</span> Get set up</a>
               <a class="sds-btn sds-btn--ghost sds-btn--md" href="#learn-by-topic" onclick="document.getElementById('learn-by-topic').scrollIntoView({behavior:'smooth'}); return false;"><span class="material-symbols-outlined" style="font-size:18px">school</span> Learn by topic</a>
               <a class="sds-btn sds-btn--ghost sds-btn--md" href="#" onclick="showPage('curriculum'); return false;"><span class="material-symbols-outlined" style="font-size:18px">timeline</span> Follow the 12-week program</a>
             </div>
@@ -94,7 +94,7 @@
               <div class="setup-banner__title">New to Claude Code?</div>
               <div class="setup-banner__desc">Install Claude Code, set up your environment, and run your first session in about 30 minutes.</div>
             </div>
-            <a class="sds-btn sds-btn--primary sds-btn--md" href="#" onclick="showPage('getting-started'); return false;">Getting started guide</a>
+            <a class="sds-btn sds-btn--primary sds-btn--md" href="#" disabled style="opacity:0.4;pointer-events:none;">Getting started guide</a>
           </div>
 
           <!-- ── Learn by Topic ────────────────────── -->
@@ -104,18 +104,18 @@
 
             <div class="sub-label">Fundamentals</div>
             <div class="feature-cards">
-              <button class="feature-card feature-card--blue" onclick="showPage('claude-101')">
-                <div class="feature-icon feature-icon--blue"><span class="material-symbols-outlined">smart_toy</span></div>
+              <button class="feature-card" onclick="showPage('claude-101')">
+                <div class="feature-icon"><span class="material-symbols-outlined">smart_toy</span></div>
                 <h3>Claude</h3>
                 <p>How Claude works — sessions, context windows, CLAUDE.md, skills, and the session loop.</p>
               </button>
-              <button class="feature-card feature-card--green" onclick="showPage('prompting-101')">
-                <div class="feature-icon feature-icon--green"><span class="material-symbols-outlined">edit_note</span></div>
+              <button class="feature-card" onclick="showPage('prompting-101')">
+                <div class="feature-icon"><span class="material-symbols-outlined">edit_note</span></div>
                 <h3>Context Engineering</h3>
                 <p>Beyond prompting — shaping the full context that determines Claude's output quality.</p>
               </button>
-              <button class="feature-card feature-card--purple" onclick="showPage('skills-101')">
-                <div class="feature-icon feature-icon--purple"><span class="material-symbols-outlined">bolt</span></div>
+              <button class="feature-card" onclick="showPage('skills-101')">
+                <div class="feature-icon"><span class="material-symbols-outlined">bolt</span></div>
                 <h3>Skills</h3>
                 <p>Reusable prompt templates that encode your design judgment for consistent output.</p>
               </button>
@@ -126,18 +126,18 @@
 
             <div class="sub-label" style="margin-top:40px">Workflows — Apply Claude to real design work</div>
             <div class="feature-cards">
-              <button class="feature-card feature-card--teal" onclick="showPage('design-101')">
-                <div class="feature-icon feature-icon--teal"><span class="material-symbols-outlined">brush</span></div>
+              <button class="feature-card" onclick="showPage('design-101')">
+                <div class="feature-icon"><span class="material-symbols-outlined">brush</span></div>
                 <h3>Designing with Claude</h3>
                 <p>Design exploration, component creation, iteration patterns, and when to use what.</p>
               </button>
-              <button class="feature-card feature-card--coral" onclick="showPage('research-101')">
-                <div class="feature-icon feature-icon--coral"><span class="material-symbols-outlined">search_insights</span></div>
+              <button class="feature-card" onclick="showPage('research-101')">
+                <div class="feature-icon"><span class="material-symbols-outlined">search_insights</span></div>
                 <h3>UX Research</h3>
                 <p>From raw transcripts to stakeholder-ready insights using the full research pipeline.</p>
               </button>
-              <button class="feature-card feature-card--amber" onclick="showPage('prototyping')">
-                <div class="feature-icon feature-icon--amber"><span class="material-symbols-outlined">play_circle</span></div>
+              <button class="feature-card" onclick="showPage('prototyping')">
+                <div class="feature-icon"><span class="material-symbols-outlined">play_circle</span></div>
                 <h3>Prototyping &amp; Validation</h3>
                 <p>Build interactive prototypes that answer design questions static mockups can't.</p>
               </button>
