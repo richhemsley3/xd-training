@@ -1924,7 +1924,7 @@
       </button>
       <div class="sds-topnav-links">
         <button class="sds-topnav-link is-active" data-page="home" onclick="showPage('home')">Home</button>
-        <button class="sds-topnav-link" data-page="getting-started" onclick="showPage('getting-started')">Getting Started</button>
+        <button class="sds-topnav-link" data-page="getting-started" disabled style="opacity:0.4;pointer-events:none;">Getting Started</button>
         <div class="topnav-dropdown" id="fundamentals-dropdown">
           <button class="topnav-dropdown-trigger" onclick="toggleFundamentalsDropdown(event)">Fundamentals <span class="material-symbols-outlined dropdown-arrow">expand_more</span></button>
           <div class="topnav-dropdown-menu">
@@ -1939,8 +1939,14 @@
         <div class="topnav-dropdown" id="workflows-dropdown">
           <button class="topnav-dropdown-trigger" onclick="toggleWorkflowsDropdown(event)">Workflows <span class="material-symbols-outlined dropdown-arrow">expand_more</span></button>
           <div class="topnav-dropdown-menu">
-            <button class="topnav-dropdown-item" data-page="design-101" onclick="showPage('design-101');closeWorkflowsDropdown()">Designing with Claude</button>
             <button class="topnav-dropdown-item" data-page="research-101" onclick="showPage('research-101');closeWorkflowsDropdown()">UX Research</button>
+            <button class="topnav-dropdown-item" data-page="market-research" onclick="showPage('market-research');closeWorkflowsDropdown()">Competitive &amp; Market Research</button>
+            <button class="topnav-dropdown-item" data-page="concept-design" onclick="showPage('concept-design');closeWorkflowsDropdown()">Concept Design</button>
+            <button class="topnav-dropdown-item" data-page="design-101" onclick="showPage('design-101');closeWorkflowsDropdown()">Designing with Claude</button>
+            <button class="topnav-dropdown-item" data-page="prototyping" onclick="showPage('prototyping');closeWorkflowsDropdown()">Prototyping &amp; Validation</button>
+            <button class="topnav-dropdown-item" data-page="ux-eval" onclick="showPage('ux-eval');closeWorkflowsDropdown()">UX Evaluation</button>
+            <button class="topnav-dropdown-item" data-page="ds-components" onclick="showPage('ds-components');closeWorkflowsDropdown()">Design System Components</button>
+            <button class="topnav-dropdown-item" data-page="handoff" onclick="showPage('handoff');closeWorkflowsDropdown()">Handoff &amp; Specs</button>
           </div>
         </div>
         <button class="sds-topnav-link" data-page="curriculum" onclick="showPage('curriculum')">Training Phases</button>
@@ -6397,6 +6403,1073 @@ For each issue found, provide:
           </div>
         </section>
 
+        <!-- ═══════════════ COMPETITIVE & MARKET RESEARCH ═══════════════ -->
+        <section class="page" id="page-market-research">
+          <span class="explainer-label">Workflows</span>
+          <h1 class="page-title">Competitive &amp; Market Research</h1>
+          <p class="page-subtitle">Use Claude to rapidly map competitive landscapes, surface unmet needs, and identify where design can create real differentiation — in minutes instead of days.</p>
+
+          <div class="explainer-section" id="mr-overview">
+            <span class="explainer-label">Why this matters</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">When to use this workflow</h2>
+            <p class="explainer-lead">Competitive research is one of the highest-leverage activities a designer can do — and one of the least done. Not because it isn't valuable, but because it takes too long. Claude changes the economics of research. What took days now takes minutes.</p>
+            <div class="concept-grid">
+              <div class="concept-card">
+                <div class="concept-card__num">1</div>
+                <div class="concept-card__title">Entering a new product area</div>
+                <div class="concept-card__desc">You need to understand existing patterns, user expectations, and where the bar is set before you start sketching.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">2</div>
+                <div class="concept-card__title">Evaluating competitive position</div>
+                <div class="concept-card__desc">You need an honest assessment of where you stand relative to competitors. What are they doing that you aren't? Where are you ahead?</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">3</div>
+                <div class="concept-card__title">Building a design strategy</div>
+                <div class="concept-card__desc">You need evidence that the current experience is falling behind and a clear picture of the opportunity.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">4</div>
+                <div class="concept-card__title">Justifying a redesign</div>
+                <div class="concept-card__desc">Competitive evidence is the fastest way to make the case without relying on opinion.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="mr-define">
+            <span class="explainer-label">Step 1</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Define the research scope</h2>
+            <p class="explainer-lead">The quality of your competitive research is directly proportional to the quality of your brief. Before you prompt Claude, get clear on four things: product category, target user segments, core job-to-be-done, and constraints like geography and company size.</p>
+            <div class="code-block"><pre><code>I'm a product designer working on a cloud data management platform. Our primary users are data engineers and analytics engineers at enterprise companies (1000+ employees).
+
+The core job-to-be-done: users need to monitor the health of their data pipelines, detect quality issues before they reach downstream consumers, and resolve problems quickly.
+
+Help me map the key players, their design approaches, and where users are currently underserved. Start by identifying the categories of competitors I should be looking at.</code></pre></div>
+            <div class="callout callout--insight">
+              <span class="material-symbols-outlined callout__icon">bookmark</span>
+              <div class="callout__body">
+                <div class="callout__title">Ask for structure before details</div>
+                <div class="callout__text">Ask Claude to identify competitor categories before listing individual products. This produces a more organized landscape — direct competitors, adjacent products, emerging alternatives as distinct groups.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="mr-competitors">
+            <span class="explainer-label">Step 2</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Map the competitive landscape</h2>
+            <p class="explainer-lead">Have Claude build out the landscape across distinct competitor categories. You're not just competing with other platforms — you're competing with dbt tests, custom scripts, and spreadsheets people built because nothing else solved the problem.</p>
+            <div class="concept-grid">
+              <div class="concept-card">
+                <div class="concept-card__num">1</div>
+                <div class="concept-card__title">Direct competitors</div>
+                <div class="concept-card__desc">Products that solve the same core problem for the same users. These are your primary benchmarks.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">2</div>
+                <div class="concept-card__title">Adjacent products</div>
+                <div class="concept-card__desc">Platforms that overlap with your space but serve a broader purpose. They're building your features into their core — potentially more dangerous than direct competitors.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">3</div>
+                <div class="concept-card__title">Emerging players</div>
+                <div class="concept-card__desc">Startups with novel approaches. They may lack market share but signal where user expectations are heading.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">4</div>
+                <div class="concept-card__title">Open-source &amp; DIY</div>
+                <div class="concept-card__desc">Often your real competition. Understanding why users choose DIY reveals what commercial products are getting wrong.</div>
+              </div>
+            </div>
+            <div class="callout callout--warning">
+              <span class="material-symbols-outlined callout__icon">error_outline</span>
+              <div class="callout__body">
+                <div class="callout__title">Claude's knowledge has a cutoff</div>
+                <div class="callout__text">Product websites, pricing, and features change constantly. Use Claude's analysis as a structural starting point, then cross-reference against current product websites, G2 reviews, and recent announcements.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="mr-needs">
+            <span class="explainer-label">Step 3</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Identify unmet needs</h2>
+            <p class="explainer-lead">The competitive landscape tells you what exists. Unmet needs tell you what's missing — and that's where your design opportunity lives. Have Claude synthesize pain points ranked by frequency and severity across the landscape.</p>
+            <div class="anatomy-list">
+              <div class="anatomy-item">
+                <div class="anatomy-icon" style="background:var(--sds-color-blue-050);color:var(--sds-interactive-primary)"><span class="material-symbols-outlined">looks_one</span></div>
+                <div class="anatomy-content">
+                  <div class="anatomy-title">Frequency signals</div>
+                  <div class="anatomy-desc">Pain points that show up across multiple competitors. If users of three different products all complain about alert fatigue, that's a structural problem in the category.</div>
+                </div>
+              </div>
+              <div class="anatomy-item">
+                <div class="anatomy-icon" style="background:var(--sds-color-blue-050);color:var(--sds-interactive-primary)"><span class="material-symbols-outlined">looks_two</span></div>
+                <div class="anatomy-content">
+                  <div class="anatomy-title">Severity signals</div>
+                  <div class="anatomy-desc">Problems that cause users to churn, downgrade, or build workarounds. A minor UI annoyance is different from "I ignore all alerts."</div>
+                </div>
+              </div>
+              <div class="anatomy-item">
+                <div class="anatomy-icon" style="background:var(--sds-color-blue-050);color:var(--sds-interactive-primary)"><span class="material-symbols-outlined">looks_3</span></div>
+                <div class="anatomy-content">
+                  <div class="anatomy-title">Workaround signals</div>
+                  <div class="anatomy-desc">What are users building on top of existing tools? Every workaround is an unmet need wearing a disguise.</div>
+                </div>
+              </div>
+              <div class="anatomy-item">
+                <div class="anatomy-icon" style="background:var(--sds-color-blue-050);color:var(--sds-interactive-primary)"><span class="material-symbols-outlined">looks_4</span></div>
+                <div class="anatomy-content">
+                  <div class="anatomy-title">Aspiration signals</div>
+                  <div class="anatomy-desc">What do users wish these products could do? Feature requests and community discussions reveal where the market is heading.</div>
+                </div>
+              </div>
+            </div>
+            <div class="callout callout--tip">
+              <span class="material-symbols-outlined callout__icon">lightbulb</span>
+              <div class="callout__body">
+                <div class="callout__title">Needs, not features</div>
+                <div class="callout__text">"Users want a Slack integration" is a feature request. "Users can't act on alerts without leaving their current context" is an unmet need. Needs give you design freedom — the best solution might not involve Slack at all.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="mr-differentiation">
+            <span class="explainer-label">Step 4</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Find design differentiators</h2>
+            <p class="explainer-lead">Not feature gaps — experience gaps. Every competitor has a data health dashboard. The feature exists everywhere. But if none of them help users understand what to do when something goes wrong, that's an experience gap — and closing it is a design differentiator.</p>
+            <div class="concept-grid">
+              <div class="concept-card">
+                <div class="concept-card__num">1</div>
+                <div class="concept-card__title">Simplification</div>
+                <div class="concept-card__desc">Every competitor shows everything. You show what matters. Reduce cognitive load by surfacing the signal and suppressing the noise.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">2</div>
+                <div class="concept-card__title">Unification</div>
+                <div class="concept-card__desc">Users stitch together multiple tools for a single workflow. Bring those fragments into one coherent experience.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">3</div>
+                <div class="concept-card__title">Guided workflows</div>
+                <div class="concept-card__desc">Competitors show the problem. You guide the resolution. Turn dashboards into action-oriented workflows.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">4</div>
+                <div class="concept-card__title">Proactive insights</div>
+                <div class="concept-card__desc">Competitors are reactive — they tell you when something broke. Differentiate by telling users when something is about to break.</div>
+              </div>
+            </div>
+            <div class="callout callout--insight">
+              <span class="material-symbols-outlined callout__icon">bookmark</span>
+              <div class="callout__body">
+                <div class="callout__title">Design differentiation compounds</div>
+                <div class="callout__text">Feature gaps close quickly — a competitor adds a Slack integration and your advantage disappears overnight. Experience gaps are harder to copy because they require fundamental rethinking of information architecture and interaction models. Invest in experience differentiation to build a moat.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="mr-report">
+            <span class="explainer-label">Step 5</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Synthesize into a research report</h2>
+            <p class="explainer-lead">Have Claude produce a structured, shareable artifact: executive summary, competitive landscape matrix, user pain points, differentiation opportunities, and design recommendations. Claude can generate this as a standalone HTML page using your design system for a polished presentation.</p>
+            <div class="code-block"><pre><code>Synthesize everything into a competitive research report with these sections:
+
+1. Executive Summary (2-3 paragraphs)
+2. Competitive Landscape Matrix (table format)
+3. User Pain Points (ranked by frequency &times; severity)
+4. Differentiation Opportunities (experience gaps, not features)
+5. Design Recommendations (specific, actionable next steps)
+
+Generate this as a standalone HTML page using our design system tokens. Include a "Methodology &amp; Limitations" footer noting that this analysis should be validated against current product states.</code></pre></div>
+          </div>
+
+          <div class="explainer-section" id="mr-tips">
+            <span class="explainer-label">Working effectively</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Getting reliable research from Claude</h2>
+            <p class="explainer-lead">Competitive research is where Claude is most useful and most dangerous. Synthesis across a broad landscape is exactly what LLMs excel at — but confident-sounding analysis that's wrong can be worse than no analysis at all.</p>
+            <div class="callout callout--warning">
+              <span class="material-symbols-outlined callout__icon">error_outline</span>
+              <div class="callout__body">
+                <div class="callout__title">Hallucination risk is highest in research</div>
+                <div class="callout__text">Claude may state specific claims about competitor features or pricing with high confidence — and be wrong. Never cite Claude's competitive claims in a stakeholder presentation without verifying them against current sources. Treat every factual claim as a hypothesis until confirmed.</div>
+              </div>
+            </div>
+            <div class="key-principles">
+              <div class="principle-card">
+                <div class="principle-card__number">1</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Verify current product details</div>
+                  <div class="principle-card__desc">Use Claude for structural analysis — competitive categories, UX patterns, pain point synthesis — and verify specific claims against live products.</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">2</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Cross-reference against public sources</div>
+                  <div class="principle-card__desc">G2 reviews, product changelogs, engineering blogs, and community forums are your validation layer.</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">3</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Use Claude for synthesis, not as source of truth</div>
+                  <div class="principle-card__desc">Claude's strength is pattern-matching across a broad landscape. The underlying facts need independent verification.</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">4</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Treat output as a starting hypothesis</div>
+                  <div class="principle-card__desc">The research accelerates your thinking and gives you a structured foundation. But it needs your judgment and verification before it's ready for stakeholders.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══════════════ CONCEPT DESIGN ═══════════════ -->
+        <section class="page" id="page-concept-design">
+          <span class="explainer-label">Workflows</span>
+          <h1 class="page-title">Concept Design</h1>
+          <p class="page-subtitle">Go from a fuzzy problem space to evaluated design concepts with clear rationale — using Claude as your thinking partner, not your decision-maker.</p>
+
+          <div class="explainer-section" id="cd-overview">
+            <span class="explainer-label">Overview</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">When to use this workflow</h2>
+            <p class="explainer-lead">Use concept design when you're starting a new feature, rethinking an existing flow, or exploring a new product area. This workflow takes you from a fuzzy problem to a concrete direction with rationale.</p>
+            <div class="concept-grid">
+              <div class="concept-card">
+                <div class="concept-card__num">1</div>
+                <div class="concept-card__title">New feature work</div>
+                <div class="concept-card__desc">You have a problem brief but haven't committed to an approach. You need to explore the solution space before converging.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">2</div>
+                <div class="concept-card__title">Rethinking existing flows</div>
+                <div class="concept-card__desc">An existing feature isn't performing well. Usability scores are low or the flow no longer fits how the product has evolved.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">3</div>
+                <div class="concept-card__title">New product areas</div>
+                <div class="concept-card__desc">You're exploring adjacent territory — a new persona, use case, or platform. Existing patterns may not apply.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="cd-problem">
+            <span class="explainer-label">Phase 1</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Define the problem space</h2>
+            <p class="explainer-lead">The quality of your problem definition determines the quality of everything after it. A vague brief produces generic concepts. A sharp brief produces concepts you can actually evaluate.</p>
+            <p>Your problem statement should answer four questions: Who is the user? What are they trying to do? What's broken or missing today? What constraints exist?</p>
+            <div class="code-block"><pre><code>I'm designing a new policy violation triage experience for our data security platform.
+
+User: Security analysts at mid-market companies (50-200 data sources).
+Job to be done: Quickly assess which data sources have new policy violations since their last session, understand severity, and decide what to remediate first.
+Current state: Violations shown in a flat table sorted by timestamp. No grouping, no severity ranking, no way to track what's been addressed.
+Constraints: Must use existing design system. Must work within app shell. 6-week timeline.
+
+Help me think through this problem space. What are the key design tensions?</code></pre></div>
+            <div class="callout callout--tip">
+              <span class="material-symbols-outlined callout__icon">lightbulb</span>
+              <div class="callout__body">
+                <div class="callout__title">Start with questions, not solutions</div>
+                <div class="callout__text">Notice the prompt ends by asking Claude to surface design tensions — not to start building. This first exchange is about sharpening your thinking.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="cd-research">
+            <span class="explainer-label">Phase 2</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Gather inputs</h2>
+            <p class="explainer-lead">This phase isn't about doing new research — it's about arming Claude with everything you already know. Claude is exceptionally good at synthesizing scattered inputs into a coherent picture.</p>
+            <div class="concept-grid">
+              <div class="concept-card">
+                <div class="concept-card__num">1</div>
+                <div class="concept-card__title">Research findings</div>
+                <div class="concept-card__desc">Paste in key quotes from interviews, usability tests, survey data. Don't summarize prematurely — let Claude see the raw signal.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">2</div>
+                <div class="concept-card__title">Competitive analysis</div>
+                <div class="concept-card__desc">How do competitors handle this problem? What patterns work? What feels clunky?</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">3</div>
+                <div class="concept-card__title">Design system patterns</div>
+                <div class="concept-card__desc">Point Claude at your component library. Which components are available? What layout patterns does your product use?</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">4</div>
+                <div class="concept-card__title">Stakeholder context</div>
+                <div class="concept-card__desc">What has PM said about priorities? What has engineering flagged as hard? This political context shapes feasible solutions.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="cd-flows">
+            <span class="explainer-label">Phase 3</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Generate user flows</h2>
+            <p class="explainer-lead">Have Claude produce 2-3 task flow variants for the core user journey. Each flow should answer: what screens does the user see, what decisions do they make, and where are the anxiety points?</p>
+            <div class="compare-grid">
+              <div class="compare-card compare-card--b">
+                <div class="compare-card__label">Weak prompt</div>
+                <div class="compare-card__title">"Create a user flow for violation triage"</div>
+                <div class="compare-card__desc">Too vague. You'll get a generic linear flow that won't surface interesting design decisions.</div>
+              </div>
+              <div class="compare-card compare-card--a">
+                <div class="compare-card__label">Strong prompt</div>
+                <div class="compare-card__title">"Generate 3 flows that differ in how the analyst enters triage"</div>
+                <div class="compare-card__desc">Specifies the axis of variation. You might get: analyst-initiated scan, system-pushed queue, digest-first drill-down.</div>
+              </div>
+            </div>
+            <div class="callout callout--warning">
+              <span class="material-symbols-outlined callout__icon">error_outline</span>
+              <div class="callout__body">
+                <div class="callout__title">Don't skip to UI yet</div>
+                <div class="callout__text">Spend 10 minutes pressure-testing each flow with "what happens when..." questions before moving to concepts.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="cd-concepts">
+            <span class="explainer-label">Phase 4</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Produce 3 concepts</h2>
+            <p class="explainer-lead">The key is three distinct approaches — not three visual skins on the same structure. You need concepts that differ in information hierarchy, interaction model, and progressive disclosure strategy.</p>
+            <div class="code-block"><pre><code>Build 3 concept prototypes for the violation triage experience.
+
+Concept A &mdash; "The Scanner": Severity-sorted list, master-detail layout. Optimize for speed and control.
+Concept B &mdash; "The Queue": Prioritized queue, one at a time. Optimize for focus and completeness.
+Concept C &mdash; "The Briefing": AI-generated summary first, then drill-down. Optimize for situational awareness.
+
+For each: use design system tokens, make it interactive enough to click through, include realistic sample data.</code></pre></div>
+            <div class="callout callout--tip">
+              <span class="material-symbols-outlined callout__icon">lightbulb</span>
+              <div class="callout__body">
+                <div class="callout__title">Name your concepts</div>
+                <div class="callout__text">Short names make concepts easier to discuss with stakeholders and help Claude maintain distinct approaches rather than blending them together.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="cd-evaluate">
+            <span class="explainer-label">Phase 5</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Evaluate concepts</h2>
+            <p class="explainer-lead">Use a structured rubric to compare concepts. Claude can generate the evaluation matrix — but your judgment drives the final call.</p>
+            <div class="key-principles">
+              <div class="principle-card">
+                <div class="principle-card__number">1</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Alignment with user needs</div>
+                  <div class="principle-card__desc">Does this concept directly address what users said they need?</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">2</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Technical feasibility</div>
+                  <div class="principle-card__desc">Can engineering build this within the constraints?</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">3</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Design system fit</div>
+                  <div class="principle-card__desc">Does it use existing components and patterns, or require significant new work?</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">4</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Scalability</div>
+                  <div class="principle-card__desc">Does it work with 10 items and 10,000? Will it grow gracefully?</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">5</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Accessibility</div>
+                  <div class="principle-card__desc">Can all users interact effectively? Keyboard, screen reader, high contrast?</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="cd-select">
+            <span class="explainer-label">Phase 6</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Select and document</h2>
+            <p class="explainer-lead">Write up the chosen direction with rationale in DESIGN.md. Capture what was explored, what was rejected and why, and what the selected concept does well. This document becomes the brief for prototyping or handoff.</p>
+            <div class="callout callout--insight">
+              <span class="material-symbols-outlined callout__icon">bookmark</span>
+              <div class="callout__body">
+                <div class="callout__title">Hybrid concepts are fine</div>
+                <div class="callout__text">You don't have to pick one concept wholesale. The point of exploring three concepts is to discover which elements work best — then combine them intentionally.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="cd-tips">
+            <span class="explainer-label">Practical advice</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Making concept design work</h2>
+            <p class="explainer-lead">Concept design with Claude works best when you treat it as a series of focused phases — not a single marathon prompt.</p>
+            <div class="key-principles">
+              <div class="principle-card">
+                <div class="principle-card__number">1</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Break the session into phases</div>
+                  <div class="principle-card__desc">Each phase (define, gather, flow, build, evaluate, document) should be its own conversation turn. Give Claude feedback between phases.</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">2</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Use /compact between phases</div>
+                  <div class="principle-card__desc">After completing problem definition and research synthesis, use /compact to free up context for concept generation.</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">3</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Start fresh sessions for each concept</div>
+                  <div class="principle-card__desc">If context is getting long, start a new session for each concept prototype. Paste in the brief and let Claude focus entirely on one concept.</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">4</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Throw away concepts without guilt</div>
+                  <div class="principle-card__desc">Claude can generate another one in minutes — your judgment is the scarce resource, not the output.</div>
+                </div>
+              </div>
+            </div>
+            <div class="callout callout--tip">
+              <span class="material-symbols-outlined callout__icon">lightbulb</span>
+              <div class="callout__body">
+                <div class="callout__title">A typical session takes 60-90 minutes</div>
+                <div class="callout__text">Problem definition (10 min), input synthesis (10 min), flow generation (15 min), three concepts (30 min), evaluation (15 min), documentation (10 min). Compare that to days of traditional concept work.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══════════════ DESIGN SYSTEM COMPONENTS ═══════════════ -->
+        <section class="page" id="page-ds-components">
+          <span class="explainer-label">Workflows</span>
+          <h1 class="page-title">Design System Components</h1>
+          <p class="page-subtitle">Build, document, and validate design system components — from identifying the pattern gap to publishing production-ready documentation.</p>
+
+          <div class="explainer-section" id="dsc-overview">
+            <span class="explainer-label">Starting Point</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">When to use this workflow</h2>
+            <p class="explainer-lead">This workflow is for the moments when the cost of not having a component — inconsistency, duplicated effort, diverging implementations — exceeds the cost of building and maintaining one.</p>
+            <div class="concept-grid">
+              <div class="concept-card">
+                <div class="concept-card__num">1</div>
+                <div class="concept-card__title">Pattern appears 3+ times</div>
+                <div class="concept-card__desc">Same UI pattern implemented slightly differently across three or more surfaces. Each instance has its own spacing, state handling, and naming.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">2</div>
+                <div class="concept-card__title">Component needs variants</div>
+                <div class="concept-card__desc">An existing component doesn't cover a new use case. Your data table needs inline editing, or your card needs a compact variant.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">3</div>
+                <div class="concept-card__title">Net-new from scratch</div>
+                <div class="concept-card__desc">A new feature introduces a genuinely new interaction pattern. No existing component covers it.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="dsc-audit">
+            <span class="explainer-label">Step 1</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Audit existing usage</h2>
+            <p class="explainer-lead">Have Claude scan the codebase and build a catalog of every place this pattern appears — with all its inconsistencies exposed. The audit becomes evidence for why a component is needed and reveals the full scope of requirements.</p>
+            <div class="code-block"><pre><code>Search the codebase for every instance of a "status badge" pattern. For each instance, catalog: file path, HTML element used, CSS classes, states handled, spacing values, color values, and whether it's interactive. Then summarize inconsistencies between implementations.</code></pre></div>
+          </div>
+
+          <div class="explainer-section" id="dsc-spec">
+            <span class="explainer-label">Step 2</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Write the component spec</h2>
+            <p class="explainer-lead">The spec is the design decision. Everything after this point is execution. Define every prop, every variant, every state, every responsive breakpoint, every accessibility requirement, and every token mapping.</p>
+            <div class="key-principles">
+              <div class="principle-card">
+                <div class="principle-card__number">1</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Props and variants</div>
+                  <div class="principle-card__desc">Every configuration option with type, default value, and visual description.</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">2</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">All states — no exceptions</div>
+                  <div class="principle-card__desc">Default, hover, active, focus, disabled, error, loading, skeleton. For each, describe exactly what changes visually.</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">3</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Responsive behavior</div>
+                  <div class="principle-card__desc">What happens at each breakpoint. Does it stack, truncate, or switch interaction models?</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">4</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Accessibility requirements</div>
+                  <div class="principle-card__desc">ARIA role, label pattern, keyboard model, focus order, screen reader text, contrast requirements.</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">5</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Token mapping</div>
+                  <div class="principle-card__desc">Every visual value references a design token. No magic numbers, no hex codes, no pixel values.</div>
+                </div>
+              </div>
+            </div>
+            <div class="callout callout--warning">
+              <span class="material-symbols-outlined callout__icon">error_outline</span>
+              <div class="callout__body">
+                <div class="callout__title">If Claude has to guess, it will guess wrong</div>
+                <div class="callout__text">Vague specs like "should look good on mobile" produce vague implementations. State exactly what changes at each breakpoint and what each state looks like.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="dsc-build">
+            <span class="explainer-label">Step 3</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Generate the component</h2>
+            <p class="explainer-lead">Build iteratively — structure first, then styling, then states, then interactions. Verify token usage at each step before moving to the next.</p>
+            <div class="anatomy-list">
+              <div class="anatomy-item">
+                <div class="anatomy-icon" style="background:var(--sds-color-blue-050);color:var(--sds-interactive-primary)"><span class="material-symbols-outlined">looks_one</span></div>
+                <div class="anatomy-content">
+                  <div class="anatomy-title">Pass 1: Structure</div>
+                  <div class="anatomy-desc">Semantic HTML and component skeleton. No styling. Verify DOM structure and ARIA attributes.</div>
+                </div>
+              </div>
+              <div class="anatomy-item">
+                <div class="anatomy-icon" style="background:var(--sds-color-blue-050);color:var(--sds-interactive-primary)"><span class="material-symbols-outlined">looks_two</span></div>
+                <div class="anatomy-content">
+                  <div class="anatomy-title">Pass 2: Styling with tokens</div>
+                  <div class="anatomy-desc">Apply visual styles using only design tokens. Check every value against your token system.</div>
+                </div>
+              </div>
+              <div class="anatomy-item">
+                <div class="anatomy-icon" style="background:var(--sds-color-blue-050);color:var(--sds-interactive-primary)"><span class="material-symbols-outlined">looks_3</span></div>
+                <div class="anatomy-content">
+                  <div class="anatomy-title">Pass 3: States</div>
+                  <div class="anatomy-desc">Add hover, active, focus, disabled, error, loading states one at a time. Verify each visually.</div>
+                </div>
+              </div>
+              <div class="anatomy-item">
+                <div class="anatomy-icon" style="background:var(--sds-color-blue-050);color:var(--sds-interactive-primary)"><span class="material-symbols-outlined">looks_4</span></div>
+                <div class="anatomy-content">
+                  <div class="anatomy-title">Pass 4: Interactions</div>
+                  <div class="anatomy-desc">Click handlers, keyboard events, dismiss behavior, animations. Test keyboard navigation independently.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="dsc-review">
+            <span class="explainer-label">Step 4</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Review and validate</h2>
+            <p class="explainer-lead">Review is not "does it look right." It's a systematic check against your spec, your token system, accessibility requirements, and sibling components.</p>
+            <p>Check: token compliance (zero hardcoded values), semantic HTML, ARIA and keyboard behavior, responsive behavior at all breakpoints, sibling consistency, and naming conventions.</p>
+          </div>
+
+          <div class="explainer-section" id="dsc-document">
+            <span class="explainer-label">Step 5</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Generate documentation</h2>
+            <p class="explainer-lead">Good docs prevent misuse. Bad docs guarantee it. Documentation should include: when to use (and when NOT to use), prop table, visual examples per variant and state, and code snippets for common patterns.</p>
+            <div class="compare-grid">
+              <div class="compare-card compare-card--a">
+                <div class="compare-card__label">Effective documentation</div>
+                <div class="compare-card__title">Specific, contextual, preventive</div>
+                <div class="compare-card__desc">"Use StatusBadge for system-determined states like pipeline run status. Do NOT use for user-applied labels — use Tag for that. The error variant requires a tooltip explaining what went wrong."</div>
+              </div>
+              <div class="compare-card compare-card--b">
+                <div class="compare-card__label">Weak documentation</div>
+                <div class="compare-card__title">Generic, obvious, permissive</div>
+                <div class="compare-card__desc">"StatusBadge is a component for showing status. It supports several variants and sizes. See the prop table for configuration options."</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="dsc-tips">
+            <span class="explainer-label">Best Practices</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Maintaining system quality</h2>
+            <p class="explainer-lead">A design system is only as good as its worst component.</p>
+            <div class="key-principles">
+              <div class="principle-card">
+                <div class="principle-card__number">1</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Always reference an existing component</div>
+                  <div class="principle-card__desc">Point Claude to a reference component that follows your conventions. Real code is a more effective style guide than any written document.</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">2</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Validate with the hardest case first</div>
+                  <div class="principle-card__desc">Test your permission selector with 50 groups before you test it with 3. If the component handles the complex case, simple cases will work.</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">3</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Encode conventions in CLAUDE.md</div>
+                  <div class="principle-card__desc">Token paths, naming conventions, file structure pattern, reference component, review checklist. Every session starts with the right context.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══════════════ PROTOTYPING & VALIDATION ═══════════════ -->
+        <section class="page" id="page-prototyping">
+          <span class="explainer-label">Workflows</span>
+          <h1 class="page-title">Prototyping &amp; Validation</h1>
+          <p class="page-subtitle">Build interactive prototypes that answer design questions static mockups never could.</p>
+
+          <div class="explainer-section" id="pv-overview">
+            <span class="explainer-label">Purpose</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">When to use this workflow</h2>
+            <p class="explainer-lead">Use this workflow when you need to validate an interaction model, test a flow hypothesis, demonstrate behavior to stakeholders, or answer a question that static mockups can't answer.</p>
+            <p>Code prototypes are fundamentally different from Figma prototypes. They demonstrate real behavior — filtering that actually filters, forms that track state, tables that sort and paginate.</p>
+          </div>
+
+          <div class="explainer-section" id="pv-hypothesis">
+            <span class="explainer-label">Foundation</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Define what you're validating</h2>
+            <p class="explainer-lead">Every prototype should answer a specific question. Not "build me the settings page" but "can a user configure pipeline permissions in under 3 clicks?"</p>
+            <div class="compare-grid">
+              <div class="compare-card compare-card--b">
+                <div class="compare-card__label">Vague brief</div>
+                <div class="compare-card__title">"Build a prototype of the data health dashboard."</div>
+                <div class="compare-card__desc">No clear question. No definition of done. Feedback will scatter across layout, color, copy, and interaction.</div>
+              </div>
+              <div class="compare-card compare-card--a">
+                <div class="compare-card__label">Hypothesis-driven</div>
+                <div class="compare-card__title">"Does progressive disclosure reduce cognitive load on the dashboard?"</div>
+                <div class="compare-card__desc">Clear question. Clear interaction to test. Feedback focuses on whether progressive disclosure works.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="pv-scope">
+            <span class="explainer-label">Fidelity</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Scope the fidelity</h2>
+            <p class="explainer-lead">Not every prototype needs to look production-ready. Most should land at mid-fidelity — styled enough to feel real, not so polished that feedback fixates on visual details.</p>
+            <div class="concept-grid">
+              <div class="concept-card">
+                <div class="concept-card__num">Lo</div>
+                <div class="concept-card__title">Low fidelity</div>
+                <div class="concept-card__desc">Wireframe-quality. Validating structure, flow sequence, basic layout. Internal design team reviews. Build time: minutes.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">Mid</div>
+                <div class="concept-card__title">Mid fidelity</div>
+                <div class="concept-card__desc">Styled with tokens and realistic data. Your default for stakeholder walkthroughs and most validation. Build time: hours.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">Hi</div>
+                <div class="concept-card__title">High fidelity</div>
+                <div class="concept-card__desc">Near-production. Only for usability testing with external users or executive presentations. Be careful — invites nitpick feedback.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="pv-build">
+            <span class="explainer-label">Construction</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Build the prototype</h2>
+            <p class="explainer-lead">Prompt Claude with the validation question, constraints, real data structures, and every state. Build screen by screen — verify each before moving to the next.</p>
+            <div class="code-block"><pre><code>I'm testing this hypothesis: users can configure row-level security policies in under 4 steps using a guided flow.
+
+Build a multi-step form prototype:
+- Step 1: Select pipeline and target table
+- Step 2: Define security predicate (column, operator, value) with "add condition" pattern
+- Step 3: Assign user groups (searchable multi-select)
+- Step 4: Review and confirm with plain-language summary
+
+Use --sds-* tokens. Include: progress indicator, back navigation, validation, empty and error states. Use realistic pipeline and column names.</code></pre></div>
+            <div class="callout callout--tip">
+              <span class="material-symbols-outlined callout__icon">lightbulb</span>
+              <div class="callout__body">
+                <div class="callout__title">Real data, not lorem ipsum</div>
+                <div class="callout__text">Real names trigger real objections, real edge cases, and real conversations about the domain model. Use your actual field names, user groups, and status values.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="pv-test">
+            <span class="explainer-label">Validation</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Test and walk through</h2>
+            <p class="explainer-lead">Verify across breakpoints, click through every path (not just the happy path), capture screenshots at decision points, and run a stakeholder walkthrough. The prototype is a conversation tool, not a deliverable.</p>
+            <div class="callout callout--insight">
+              <span class="material-symbols-outlined callout__icon">bookmark</span>
+              <div class="callout__body">
+                <div class="callout__title">The prototype is a conversation tool</div>
+                <div class="callout__text">A rough prototype that sparks a productive 30-minute debate about the interaction model is infinitely more valuable than a polished one that gets a round of "looks good" and goes nowhere.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="pv-document">
+            <span class="explainer-label">Capture</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Document the decision</h2>
+            <p class="explainer-lead">The prototype is disposable. The insight it generated is permanent. Record what you validated or invalidated, what surprised you, and what carries forward into production. Add it to DESIGN.md.</p>
+          </div>
+
+          <div class="explainer-section" id="pv-tips">
+            <span class="explainer-label">Principles</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Prototyping principles</h2>
+            <p class="explainer-lead">These principles keep prototyping fast, focused, and valuable.</p>
+            <div class="key-principles">
+              <div class="principle-card">
+                <div class="principle-card__number">1</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Start with the interaction, not the layout</div>
+                  <div class="principle-card__desc">Get the behavior working in a plain container first, then dress it up if needed.</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">2</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Use real data structures</div>
+                  <div class="principle-card__desc">Real field names, real entity relationships, real cardinality. The data shape is the design constraint.</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">3</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Prototype the states, not just the happy path</div>
+                  <div class="principle-card__desc">Empty, error, loading, overflow. These states are where interaction models break — and where the real design work happens.</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">4</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Make it disposable</div>
+                  <div class="principle-card__desc">If you're afraid to throw it away, you've over-invested. The value lives in the insight, not the artifact.</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">5</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">One prototype per question</div>
+                  <div class="principle-card__desc">Compound prototypes produce ambiguous results. Keep them small, focused, and single-purpose.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══════════════ UX EVALUATION ═══════════════ -->
+        <section class="page" id="page-ux-eval">
+          <span class="explainer-label">Workflows</span>
+          <h1 class="page-title">UX Evaluation</h1>
+          <p class="page-subtitle">Systematically audit existing interfaces to find the highest-impact usability improvements.</p>
+
+          <div class="explainer-section" id="uxe-overview">
+            <span class="explainer-label">Purpose</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">When to use this workflow</h2>
+            <p class="explainer-lead">Evaluation is the highest-leverage design skill. Knowing what to fix matters far more than knowing how to build. This workflow turns Claude into a systematic audit partner.</p>
+            <div class="concept-grid">
+              <div class="concept-card">
+                <div class="concept-card__num">1</div>
+                <div class="concept-card__title">Inheriting an existing UI</div>
+                <div class="concept-card__desc">Understand what's working and what isn't before making changes.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">2</div>
+                <div class="concept-card__title">Preparing for a redesign</div>
+                <div class="concept-card__desc">Build an evidence-based case for what needs to change and why.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">3</div>
+                <div class="concept-card__title">Periodic UX health check</div>
+                <div class="concept-card__desc">Quarterly evaluations catch degradation before users start complaining.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">4</div>
+                <div class="concept-card__title">Diagnosing user struggles</div>
+                <div class="concept-card__desc">A structured heuristic walkthrough reveals friction points analytics alone can't explain.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="uxe-scope">
+            <span class="explainer-label">Step 1</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Scope the audit</h2>
+            <p class="explainer-lead">Define exactly what you're evaluating and what criteria you're measuring against. Trying to audit an entire product at once produces shallow findings. Narrow scope produces actionable depth.</p>
+            <div class="code-block"><pre><code>Read the components in /src/pages/PipelineBuilder/ and evaluate the "create new pipeline" flow against Nielsen's 10 usability heuristics.
+
+Scope: From clicking "New Pipeline" to first successful run.
+For each violation, rate severity as: Critical, High, Medium, Low.
+Output as a structured table.</code></pre></div>
+          </div>
+
+          <div class="explainer-section" id="uxe-inventory">
+            <span class="explainer-label">Step 2</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Capture the current state</h2>
+            <p class="explainer-lead">Have Claude read the code and produce a structured inventory: components used, layout patterns, states handled, and — most importantly — states missing. Claude spots gaps you've gone blind to.</p>
+          </div>
+
+          <div class="explainer-section" id="uxe-heuristic">
+            <span class="explainer-label">Step 3</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Heuristic walkthrough</h2>
+            <p class="explainer-lead">The core of the evaluation — a structured, multi-pass review. The 3-pass pattern: evaluate and rate, fix critical issues, then re-evaluate to verify fixes and catch regressions.</p>
+            <div class="anatomy-list">
+              <div class="anatomy-item">
+                <div class="anatomy-icon" style="background:var(--sds-color-blue-050);color:var(--sds-interactive-primary)"><span class="material-symbols-outlined">looks_one</span></div>
+                <div class="anatomy-content">
+                  <div class="anatomy-title">Pass 1: Evaluate and rate</div>
+                  <div class="anatomy-desc">Claude walks through the interface against each heuristic and rates every violation by severity. Typically produces 15-40 findings.</div>
+                </div>
+              </div>
+              <div class="anatomy-item">
+                <div class="anatomy-icon" style="background:var(--sds-color-blue-050);color:var(--sds-interactive-primary)"><span class="material-symbols-outlined">looks_two</span></div>
+                <div class="anatomy-content">
+                  <div class="anatomy-title">Pass 2: Fix critical and high issues</div>
+                  <div class="anatomy-desc">You direct which fixes to make — Claude implements them. Don't touch medium/low yet.</div>
+                </div>
+              </div>
+              <div class="anatomy-item">
+                <div class="anatomy-icon" style="background:var(--sds-color-blue-050);color:var(--sds-interactive-primary)"><span class="material-symbols-outlined">looks_3</span></div>
+                <div class="anatomy-content">
+                  <div class="anatomy-title">Pass 3: Re-evaluate</div>
+                  <div class="anatomy-desc">Run the evaluation again. Verify fixes resolved original issues and check for regressions.</div>
+                </div>
+              </div>
+            </div>
+            <div class="callout callout--tip">
+              <span class="material-symbols-outlined callout__icon">lightbulb</span>
+              <div class="callout__body">
+                <div class="callout__title">Always do Pass 3</div>
+                <div class="callout__text">Fixes regularly introduce new heuristic violations — a new modal lacking a close button, an error message using jargon. The third pass catches regressions while they're cheap to fix.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="uxe-accessibility">
+            <span class="explainer-label">Step 4</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Accessibility audit</h2>
+            <p class="explainer-lead">Separate from heuristic walkthrough because it uses different criteria (WCAG 2.1 AA). Same 3-pass structure. Cover: contrast ratios, keyboard navigation, ARIA attributes, focus management, and screen reader announcements.</p>
+            <div class="callout callout--warning">
+              <span class="material-symbols-outlined callout__icon">error_outline</span>
+              <div class="callout__body">
+                <div class="callout__title">Claude can't replace manual testing</div>
+                <div class="callout__text">Code-level audits catch structural issues. But they can't fully verify the screen reader experience or catch issues during real keyboard navigation. Fix structural issues first, then test with actual assistive technology.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="uxe-improvements">
+            <span class="explainer-label">Step 5</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Prioritize improvements</h2>
+            <p class="explainer-lead">Group findings by theme, use an impact/effort matrix, and have Claude propose design alternatives for the top issues. You decide what to fix — Claude surfaces options.</p>
+            <div class="concept-grid">
+              <div class="concept-card">
+                <div class="concept-card__num"><span class="material-symbols-outlined">bolt</span></div>
+                <div class="concept-card__title">High impact, low effort</div>
+                <div class="concept-card__desc">Fix first. Adding loading spinners, improving error messages, fixing focus states. Small changes, meaningful improvement.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num"><span class="material-symbols-outlined">trending_up</span></div>
+                <div class="concept-card__title">High impact, high effort</div>
+                <div class="concept-card__desc">Plan for upcoming sprints. Restructuring wizards, redesigning filter systems.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num"><span class="material-symbols-outlined">auto_fix_high</span></div>
+                <div class="concept-card__title">Low impact, low effort</div>
+                <div class="concept-card__desc">Bundle into polish passes. Spacing adjustments, hover states, label copy.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num"><span class="material-symbols-outlined">do_not_disturb</span></div>
+                <div class="concept-card__title">Low impact, high effort</div>
+                <div class="concept-card__desc">Deprioritize or drop. Save energy for changes users will notice.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="uxe-report">
+            <span class="explainer-label">Step 6</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Document and share</h2>
+            <p class="explainer-lead">Produce a structured evaluation report with findings grouped by theme, severity ratings, and a prioritized action plan. This is the artifact that transforms "this feels wrong" into evidence engineering can act on.</p>
+            <div class="compare-grid">
+              <div class="compare-card compare-card--a">
+                <div class="compare-card__label">Effective report</div>
+                <div class="compare-card__title">Structured, actionable, scoped</div>
+                <div class="compare-card__desc">States scope and criteria upfront. Groups findings by theme with severity ratings. Each finding includes location, violated principle, and recommendation. Ends with prioritized action plan. Can be handed to an engineer and acted on without a meeting.</div>
+              </div>
+              <div class="compare-card compare-card--b">
+                <div class="compare-card__label">Ineffective report</div>
+                <div class="compare-card__title">Vague, overwhelming, unscoped</div>
+                <div class="compare-card__desc">50 findings with no grouping. Subjective language without referencing principles. Mixes critical blockers with cosmetic preferences. No action plan — just a wall of complaints that gets filed and forgotten.</div>
+              </div>
+            </div>
+            <div class="callout callout--tip">
+              <span class="material-symbols-outlined callout__icon">lightbulb</span>
+              <div class="callout__body">
+                <div class="callout__title">Version your reports</div>
+                <div class="callout__text">Run this evaluation quarterly on the same flows. Compare findings across reports to track UX quality over time. Nothing builds credibility for design investment like showing critical issues dropped from 12 to 2.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══════════════ DESIGN HANDOFF & SPECS ═══════════════ -->
+        <section class="page" id="page-handoff">
+          <span class="explainer-label">Workflows</span>
+          <h1 class="page-title">Design Handoff &amp; Specs</h1>
+          <p class="page-subtitle">Turn your designs into specifications complete enough that engineers stop asking questions in Slack.</p>
+
+          <div class="explainer-section" id="ho-overview">
+            <span class="explainer-label">Why this workflow</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">When to use this workflow</h2>
+            <p class="explainer-lead">Handoff is where design quality either survives or dies. The gap between your Figma file and what ships is almost never about wrong colors — it's about the states, behaviors, and edge cases that never got documented.</p>
+            <div class="concept-grid">
+              <div class="concept-card">
+                <div class="concept-card__num">1</div>
+                <div class="concept-card__title">Handing off to engineering</div>
+                <div class="concept-card__desc">A component or page is ready for implementation and you need specs that actually cover what developers will build.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">2</div>
+                <div class="concept-card__title">"What happens when...?" questions</div>
+                <div class="concept-card__desc">If you're fielding questions about empty states or keyboard behavior after handoff, your specs have gaps.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">3</div>
+                <div class="concept-card__title">Specs scattered across tools</div>
+                <div class="concept-card__desc">Figma annotations, Slack threads, Confluence pages — when specs live everywhere, they live nowhere.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num">4</div>
+                <div class="concept-card__title">Complex UI with many states</div>
+                <div class="concept-card__desc">Data tables, permission models, inline editing, bulk operations — these need dozens of states documented.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="ho-completeness">
+            <span class="explainer-label">Step 1</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Audit completeness</h2>
+            <p class="explainer-lead">Have Claude review your component and produce a gap analysis across five dimensions: visual states, data states, responsive behavior, accessibility, and edge cases.</p>
+          </div>
+
+          <div class="explainer-section" id="ho-states">
+            <span class="explainer-label">Step 2</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Generate a state inventory</h2>
+            <p class="explainer-lead">For every interactive element, enumerate every possible state. Claude is exceptionally good at exhaustive enumeration — much better than a designer working from memory who naturally thinks about the happy path first.</p>
+            <div class="callout callout--warning">
+              <span class="material-symbols-outlined callout__icon">error_outline</span>
+              <div class="callout__body">
+                <div class="callout__title">Combination states are where bugs hide</div>
+                <div class="callout__text">What does an inline-editable cell look like when the row is selected, the user doesn't have edit permission, and the content overflows? You don't need to design every combination, but you need rules for how states compose.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="ho-interactions">
+            <span class="explainer-label">Step 3</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Write interaction specifications</h2>
+            <p class="explainer-lead">Developers don't struggle with pixel measurements — design tokens handle that. They need behavior descriptions: what happens on click, hover, escape, outside-click, tab, and screen reader focus.</p>
+            <div class="callout callout--insight">
+              <span class="material-symbols-outlined callout__icon">bookmark</span>
+              <div class="callout__body">
+                <div class="callout__title">Write specs for the hard interactions first</div>
+                <div class="callout__text">Simple button clicks don't need elaborate specs. Inline editing, drag-and-drop, bulk operations with mixed permissions — these need detailed behavioral documentation. Spend time where ambiguity is highest.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="ho-edge-cases">
+            <span class="explainer-label">Step 4</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Document edge cases</h2>
+            <p class="explainer-lead">In data management SaaS, edge cases aren't edge cases — they're the product. Zero rows, 10,000 rows, 500-character column values, partial permissions, network drops mid-save.</p>
+            <div class="concept-grid">
+              <div class="concept-card">
+                <div class="concept-card__num"><span class="material-symbols-outlined">filter_none</span></div>
+                <div class="concept-card__title">Quantity extremes</div>
+                <div class="concept-card__desc">0, 1, 1000+ items. Test the boundaries, not just the middle.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num"><span class="material-symbols-outlined">text_fields</span></div>
+                <div class="concept-card__title">Content extremes</div>
+                <div class="concept-card__desc">Very long strings, single characters, special characters, mixed languages.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num"><span class="material-symbols-outlined">lock</span></div>
+                <div class="concept-card__title">Permission boundaries</div>
+                <div class="concept-card__desc">View-only, partial edit, admin vs. member, permission changes mid-session.</div>
+              </div>
+              <div class="concept-card">
+                <div class="concept-card__num"><span class="material-symbols-outlined">cloud_off</span></div>
+                <div class="concept-card__title">Infrastructure failures</div>
+                <div class="concept-card__desc">Slow network, offline, partial API failures, timeout, concurrent modification.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="ho-brief">
+            <span class="explainer-label">Step 5</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Create the developer brief</h2>
+            <p class="explainer-lead">Consolidate everything into a single DESIGN.md: component purpose, props/API, token usage, state inventory, interaction specs, accessibility requirements, and edge cases.</p>
+            <div class="compare-grid">
+              <div class="compare-card compare-card--a">
+                <div class="compare-card__label">Complete brief</div>
+                <div class="compare-card__title">Single source of truth in the repo</div>
+                <div class="compare-card__desc">Full props/API, token usage, every state documented, interaction behavior for all input methods, edge cases with handling instructions, open questions flagged clearly. Lives as DESIGN.md next to the code.</div>
+              </div>
+              <div class="compare-card compare-card--b">
+                <div class="compare-card__label">Typical handoff</div>
+                <div class="compare-card__title">Scattered and incomplete</div>
+                <div class="compare-card__desc">Figma link with happy-path annotations. "Designs are in Figma, lmk if questions." No error states, no keyboard behavior, edge cases discovered during QA. Spec never updated.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explainer-section" id="ho-tips">
+            <span class="explainer-label">Make it stick</span>
+            <h2 class="section-heading" style="margin-top:var(--sds-space-200)">Handoff that sticks</h2>
+            <p class="explainer-lead">A spec nobody reads is worse than no spec — it gives the illusion that engineering has what they need.</p>
+            <div class="key-principles">
+              <div class="principle-card">
+                <div class="principle-card__number">1</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Write specs in the code repo</div>
+                  <div class="principle-card__desc">Not Figma comments, not Confluence, not Slack. Put DESIGN.md next to the component code. Engineers live in the repo — meet them there.</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">2</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Run the spec past an engineer first</div>
+                  <div class="principle-card__desc">They'll catch implementation gaps you missed. A 15-minute review saves days of back-and-forth.</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">3</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Update when requirements change</div>
+                  <div class="principle-card__desc">A stale spec is worse than no spec. Treat DESIGN.md like code — if it's out of date, it's a bug.</div>
+                </div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__number">4</div>
+                <div class="principle-card__content">
+                  <div class="principle-card__title">Handoff is a conversation, not a document drop</div>
+                  <div class="principle-card__desc">Walk through the spec with the implementing engineer. The DESIGN.md is the record of that conversation — not a replacement for it.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- ═══════════════ PROMPTS ═══════════════ -->
         <section class="page" id="page-prompts">
           <span class="explainer-label">Reference</span>
@@ -7897,6 +8970,79 @@ const secondaryNavConfigs = {
       { id: 'des-claudemd',      label: 'CLAUDE.md for designers' },
     ]
   },
+  'market-research': {
+    label: 'Competitive & Market Research',
+    items: [
+      { id: 'mr-overview',         label: 'When to use this workflow' },
+      { id: 'mr-define',           label: 'Define the research scope' },
+      { id: 'mr-competitors',      label: 'Map the landscape' },
+      { id: 'mr-needs',            label: 'Identify unmet needs' },
+      { id: 'mr-differentiation',  label: 'Find differentiators' },
+      { id: 'mr-report',           label: 'Synthesize a report' },
+      { id: 'mr-tips',             label: 'Getting reliable research' },
+    ]
+  },
+  'concept-design': {
+    label: 'Concept Design',
+    items: [
+      { id: 'cd-overview',  label: 'When to use this workflow' },
+      { id: 'cd-problem',   label: 'Define the problem space' },
+      { id: 'cd-research',  label: 'Gather inputs' },
+      { id: 'cd-flows',     label: 'Generate user flows' },
+      { id: 'cd-concepts',  label: 'Produce 3 concepts' },
+      { id: 'cd-evaluate',  label: 'Evaluate concepts' },
+      { id: 'cd-select',    label: 'Select and document' },
+      { id: 'cd-tips',      label: 'Making it work' },
+    ]
+  },
+  'ds-components': {
+    label: 'Design System Components',
+    items: [
+      { id: 'dsc-overview',  label: 'When to use this workflow' },
+      { id: 'dsc-audit',     label: 'Audit existing usage' },
+      { id: 'dsc-spec',      label: 'Write the component spec' },
+      { id: 'dsc-build',     label: 'Generate the component' },
+      { id: 'dsc-review',    label: 'Review and validate' },
+      { id: 'dsc-document',  label: 'Generate documentation' },
+      { id: 'dsc-tips',      label: 'Maintaining system quality' },
+    ]
+  },
+  'prototyping': {
+    label: 'Prototyping & Validation',
+    items: [
+      { id: 'pv-overview',    label: 'When to use this workflow' },
+      { id: 'pv-hypothesis',  label: 'Define what you\'re validating' },
+      { id: 'pv-scope',       label: 'Scope the fidelity' },
+      { id: 'pv-build',       label: 'Build the prototype' },
+      { id: 'pv-test',        label: 'Test and walk through' },
+      { id: 'pv-document',    label: 'Document the decision' },
+      { id: 'pv-tips',        label: 'Prototyping principles' },
+    ]
+  },
+  'ux-eval': {
+    label: 'UX Evaluation',
+    items: [
+      { id: 'uxe-overview',       label: 'When to use this workflow' },
+      { id: 'uxe-scope',          label: 'Scope the audit' },
+      { id: 'uxe-inventory',      label: 'Capture current state' },
+      { id: 'uxe-heuristic',      label: 'Heuristic walkthrough' },
+      { id: 'uxe-accessibility',  label: 'Accessibility audit' },
+      { id: 'uxe-improvements',   label: 'Prioritize improvements' },
+      { id: 'uxe-report',         label: 'Document and share' },
+    ]
+  },
+  'handoff': {
+    label: 'Handoff & Specs',
+    items: [
+      { id: 'ho-overview',      label: 'When to use this workflow' },
+      { id: 'ho-completeness',  label: 'Audit completeness' },
+      { id: 'ho-states',        label: 'State inventory' },
+      { id: 'ho-interactions',  label: 'Interaction specifications' },
+      { id: 'ho-edge-cases',    label: 'Document edge cases' },
+      { id: 'ho-brief',         label: 'Developer brief' },
+      { id: 'ho-tips',          label: 'Handoff that sticks' },
+    ]
+  },
   'research-101': {
     label: 'UX Research',
     items: [
@@ -7992,7 +9138,7 @@ function showPage(id) {
   if (page) page.classList.add('active');
   // Handle dropdown pages
   const fundamentalsPages = ['adoption-101', 'claude-101', 'cli-101', 'git-101', 'prompting-101', 'skills-101'];
-  const workflowsPages = ['design-101', 'research-101'];
+  const workflowsPages = ['research-101', 'market-research', 'concept-design', 'design-101', 'prototyping', 'ux-eval', 'ds-components', 'handoff'];
   if (fundamentalsPages.includes(id)) {
     const trigger = document.querySelector('#fundamentals-dropdown .topnav-dropdown-trigger');
     if (trigger) trigger.classList.add('is-active');
