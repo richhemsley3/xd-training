@@ -1,0 +1,20 @@
+{
+  "eval_id": 2,
+  "eval_name": "mermaid-conversion",
+  "prompt": "Turn this into an interactive flow diagram:\n\n```mermaid\nflowchart LR\n    A([Start]) --> B[Search Products]\n    B --> C{Found results?}\n    C -->|Yes| D[Product Detail]\n    C -->|No| E[No Results Page]\n    E --> B\n    D --> F{In Stock?}\n    F -->|Yes| G[Add to Cart]\n    F -->|No| H[Notify When Available]\n    G --> I[Checkout]\n    I --> J([Order Confirmed])\n```",
+  "assertions": [
+    "Uses D3.js from CDN",
+    "Single standalone HTML file",
+    "Nodes are clickable (click handlers)",
+    "Multiple zoom levels (at least 2 distinct views)",
+    "Breadcrumb or back navigation",
+    "Custom styled nodes (not default SVG)",
+    "Smooth transitions between states",
+    "Dark theme styling (#0F0F0F or similar dark background)",
+    "Orthogonal connectors (right-angle paths)",
+    "Action pills on connectors",
+    "All 10 Mermaid nodes preserved",
+    "Start/end nodes use pill or stadium shapes",
+    "Decision nodes use diamond shapes"
+  ]
+}

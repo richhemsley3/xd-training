@@ -1,0 +1,56 @@
+{
+  "prompt": "Build a screen flow for a login/signup experience: Landing Page \u2192 Login Form \u2192 Dashboard (on success) OR Landing Page \u2192 Sign Up Form \u2192 Email Verification \u2192 Dashboard. Show both paths branching from the landing page. Include an error path from Login Form to 'Invalid Credentials' error screen that loops back.",
+  "expected_output": "A standalone HTML file showing branching screen flows with two paths from the landing page. Login and signup forms should show form-type wireframe content. The error screen should be visually distinct (red accent). Dashboard should show dashboard-type content. Green connectors with action labels.",
+  "assertions": [
+    {
+      "type": "file_exists",
+      "name": "HTML file exists",
+      "pattern": "*.html"
+    },
+    {
+      "type": "contains",
+      "name": "Uses D3.js from CDN",
+      "text": "d3@7"
+    },
+    {
+      "type": "contains",
+      "name": "Landing page screen",
+      "text": "Landing"
+    },
+    {
+      "type": "contains",
+      "name": "Login form screen",
+      "text": "Login"
+    },
+    {
+      "type": "contains",
+      "name": "Sign up form screen",
+      "text": "Sign Up"
+    },
+    {
+      "type": "contains",
+      "name": "Dashboard screen",
+      "text": "Dashboard"
+    },
+    {
+      "type": "contains",
+      "name": "Error state screen",
+      "text": "Invalid"
+    },
+    {
+      "type": "contains",
+      "name": "Email verification screen",
+      "text": "Verification"
+    },
+    {
+      "type": "contains",
+      "name": "SDS interactive-primary connectors",
+      "text": "#013D5B"
+    },
+    {
+      "type": "contains",
+      "name": "Warm canvas background",
+      "text": "#FAF8F5"
+    }
+  ]
+}

@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Food Delivery App - Screen Flow Diagram</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f0f2f5;
+    color: #1a1a2e;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  #toolbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    z-index: 100;
+    gap: 16px;
+  }
+
+  #toolbar h1 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a2e;
+    flex: 1;
+  }
+
+  #toolbar .badge {
+    font-size: 11px;
+    background: #e8f0fe;
+    color: #1967d2;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: 500;
+  }
+
+  .toolbar-btn {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #555;
+    transition: all 0.15s;
+  }
+
+  .toolbar-btn:hover {
+    background: #f5f5f5;
+    border-color: #bbb;
+  }
+
+  #canvas-container {
+    position: absolute;
+    top: 56px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    cursor: grab;
+  }
+
+  #canvas-container:active {
+    cursor: grabbing;
+  }
+
+  #canvas-container svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Screen detail panel */
+  #detail-panel {
+    position: fixed;
+    right: -400px;
+    top: 56px;
+    bottom: 0;
+    width: 380px;
+    background: #fff;
+    border-left: 1px solid #e0e0e0;
+    z-index: 90;
+    transition: right 0.3s ease;
+    overflow-y: auto;
+    padding: 24px;
+  }
+
+  #detail-panel.open {
+    right: 0;
+  }
+
+  #detail-panel h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  #detail-panel .screen-index {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 16px;
+  }
+
+  #detail-panel .section-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888;
+    margin: 20px 0 8px;
+  }
+
+  #detail-panel .element-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  #detail-panel .element-list li {
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  #detail-panel .element-list li .icon {
+    width: 20px;
+    height: 20px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+
+  #detail-panel .nav-info {
+    padding: 10px 14px;
+    background: #e8f0fe;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #1967d2;
+    margin-bottom: 8px;
+  }
+
+  .close-panel {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #999;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+  }
+
+  .close-panel:hover {
+    background: #f0f0f0;
+    color: #333;
+  }
+
+  /* Tooltip */
+  .tooltip {
+    position: fixed;
+    background: #1a1a2e;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 200;
+    white-space: nowrap;
+  }
+
+  .tooltip.visible {
+    opacity: 1;
+  }
+
+  /* Minimap */
+  #minimap {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    width: 180px;
+    height: 100px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    z-index: 80;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  #minimap .viewport-rect {
+    fill: rgba(25, 103, 210, 0.15);
+    stroke: #1967d2;
+    stroke-width: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <h1>Food Delivery App - Screen Flow</h1>
+  <span class="badge">5 Screens</span>
+  <button class="toolbar-btn" id="btn-fit">Fit All</button>
+  <button class="toolbar-btn" id="btn-zoom-in">+</button>
+  <button class="toolbar-btn" id="btn-zoom-out">-</button>
+</div>
+
+<div id="canvas-container">
+  <svg id="canvas"></svg>
+</div>
+
+<div id="detail-panel">
+  <button class="close-panel" id="close-detail">&times;</button>
+  <div id="detail-content"></div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<div id="minimap"></div>
+
+<script>
+// ── Data ──
+const screens = [
+  {
+    id: 'home',
+    title: 'Home Feed',
+    subtitle: 'Restaurant Listings',
+    x: 100,
+    y: 160,
+    elements: ['Search Bar', 'Category Filters', 'Restaurant Card 1', 'Restaurant Card 2', 'Restaurant Card 3', 'Bottom Tab Bar'],
+    navigatesTo: 'restaurant',
+    navigatesFrom: null,
+    description: 'Main landing screen showing a scrollable feed of nearby restaurants with search and category filtering.',
+    uiElements: [
+      { type: 'header', label: 'Search Bar' },
+      { type: 'filter', label: 'Category Pills' },
+      { type: 'card', label: 'Restaurant Cards' },
+      { type: 'nav', label: 'Tab Bar' }
+    ]
+  },
+  {
+    id: 'restaurant',
+    title: 'Restaurant Detail',
+    subtitle: 'Menu & Info',
+    x: 460,
+    y: 160,
+    elements: ['Back Button', 'Hero Image', 'Restaurant Info', 'Menu Section Header', 'Menu Item 1', 'Menu Item 2', 'Add to Cart Button'],
+    navigatesTo: 'cart',
+    navigatesFrom: 'home',
+    description: 'Detailed view of a selected restaurant showing hero image, info, rating, and scrollable menu items.',
+    uiElements: [
+      { type: 'back', label: 'Back Arrow' },
+      { type: 'image', label: 'Hero Image' },
+      { type: 'info', label: 'Restaurant Info' },
+      { type: 'list', label: 'Menu Items' },
+      { type: 'button', label: 'Add to Cart CTA' }
+    ]
+  },
+  {
+    id: 'cart',
+    title: 'Cart',
+    subtitle: 'Order Summary',
+    x: 820,
+    y: 160,
+    elements: ['Back Button', 'Cart Header', 'Cart Item 1', 'Cart Item 2', 'Quantity Controls', 'Price Summary', 'Proceed to Checkout Button'],
+    navigatesTo: 'checkout',
+    navigatesFrom: 'restaurant',
+    description: 'Order summary screen listing all added items with quantities, individual and total pricing, and a checkout CTA.',
+    uiElements: [
+      { type: 'back', label: 'Back Arrow' },
+      { type: 'header', label: 'Cart Title' },
+      { type: 'list', label: 'Cart Items' },
+      { type: 'summary', label: 'Price Breakdown' },
+      { type: 'button', label: 'Checkout CTA' }
+    ]
+  },
+  {
+    id: 'checkout',
+    title: 'Checkout',
+    subtitle: 'Address & Payment',
+    x: 1180,
+    y: 160,
+    elements: ['Back Button', 'Delivery Address Section', 'Address Input Fields', 'Payment Method Section', 'Card Input Fields', 'Place Order Button'],
+    navigatesTo: 'confirmation',
+    navigatesFrom: 'cart',
+    description: 'Form screen for entering delivery address and payment information before placing the order.',
+    uiElements: [
+      { type: 'back', label: 'Back Arrow' },
+      { type: 'form', label: 'Address Fields' },
+      { type: 'form', label: 'Payment Fields' },
+      { type: 'button', label: 'Place Order CTA' }
+    ]
+  },
+  {
+    id: 'confirmation',
+    title: 'Confirmation',
+    subtitle: 'Order Placed',
+    x: 1540,
+    y: 160,
+    elements: ['Success Icon', 'Order Number', 'Estimated Delivery', 'Order Details', 'Track Order Button', 'Back to Home Button'],
+    navigatesTo: null,
+    navigatesFrom: 'checkout',
+    description: 'Confirmation screen showing order success, order number, estimated delivery time, and options to track or return home.',
+    uiElements: [
+      { type: 'icon', label: 'Success Checkmark' },
+      { type: 'info', label: 'Order Details' },
+      { type: 'info', label: 'ETA Display' },
+      { type: 'button', label: 'Track Order CTA' },
+      { type: 'button', label: 'Back to Home' }
+    ]
+  }
+];
+
+const PHONE_W = 240;
+const PHONE_H = 480;
+const PHONE_R = 24;
+const ARROW_GAP = 120;
+
+// ── SVG Setup ──
+const svg = d3.select('#canvas');
+const container = d3.select('#canvas-container');
+const width = window.innerWidth;
+const height = window.innerHeight - 56;
+
+const g = svg.append('g');
+
+// Zoom behavior
+const zoom = d3.zoom()
+  .scaleExtent([0.2, 2])
+  .on('zoom', (event) => {
+    g.attr('transform', event.transform);
+    updateMinimap(event.transform);
+  });
+
+svg.call(zoom);
+
+// ── Arrow Marker ──
+svg.append('defs').append('marker')
+  .attr('id', 'arrowhead')
+  .attr('viewBox', '0 0 10 7')
+  .attr('refX', 10)
+  .attr('refY', 3.5)
+  .attr('markerWidth', 10)
+  .attr('markerHeight', 7)
+  .attr('orient', 'auto')
+  .append('polygon')
+  .attr('points', '0 0, 10 3.5, 0 7')
+  .attr('fill', '#1967d2');
+
+// Drop shadow filter
+const defs = svg.select('defs');
+const filter = defs.append('filter').attr('id', 'shadow').attr('x', '-10%').attr('y', '-10%').attr('width', '130%').attr('height', '140%');
+filter.append('feDropShadow').attr('dx', 0).attr('dy', 4).attr('stdDeviation', 8).attr('flood-color', 'rgba(0,0,0,0.10)');
+
+// Clip path for phone screens
+screens.forEach((s, i) => {
+  defs.append('clipPath')
+    .attr('id', `clip-phone-${i}`)
+    .append('rect')
+    .attr('x', s.x)
+    .attr('y', s.y)
+    .attr('width', PHONE_W)
+    .attr('height', PHONE_H)
+    .attr('rx', PHONE_R);
+});
+
+// ── Draw Connections ──
+const connections = g.append('g').attr('class', 'connections');
+
+screens.forEach((s, i) => {
+  if (s.navigatesTo) {
+    const target = screens.find(t => t.id === s.navigatesTo);
+    if (!target) return;
+    const x1 = s.x + PHONE_W + 8;
+    const y1 = s.y + PHONE_H / 2;
+    const x2 = target.x - 8;
+    const y2 = target.y + PHONE_H / 2;
+    const mx = (x1 + x2) / 2;
+
+    // Forward arrow
+    connections.append('path')
+      .attr('d', `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`)
+      .attr('fill', 'none')
+      .attr('stroke', '#1967d2')
+      .attr('stroke-width', 2)
+      .attr('marker-end', 'url(#arrowhead)')
+      .attr('opacity', 0.7);
+
+    // Label on arrow
+    const labelTexts = {
+      'home': 'Tap Restaurant',
+      'restaurant': 'Add & View Cart',
+      'cart': 'Proceed',
+      'checkout': 'Place Order'
+    };
+    connections.append('text')
+      .attr('x', mx)
+      .attr('y', Math.min(y1, y2) - 12)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', 11)
+      .attr('fill', '#1967d2')
+      .attr('font-weight', 500)
+      .text(labelTexts[s.id] || '');
+
+    // Back arrow (dashed, below)
+    const by1 = y1 + 30;
+    const by2 = y2 + 30;
+    connections.append('path')
+      .attr('d', `M${x2},${by2} C${mx},${by2} ${mx},${by1} ${x1},${by1}`)
+      .attr('fill', 'none')
+      .attr('stroke', '#999')
+      .attr('stroke-width', 1.5)
+      .attr('stroke-dasharray', '5,4')
+      .attr('marker-end', 'url(#arrowhead-back)')
+      .attr('opacity', 0.5);
+  }
+});
+
+// Back arrow marker
+defs.append('marker')
+  .attr('id', 'arrowhead-back')
+  .attr('viewBox', '0 0 10 7')
+  .attr('refX', 10)
+  .attr('refY', 3.5)
+  .attr('markerWidth', 8)
+  .attr('markerHeight', 6)
+  .attr('orient', 'auto')
+  .append('polygon')
+  .attr('points', '0 0, 10 3.5, 0 7')
+  .attr('fill', '#999');
+
+// ── Draw Screens ──
+const screenGroups = g.selectAll('.screen-group')
+  .data(screens)
+  .enter()
+  .append('g')
+  .attr('class', 'screen-group')
+  .style('cursor', 'pointer')
+  .on('click', (event, d) => openDetail(d))
+  .on('mouseenter', function(event, d) {
+    d3.select(this).select('.phone-frame')
+      .transition().duration(150)
+      .attr('stroke', '#1967d2')
+      .attr('stroke-width', 3);
+    showTooltip(event, `Click to view ${d.title} details`);
+  })
+  .on('mouseleave', function() {
+    d3.select(this).select('.phone-frame')
+      .transition().duration(150)
+      .attr('stroke', '#bbb')
+      .attr('stroke-width', 1.5);
+    hideTooltip();
+  });
+
+// Screen index badge
+screenGroups.append('circle')
+  .attr('cx', d => d.x + 18)
+  .attr('cy', d => d.y - 18)
+  .attr('r', 14)
+  .attr('fill', '#1967d2');
+
+screenGroups.append('text')
+  .attr('x', d => d.x + 18)
+  .attr('y', d => d.y - 14)
+  .attr('text-anchor', 'middle')
+  .attr('font-size', 11)
+  .attr('font-weight', 700)
+  .attr('fill', '#fff')
+  .text((d, i) => i + 1);
+
+// Title above phone
+screenGroups.append('text')
+  .attr('x', d => d.x + PHONE_W / 2)
+  .attr('y', d => d.y - 24)
+  .attr('text-anchor', 'middle')
+  .attr('font-size', 14)
+  .attr('font-weight', 600)
+  .attr('fill', '#1a1a2e')
+  .text(d => d.title);
+
+screenGroups.append('text')
+  .attr('x', d => d.x + PHONE_W / 2)
+  .attr('y', d => d.y - 8)
+  .attr('text-anchor', 'middle')
+  .attr('font-size', 11)
+  .attr('fill', '#888')
+  .text(d => d.subtitle);
+
+// Phone frame (outer)
+screenGroups.append('rect')
+  .attr('class', 'phone-frame')
+  .attr('x', d => d.x - 4)
+  .attr('y', d => d.y - 4)
+  .attr('width', PHONE_W + 8)
+  .attr('height', PHONE_H + 8)
+  .attr('rx', PHONE_R + 2)
+  .attr('fill', '#fff')
+  .attr('stroke', '#bbb')
+  .attr('stroke-width', 1.5)
+  .attr('filter', 'url(#shadow)');
+
+// Phone screen bg
+screenGroups.append('rect')
+  .attr('x', d => d.x)
+  .attr('y', d => d.y)
+  .attr('width', PHONE_W)
+  .attr('height', PHONE_H)
+  .attr('rx', PHONE_R)
+  .attr('fill', '#f8f9fa');
+
+// ── Draw Wireframe Content for Each Screen ──
+
+function drawHomeFeed(group, s) {
+  const g = group.append('g').attr('clip-path', `url(#clip-phone-0)`);
+  // Status bar
+  g.append('rect').attr('x', s.x).attr('y', s.y).attr('width', PHONE_W).attr('height', 28).attr('fill', '#fff');
+  g.append('text').attr('x', s.x + 12).attr('y', s.y + 18).attr('font-size', 10).attr('fill', '#333').attr('font-weight', 600).text('9:41');
+  g.append('text').attr('x', s.x + PHONE_W - 12).attr('y', s.y + 18).attr('font-size', 10).attr('fill', '#333').attr('text-anchor', 'end').text('100%');
+
+  // Search bar
+  g.append('rect').attr('x', s.x + 16).attr('y', s.y + 36).attr('width', PHONE_W - 32).attr('height', 34).attr('rx', 17).attr('fill', '#e8e8e8');
+  g.append('text').attr('x', s.x + 40).attr('y', s.y + 57).attr('font-size', 12).attr('fill', '#999').text('Search restaurants...');
+  // Search icon
+  g.append('circle').attr('cx', s.x + 30).attr('cy', s.y + 53).attr('r', 5).attr('fill', 'none').attr('stroke', '#999').attr('stroke-width', 1.5);
+
+  // Category pills
+  const categories = ['All', 'Pizza', 'Sushi', 'Burger', 'Thai'];
+  categories.forEach((c, i) => {
+    const px = s.x + 16 + i * 44;
+    g.append('rect').attr('x', px).attr('y', s.y + 80).attr('width', 40).attr('height', 22).attr('rx', 11).attr('fill', i === 0 ? '#1967d2' : '#e0e0e0');
+    g.append('text').attr('x', px + 20).attr('y', s.y + 95).attr('text-anchor', 'middle').attr('font-size', 9).attr('fill', i === 0 ? '#fff' : '#555').text(c);
+  });
+
+  // Restaurant cards
+  const restaurants = [
+    { name: 'Bella Napoli', cuisine: 'Italian', rating: '4.8', time: '25-35 min', color: '#e8d5b7' },
+    { name: 'Tokyo Bites', cuisine: 'Japanese', rating: '4.6', time: '30-40 min', color: '#d5e8e0' },
+    { name: 'Burger Joint', cuisine: 'American', rating: '4.5', time: '15-25 min', color: '#e8d5d5' }
+  ];
+
+  restaurants.forEach((r, i) => {
+    const cy = s.y + 112 + i * 105;
+    // Card bg
+    g.append('rect').attr('x', s.x + 16).attr('y', cy).attr('width', PHONE_W - 32).attr('height', 95).attr('rx', 10).attr('fill', '#fff').attr('stroke', '#eee').attr('stroke-width', 1);
+    // Image placeholder
+    g.append('rect').attr('x', s.x + 16).attr('y', cy).attr('width', PHONE_W - 32).attr('height', 48).attr('rx', 10).attr('fill', r.color);
+    // Bottom corners cover
+    g.append('rect').attr('x', s.x + 16).attr('y', cy + 38).attr('width', PHONE_W - 32).attr('height', 12).attr('fill', r.color);
+    // Restaurant name
+    g.append('text').attr('x', s.x + 24).attr('y', cy + 65).attr('font-size', 12).attr('font-weight', 600).attr('fill', '#1a1a2e').text(r.name);
+    // Cuisine + rating
+    g.append('text').attr('x', s.x + 24).attr('y', cy + 80).attr('font-size', 10).attr('fill', '#888').text(`${r.cuisine} \u2022 ${r.time}`);
+    // Star + rating
+    g.append('text').attr('x', s.x + PHONE_W - 24).attr('y', cy + 65).attr('text-anchor', 'end').attr('font-size', 11).attr('fill', '#f59e0b').attr('font-weight', 600).text(`\u2605 ${r.rating}`);
+  });
+
+  // Bottom tab bar
+  const tabY = s.y + PHONE_H - 50;
+  g.append('rect').attr('x', s.x).attr('y', tabY).attr('width', PHONE_W).attr('height', 50).attr('fill', '#fff').attr('stroke', '#eee').attr('stroke-width', 1);
+  const tabs = ['\u2302', '\u2609', '\u2665', '\u263A'];
+  const tabLabels = ['Home', 'Search', 'Favs', 'Profile'];
+  tabs.forEach((t, i) => {
+    const tx = s.x + 30 + i * 52;
+    g.append('text').attr('x', tx).attr('y', tabY + 22).attr('text-anchor', 'middle').attr('font-size', 16).attr('fill', i === 0 ? '#1967d2' : '#bbb').text(t);
+    g.append('text').attr('x', tx).attr('y', tabY + 36).attr('text-anchor', 'middle').attr('font-size', 8).attr('fill', i === 0 ? '#1967d2' : '#bbb').text(tabLabels[i]);
+  });
+}
+
+function drawRestaurantDetail(group, s) {
+  const g = group.append('g').attr('clip-path', `url(#clip-phone-1)`);
+  // Hero image
+  g.append('rect').attr('x', s.x).attr('y', s.y).attr('width', PHONE_W).attr('height', 140).attr('fill', '#d4a574');
+  // Gradient overlay
+  g.append('rect').attr('x', s.x).attr('y', s.y + 100).attr('width', PHONE_W).attr('height', 40).attr('fill', 'rgba(0,0,0,0.2)');
+  // Image icon
+  g.append('text').attr('x', s.x + PHONE_W / 2).attr('y', s.y + 70).attr('text-anchor', 'middle').attr('font-size', 30).attr('fill', 'rgba(255,255,255,0.5)').text('\u25A3');
+
+  // Back button
+  g.append('circle').attr('cx', s.x + 24).attr('cy', s.y + 24).attr('r', 14).attr('fill', 'rgba(0,0,0,0.4)');
+  g.append('text').attr('x', s.x + 24).attr('y', s.y + 29).attr('text-anchor', 'middle').attr('font-size', 14).attr('fill', '#fff').attr('font-weight', 700).text('\u2190');
+
+  // Restaurant info
+  g.append('text').attr('x', s.x + 16).attr('y', s.y + 164).attr('font-size', 16).attr('font-weight', 700).attr('fill', '#1a1a2e').text('Bella Napoli');
+  g.append('text').attr('x', s.x + 16).attr('y', s.y + 180).attr('font-size', 10).attr('fill', '#888').text('Italian \u2022 $$ \u2022 25-35 min');
+  g.append('text').attr('x', s.x + PHONE_W - 16).attr('y', s.y + 164).attr('text-anchor', 'end').attr('font-size', 13).attr('fill', '#f59e0b').attr('font-weight', 600).text('\u2605 4.8');
+
+  // Divider
+  g.append('line').attr('x1', s.x + 16).attr('y1', s.y + 192).attr('x2', s.x + PHONE_W - 16).attr('y2', s.y + 192).attr('stroke', '#eee').attr('stroke-width', 1);
+
+  // Menu section
+  g.append('text').attr('x', s.x + 16).attr('y', s.y + 212).attr('font-size', 13).attr('font-weight', 600).attr('fill', '#1a1a2e').text('Popular Items');
+
+  const menuItems = [
+    { name: 'Margherita Pizza', price: '$12.99', desc: 'Tomato, mozzarella, basil' },
+    { name: 'Pasta Carbonara', price: '$14.99', desc: 'Egg, pecorino, guanciale' },
+    { name: 'Tiramisu', price: '$8.99', desc: 'Mascarpone, espresso' },
+    { name: 'Caesar Salad', price: '$9.99', desc: 'Romaine, parmesan, croutons' }
+  ];
+
+  menuItems.forEach((item, i) => {
+    const iy = s.y + 226 + i * 56;
+    g.append('rect').attr('x', s.x + 12).attr('y', iy).attr('width', PHONE_W - 24).attr('height', 50).attr('rx', 8).attr('fill', '#fff').attr('stroke', '#f0f0f0').attr('stroke-width', 1);
+    g.append('text').attr('x', s.x + 20).attr('y', iy + 20).attr('font-size', 11).attr('font-weight', 600).attr('fill', '#1a1a2e').text(item.name);
+    g.append('text').attr('x', s.x + 20).attr('y', iy + 34).attr('font-size', 9).attr('fill', '#999').text(item.desc);
+    g.append('text').attr('x', s.x + PHONE_W - 20).attr('y', iy + 20).attr('text-anchor', 'end').attr('font-size', 11).attr('font-weight', 600).attr('fill', '#1967d2').text(item.price);
+    // Add button
+    g.append('rect').attr('x', s.x + PHONE_W - 38).attr('y', iy + 28).attr('width', 18).attr('height', 18).attr('rx', 4).attr('fill', '#1967d2');
+    g.append('text').attr('x', s.x + PHONE_W - 29).attr('y', iy + 41).attr('text-anchor', 'middle').attr('font-size', 12).attr('fill', '#fff').attr('font-weight', 700).text('+');
+  });
+}
+
+function drawCart(group, s) {
+  const g = group.append('g').attr('clip-path', `url(#clip-phone-2)`);
+  // Header
+  g.append('rect').attr('x', s.x).attr('y', s.y).attr('width', PHONE_W).attr('height', 52).attr('fill', '#fff');
+  g.append('text').attr('x', s.x + 20).attr('y', s.y + 32).attr('font-size', 14).attr('fill', '#555').attr('font-weight', 700).text('\u2190');
+  g.append('text').attr('x', s.x + PHONE_W / 2).attr('y', s.y + 33).attr('text-anchor', 'middle').attr('font-size', 15).attr('font-weight', 600).attr('fill', '#1a1a2e').text('Your Cart');
+  g.append('line').attr('x1', s.x).attr('y1', s.y + 52).attr('x2', s.x + PHONE_W).attr('y2', s.y + 52).attr('stroke', '#eee');
+
+  // Restaurant label
+  g.append('text').attr('x', s.x + 16).attr('y', s.y + 76).attr('font-size', 11).attr('fill', '#888').text('Bella Napoli');
+
+  // Cart items
+  const items = [
+    { name: 'Margherita Pizza', price: '$12.99', qty: 2 },
+    { name: 'Pasta Carbonara', price: '$14.99', qty: 1 },
+    { name: 'Tiramisu', price: '$8.99', qty: 1 }
+  ];
+
+  items.forEach((item, i) => {
+    const iy = s.y + 90 + i * 70;
+    g.append('rect').attr('x', s.x + 12).attr('y', iy).attr('width', PHONE_W - 24).attr('height', 60).attr('rx', 8).attr('fill', '#fff').attr('stroke', '#f0f0f0').attr('stroke-width', 1);
+    g.append('text').attr('x', s.x + 20).attr('y', iy + 22).attr('font-size', 12).attr('font-weight', 600).attr('fill', '#1a1a2e').text(item.name);
+    g.append('text').attr('x', s.x + 20).attr('y', iy + 38).attr('font-size', 11).attr('fill', '#1967d2').attr('font-weight', 500).text(item.price);
+    // Quantity control
+    const qx = s.x + PHONE_W - 76;
+    g.append('rect').attr('x', qx).attr('y', iy + 18).attr('width', 56).attr('height', 24).attr('rx', 12).attr('fill', '#f0f0f0');
+    g.append('text').attr('x', qx + 12).attr('y', iy + 35).attr('text-anchor', 'middle').attr('font-size', 13).attr('fill', '#555').attr('font-weight', 600).text('\u2212');
+    g.append('text').attr('x', qx + 28).attr('y', iy + 35).attr('text-anchor', 'middle').attr('font-size', 12).attr('fill', '#1a1a2e').attr('font-weight', 600).text(item.qty);
+    g.append('text').attr('x', qx + 44).attr('y', iy + 35).attr('text-anchor', 'middle').attr('font-size', 13).attr('fill', '#555').attr('font-weight', 600).text('+');
+  });
+
+  // Divider
+  const dy = s.y + 310;
+  g.append('line').attr('x1', s.x + 16).attr('y1', dy).attr('x2', s.x + PHONE_W - 16).attr('y2', dy).attr('stroke', '#eee');
+
+  // Price breakdown
+  const prices = [
+    { label: 'Subtotal', value: '$49.96' },
+    { label: 'Delivery Fee', value: '$3.99' },
+    { label: 'Service Fee', value: '$2.50' }
+  ];
+  prices.forEach((p, i) => {
+    g.append('text').attr('x', s.x + 20).attr('y', dy + 24 + i * 20).attr('font-size', 11).attr('fill', '#888').text(p.label);
+    g.append('text').attr('x', s.x + PHONE_W - 20).attr('y', dy + 24 + i * 20).attr('text-anchor', 'end').attr('font-size', 11).attr('fill', '#555').text(p.value);
+  });
+
+  // Total
+  g.append('line').attr('x1', s.x + 16).attr('y1', dy + 74).attr('x2', s.x + PHONE_W - 16).attr('y2', dy + 74).attr('stroke', '#ddd');
+  g.append('text').attr('x', s.x + 20).attr('y', dy + 94).attr('font-size', 13).attr('font-weight', 700).attr('fill', '#1a1a2e').text('Total');
+  g.append('text').attr('x', s.x + PHONE_W - 20).attr('y', dy + 94).attr('text-anchor', 'end').attr('font-size', 13).attr('font-weight', 700).attr('fill', '#1a1a2e').text('$56.45');
+
+  // CTA
+  g.append('rect').attr('x', s.x + 16).attr('y', s.y + PHONE_H - 64).attr('width', PHONE_W - 32).attr('height', 44).attr('rx', 22).attr('fill', '#1967d2');
+  g.append('text').attr('x', s.x + PHONE_W / 2).attr('y', s.y + PHONE_H - 37).attr('text-anchor', 'middle').attr('font-size', 13).attr('font-weight', 600).attr('fill', '#fff').text('Proceed to Checkout');
+}
+
+function drawCheckout(group, s) {
+  const g = group.append('g').attr('clip-path', `url(#clip-phone-3)`);
+  // Header
+  g.append('rect').attr('x', s.x).attr('y', s.y).attr('width', PHONE_W).attr('height', 52).attr('fill', '#fff');
+  g.append('text').attr('x', s.x + 20).attr('y', s.y + 32).attr('font-size', 14).attr('fill', '#555').attr('font-weight', 700).text('\u2190');
+  g.append('text').attr('x', s.x + PHONE_W / 2).attr('y', s.y + 33).attr('text-anchor', 'middle').attr('font-size', 15).attr('font-weight', 600).attr('fill', '#1a1a2e').text('Checkout');
+  g.append('line').attr('x1', s.x).attr('y1', s.y + 52).attr('x2', s.x + PHONE_W).attr('y2', s.y + 52).attr('stroke', '#eee');
+
+  // Delivery Address section
+  g.append('text').attr('x', s.x + 16).attr('y', s.y + 76).attr('font-size', 12).attr('font-weight', 600).attr('fill', '#1a1a2e').text('Delivery Address');
+
+  const addressFields = [
+    { label: 'Street Address', placeholder: '123 Main St' },
+    { label: 'Apt / Suite', placeholder: 'Apt 4B' },
+    { label: 'City, State, ZIP', placeholder: 'New York, NY 10001' }
+  ];
+
+  addressFields.forEach((f, i) => {
+    const fy = s.y + 88 + i * 48;
+    g.append('text').attr('x', s.x + 16).attr('y', fy + 14).attr('font-size', 9).attr('fill', '#888').text(f.label);
+    g.append('rect').attr('x', s.x + 14).attr('y', fy + 18).attr('width', PHONE_W - 28).attr('height', 26).attr('rx', 6).attr('fill', '#fff').attr('stroke', '#ddd').attr('stroke-width', 1);
+    g.append('text').attr('x', s.x + 22).attr('y', fy + 35).attr('font-size', 10).attr('fill', '#ccc').text(f.placeholder);
+  });
+
+  // Payment section
+  const payY = s.y + 240;
+  g.append('text').attr('x', s.x + 16).attr('y', payY).attr('font-size', 12).attr('font-weight', 600).attr('fill', '#1a1a2e').text('Payment Method');
+
+  const payFields = [
+    { label: 'Card Number', placeholder: '4242 **** **** ****' },
+    { label: 'Expiry', placeholder: 'MM/YY', half: true },
+    { label: 'CVV', placeholder: '***', half: true, offset: true }
+  ];
+
+  // Card number
+  g.append('text').attr('x', s.x + 16).attr('y', payY + 22).attr('font-size', 9).attr('fill', '#888').text('Card Number');
+  g.append('rect').attr('x', s.x + 14).attr('y', payY + 26).attr('width', PHONE_W - 28).attr('height', 26).attr('rx', 6).attr('fill', '#fff').attr('stroke', '#ddd');
+  g.append('text').attr('x', s.x + 22).attr('y', payY + 43).attr('font-size', 10).attr('fill', '#ccc').text('4242 **** **** ****');
+
+  // Expiry + CVV side by side
+  g.append('text').attr('x', s.x + 16).attr('y', payY + 70).attr('font-size', 9).attr('fill', '#888').text('Expiry');
+  g.append('rect').attr('x', s.x + 14).attr('y', payY + 74).attr('width', (PHONE_W - 34) / 2).attr('height', 26).attr('rx', 6).attr('fill', '#fff').attr('stroke', '#ddd');
+  g.append('text').attr('x', s.x + 22).attr('y', payY + 91).attr('font-size', 10).attr('fill', '#ccc').text('MM/YY');
+
+  g.append('text').attr('x', s.x + 14 + (PHONE_W - 34) / 2 + 8).attr('y', payY + 70).attr('font-size', 9).attr('fill', '#888').text('CVV');
+  g.append('rect').attr('x', s.x + 14 + (PHONE_W - 34) / 2 + 6).attr('y', payY + 74).attr('width', (PHONE_W - 34) / 2).attr('height', 26).attr('rx', 6).attr('fill', '#fff').attr('stroke', '#ddd');
+  g.append('text').attr('x', s.x + 22 + (PHONE_W - 34) / 2 + 6).attr('y', payY + 91).attr('font-size', 10).attr('fill', '#ccc').text('***');
+
+  // Order total
+  const totalY = s.y + PHONE_H - 110;
+  g.append('rect').attr('x', s.x + 12).attr('y', totalY).attr('width', PHONE_W - 24).attr('height', 36).attr('rx', 8).attr('fill', '#f8f9fa');
+  g.append('text').attr('x', s.x + 22).attr('y', totalY + 23).attr('font-size', 12).attr('fill', '#555').text('Total');
+  g.append('text').attr('x', s.x + PHONE_W - 22).attr('y', totalY + 23).attr('text-anchor', 'end').attr('font-size', 14).attr('font-weight', 700).attr('fill', '#1a1a2e').text('$56.45');
+
+  // CTA
+  g.append('rect').attr('x', s.x + 16).attr('y', s.y + PHONE_H - 64).attr('width', PHONE_W - 32).attr('height', 44).attr('rx', 22).attr('fill', '#1967d2');
+  g.append('text').attr('x', s.x + PHONE_W / 2).attr('y', s.y + PHONE_H - 37).attr('text-anchor', 'middle').attr('font-size', 13).attr('font-weight', 600).attr('fill', '#fff').text('Place Order \u2022 $56.45');
+}
+
+function drawConfirmation(group, s) {
+  const g = group.append('g').attr('clip-path', `url(#clip-phone-4)`);
+  // Background
+  g.append('rect').attr('x', s.x).attr('y', s.y).attr('width', PHONE_W).attr('height', PHONE_H).attr('fill', '#f8f9fa');
+
+  // Success circle
+  const cx = s.x + PHONE_W / 2;
+  g.append('circle').attr('cx', cx).attr('cy', s.y + 100).attr('r', 40).attr('fill', '#d4edda');
+  g.append('circle').attr('cx', cx).attr('cy', s.y + 100).attr('r', 28).attr('fill', '#28a745');
+  g.append('text').attr('x', cx).attr('y', s.y + 108).attr('text-anchor', 'middle').attr('font-size', 24).attr('fill', '#fff').text('\u2713');
+
+  // Title
+  g.append('text').attr('x', cx).attr('y', s.y + 164).attr('text-anchor', 'middle').attr('font-size', 18).attr('font-weight', 700).attr('fill', '#1a1a2e').text('Order Placed!');
+  g.append('text').attr('x', cx).attr('y', s.y + 184).attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', '#888').text('Your food is being prepared');
+
+  // Order info card
+  g.append('rect').attr('x', s.x + 16).attr('y', s.y + 204).attr('width', PHONE_W - 32).attr('height', 100).attr('rx', 10).attr('fill', '#fff').attr('stroke', '#eee');
+  g.append('text').attr('x', s.x + 28).attr('y', s.y + 228).attr('font-size', 10).attr('fill', '#888').text('Order Number');
+  g.append('text').attr('x', s.x + 28).attr('y', s.y + 244).attr('font-size', 14).attr('font-weight', 700).attr('fill', '#1a1a2e').text('#FD-29481');
+  g.append('line').attr('x1', s.x + 28).attr('y1', s.y + 258).attr('x2', s.x + PHONE_W - 28).attr('y2', s.y + 258).attr('stroke', '#f0f0f0');
+  g.append('text').attr('x', s.x + 28).attr('y', s.y + 276).attr('font-size', 10).attr('fill', '#888').text('Estimated Delivery');
+  g.append('text').attr('x', s.x + 28).attr('y', s.y + 292).attr('font-size', 14).attr('font-weight', 700).attr('fill', '#28a745').text('25-35 minutes');
+
+  // Track order button
+  g.append('rect').attr('x', s.x + 16).attr('y', s.y + 324).attr('width', PHONE_W - 32).attr('height', 44).attr('rx', 22).attr('fill', '#1967d2');
+  g.append('text').attr('x', cx).attr('y', s.y + 351).attr('text-anchor', 'middle').attr('font-size', 13).attr('font-weight', 600).attr('fill', '#fff').text('Track Order');
+
+  // Back to home
+  g.append('rect').attr('x', s.x + 16).attr('y', s.y + 378).attr('width', PHONE_W - 32).attr('height', 44).attr('rx', 22).attr('fill', 'none').attr('stroke', '#1967d2').attr('stroke-width', 1.5);
+  g.append('text').attr('x', cx).attr('y', s.y + 405).attr('text-anchor', 'middle').attr('font-size', 13).attr('font-weight', 600).attr('fill', '#1967d2').text('Back to Home');
+}
+
+// Draw each screen's wireframe
+screens.forEach((s, i) => {
+  const group = screenGroups.filter((d, j) => j === i);
+  if (i === 0) drawHomeFeed(group, s);
+  else if (i === 1) drawRestaurantDetail(group, s);
+  else if (i === 2) drawCart(group, s);
+  else if (i === 3) drawCheckout(group, s);
+  else if (i === 4) drawConfirmation(group, s);
+});
+
+// ── Tooltip ──
+const tooltip = d3.select('#tooltip');
+function showTooltip(event, text) {
+  tooltip.text(text).classed('visible', true)
+    .style('left', (event.clientX + 12) + 'px')
+    .style('top', (event.clientY - 30) + 'px');
+}
+function hideTooltip() {
+  tooltip.classed('visible', false);
+}
+
+// ── Detail Panel ──
+function openDetail(d) {
+  const panel = d3.select('#detail-panel');
+  const content = d3.select('#detail-content');
+  const idx = screens.indexOf(d);
+
+  let html = `<h2>${d.title}</h2>`;
+  html += `<div class="screen-index">Screen ${idx + 1} of ${screens.length} &mdash; ${d.subtitle}</div>`;
+  html += `<p style="font-size:13px;color:#555;line-height:1.5;margin-bottom:8px;">${d.description}</p>`;
+
+  html += `<div class="section-title">UI Elements</div><ul class="element-list">`;
+  d.elements.forEach(e => {
+    html += `<li><span class="icon">\u25A1</span>${e}</li>`;
+  });
+  html += `</ul>`;
+
+  html += `<div class="section-title">Navigation</div>`;
+  if (d.navigatesFrom) {
+    const from = screens.find(s => s.id === d.navigatesFrom);
+    html += `<div class="nav-info">\u2190 Back to <strong>${from.title}</strong></div>`;
+  }
+  if (d.navigatesTo) {
+    const to = screens.find(s => s.id === d.navigatesTo);
+    html += `<div class="nav-info">\u2192 Forward to <strong>${to.title}</strong></div>`;
+  }
+  if (!d.navigatesTo && d.id === 'confirmation') {
+    html += `<div class="nav-info">\u21BA Return to <strong>Home Feed</strong></div>`;
+  }
+
+  content.html(html);
+  panel.classed('open', true);
+}
+
+d3.select('#close-detail').on('click', () => {
+  d3.select('#detail-panel').classed('open', false);
+});
+
+// ── Toolbar Buttons ──
+d3.select('#btn-fit').on('click', fitAll);
+d3.select('#btn-zoom-in').on('click', () => svg.transition().duration(300).call(zoom.scaleBy, 1.3));
+d3.select('#btn-zoom-out').on('click', () => svg.transition().duration(300).call(zoom.scaleBy, 0.7));
+
+function fitAll() {
+  const padding = 80;
+  const minX = d3.min(screens, d => d.x) - padding;
+  const minY = d3.min(screens, d => d.y) - padding - 40;
+  const maxX = d3.max(screens, d => d.x + PHONE_W) + padding;
+  const maxY = d3.max(screens, d => d.y + PHONE_H) + padding;
+  const bw = maxX - minX;
+  const bh = maxY - minY;
+  const scale = Math.min(width / bw, height / bh, 1.2);
+  const tx = (width - bw * scale) / 2 - minX * scale;
+  const ty = (height - bh * scale) / 2 - minY * scale;
+  svg.transition().duration(500).call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+}
+
+// ── Minimap ──
+const minimap = d3.select('#minimap');
+const mmSvg = minimap.append('svg').attr('width', 180).attr('height', 100);
+
+const mmPadding = 10;
+const allMinX = d3.min(screens, d => d.x) - 20;
+const allMinY = d3.min(screens, d => d.y) - 60;
+const allMaxX = d3.max(screens, d => d.x + PHONE_W) + 20;
+const allMaxY = d3.max(screens, d => d.y + PHONE_H) + 20;
+const allW = allMaxX - allMinX;
+const allH = allMaxY - allMinY;
+const mmScale = Math.min((180 - mmPadding * 2) / allW, (100 - mmPadding * 2) / allH);
+
+const mmG = mmSvg.append('g').attr('transform', `translate(${mmPadding},${mmPadding})`);
+
+// Screen rects on minimap
+screens.forEach(s => {
+  mmG.append('rect')
+    .attr('x', (s.x - allMinX) * mmScale)
+    .attr('y', (s.y - allMinY) * mmScale)
+    .attr('width', PHONE_W * mmScale)
+    .attr('height', PHONE_H * mmScale)
+    .attr('rx', 2)
+    .attr('fill', '#1967d2')
+    .attr('opacity', 0.3);
+});
+
+// Arrows on minimap
+screens.forEach(s => {
+  if (s.navigatesTo) {
+    const t = screens.find(x => x.id === s.navigatesTo);
+    if (!t) return;
+    mmG.append('line')
+      .attr('x1', (s.x + PHONE_W - allMinX) * mmScale)
+      .attr('y1', (s.y + PHONE_H / 2 - allMinY) * mmScale)
+      .attr('x2', (t.x - allMinX) * mmScale)
+      .attr('y2', (t.y + PHONE_H / 2 - allMinY) * mmScale)
+      .attr('stroke', '#1967d2')
+      .attr('stroke-width', 1)
+      .attr('opacity', 0.5);
+  }
+});
+
+const viewportRect = mmG.append('rect').attr('class', 'viewport-rect');
+
+function updateMinimap(transform) {
+  const vx = (-transform.x / transform.k - allMinX) * mmScale + mmPadding;
+  const vy = (-transform.y / transform.k - allMinY) * mmScale + mmPadding;
+  const vw = (width / transform.k) * mmScale;
+  const vh = (height / transform.k) * mmScale;
+  viewportRect.attr('x', vx).attr('y', vy).attr('width', vw).attr('height', vh);
+}
+
+// Initial fit
+fitAll();
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    d3.select('#detail-panel').classed('open', false);
+  }
+  if (e.key === '0') fitAll();
+  if (e.key === '+' || e.key === '=') svg.transition().duration(200).call(zoom.scaleBy, 1.2);
+  if (e.key === '-') svg.transition().duration(200).call(zoom.scaleBy, 0.8);
+});
+
+// Window resize
+window.addEventListener('resize', () => {
+  fitAll();
+});
+</script>
+</body>
+</html>

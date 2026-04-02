@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Food Delivery App — Screen Flow</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #F5F5F5;
+      color: #212529;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+    }
+    #title-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 56px;
+      background: #FFFFFF;
+      border-bottom: 1px solid #E0E0E0;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    #title-bar h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #212529;
+    }
+    #title-bar p {
+      font-size: 14px;
+      font-weight: 400;
+      color: #6C757D;
+      margin-left: 16px;
+    }
+    #flow-svg {
+      position: fixed;
+      top: 56px;
+      left: 0;
+      width: 100vw;
+      height: calc(100vh - 56px);
+    }
+    #detail-panel {
+      position: fixed;
+      top: 56px;
+      right: -340px;
+      width: 320px;
+      height: calc(100vh - 56px);
+      background: #FFFFFF;
+      border-left: 1px solid #E0E0E0;
+      box-shadow: -2px 0 8px rgba(0,0,0,0.06);
+      z-index: 200;
+      padding: 24px;
+      overflow-y: auto;
+      transition: right 0.25s ease;
+    }
+    #detail-panel.open { right: 0; }
+    #detail-panel .close-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: #F5F5F5;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 28px;
+      text-align: center;
+      color: #6C757D;
+    }
+    #detail-panel .close-btn:hover { background: #E0E0E0; }
+    #detail-panel h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #212529;
+      margin-bottom: 8px;
+    }
+    #detail-panel .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      background: #E8F5E9;
+      color: #4CAF50;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    #detail-panel .desc {
+      font-size: 13px;
+      color: #6C757D;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+    #detail-panel h3 {
+      font-size: 12px;
+      font-weight: 600;
+      color: #ADB5BD;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    #detail-panel .elements-list, #detail-panel .exits-list {
+      list-style: none;
+      margin-bottom: 16px;
+    }
+    #detail-panel .elements-list li, #detail-panel .exits-list li {
+      font-size: 13px;
+      color: #212529;
+      padding: 6px 0;
+      border-bottom: 1px solid #F5F5F5;
+    }
+    #detail-panel .exits-list li span.action {
+      display: inline-block;
+      padding: 2px 8px;
+      background: #66BB6A;
+      color: white;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: 500;
+      margin-right: 6px;
+    }
+    .action-pill { cursor: pointer; }
+    .action-pill:hover rect { fill: #4CAF50 !important; }
+    .screen-group { cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div id="title-bar">
+    <h1>Food Delivery App</h1>
+    <p>Screen flow: Home Feed through Order Confirmation</p>
+  </div>
+  <svg id="flow-svg"></svg>
+  <div id="detail-panel">
+    <button class="close-btn" onclick="closePanel()">&times;</button>
+    <h2 id="panel-name"></h2>
+    <div class="badge" id="panel-type"></div>
+    <p class="desc" id="panel-desc"></p>
+    <h3>UI Elements</h3>
+    <ul class="elements-list" id="panel-elements"></ul>
+    <h3>Exits</h3>
+    <ul class="exits-list" id="panel-exits"></ul>
+  </div>
+  <script>
+    const flowData = {
+      title: "Food Delivery App",
+      description: "Screen flow: Home Feed through Order Confirmation",
+      deviceType: "mobile",
+      screens: [
+        {
+          id: "home",
+          name: "Home Feed",
+          type: "list",
+          description: "Main feed showing nearby restaurants as scrollable cards. Each card shows the restaurant name, cuisine type, rating, and estimated delivery time.",
+          navTitle: "FoodDash",
+          hasBack: false,
+          elements: [
+            { type: "navbar", content: "FoodDash" },
+            { type: "search-bar", content: "Search restaurants..." },
+            { type: "card-row", content: "Pizza Palace", subtitle: "Italian  ★ 4.5  25 min" },
+            { type: "card-row", content: "Sushi World", subtitle: "Japanese  ★ 4.8  30 min" },
+            { type: "card-row", content: "Burger Barn", subtitle: "American  ★ 4.2  20 min" },
+            { type: "card-row", content: "Taco Fiesta", subtitle: "Mexican  ★ 4.6  25 min" }
+          ],
+          exits: [
+            { action: "Tap Restaurant", target: "restaurant-detail" }
+          ]
+        },
+        {
+          id: "restaurant-detail",
+          name: "Restaurant Detail",
+          type: "detail",
+          description: "Full restaurant view with hero image, restaurant info, and a scrollable list of menu items. Users can add items to their cart.",
+          navTitle: "Restaurant",
+          hasBack: true,
+          elements: [
+            { type: "navbar", content: "Restaurant", hasBack: true },
+            { type: "hero-image", content: "Restaurant Photo" },
+            { type: "text-block", content: "Pizza Palace", subtitle: "Italian  ★ 4.5  25 min delivery" },
+            { type: "card-row", content: "Margherita Pizza", subtitle: "$12.99" },
+            { type: "card-row", content: "Pepperoni Pizza", subtitle: "$14.99" },
+            { type: "card-row", content: "Caesar Salad", subtitle: "$8.99" },
+            { type: "button", content: "View Cart", isAction: true }
+          ],
+          exits: [
+            { action: "Go Back", target: "home" },
+            { action: "Tap View Cart", target: "cart" }
+          ]
+        },
+        {
+          id: "cart",
+          name: "Cart",
+          type: "detail",
+          description: "Order summary showing all items in the cart with quantities and prices. Users can adjust quantities or remove items before proceeding to checkout.",
+          navTitle: "Your Cart",
+          hasBack: true,
+          elements: [
+            { type: "navbar", content: "Your Cart", hasBack: true },
+            { type: "card-row", content: "Margherita Pizza x1", subtitle: "$12.99" },
+            { type: "card-row", content: "Pepperoni Pizza x2", subtitle: "$29.98" },
+            { type: "card-row", content: "Caesar Salad x1", subtitle: "$8.99" },
+            { type: "divider" },
+            { type: "text-block", content: "Subtotal: $51.96", subtitle: "Delivery Fee: $3.99" },
+            { type: "button", content: "Checkout", isAction: true }
+          ],
+          exits: [
+            { action: "Go Back", target: "restaurant-detail" },
+            { action: "Tap Checkout", target: "checkout" }
+          ]
+        },
+        {
+          id: "checkout",
+          name: "Checkout Form",
+          type: "form",
+          description: "Checkout form where users enter delivery address and payment information. Pre-filled fields for returning users.",
+          navTitle: "Checkout",
+          hasBack: true,
+          elements: [
+            { type: "navbar", content: "Checkout", hasBack: true },
+            { type: "input", label: "Delivery Address", placeholder: "123 Main St" },
+            { type: "input", label: "Apt / Suite", placeholder: "Apt 4B" },
+            { type: "input", label: "Card Number", placeholder: "**** **** **** 1234" },
+            { type: "input", label: "Expiry", placeholder: "MM/YY" },
+            { type: "input", label: "CVV", placeholder: "***" },
+            { type: "button", content: "Place Order", isAction: true }
+          ],
+          exits: [
+            { action: "Go Back", target: "cart" },
+            { action: "Submit Order", target: "confirmation" }
+          ]
+        },
+        {
+          id: "confirmation",
+          name: "Order Confirmation",
+          type: "detail",
+          description: "Confirmation screen showing order placed successfully with an estimated delivery time, order number, and a tracking option.",
+          navTitle: "Confirmed",
+          hasBack: false,
+          elements: [
+            { type: "navbar", content: "Order Confirmed" },
+            { type: "icon-center", content: "checkmark" },
+            { type: "text-center", content: "Order Placed!", subtitle: "Estimated delivery: 25-35 min" },
+            { type: "text-block", content: "Order #FD-29481", subtitle: "Pizza Palace" },
+            { type: "button", content: "Track Order", isAction: true },
+            { type: "button-secondary", content: "Back to Home" }
+          ],
+          exits: [
+            { action: "Tap Home", target: "home" }
+          ]
+        }
+      ]
+    };
+
+    // --- Dimensions ---
+    const SCREEN_W = 160;
+    const SCREEN_H = 280;
+    const H_SPACING = 380;
+    const V_SPACING = 400;
+    const PADDING = 16;
+    const NAV_H = 28;
+    const STATUS_H = 14;
+    const CONTENT_X = 10;
+    const CONTENT_W = SCREEN_W - 20;
+
+    // --- Position screens ---
+    flowData.screens.forEach((s, i) => {
+      s.x = 80 + i * H_SPACING;
+      s.y = 200;
+    });
+
+    // Build screen lookup
+    const screenMap = {};
+    flowData.screens.forEach(s => screenMap[s.id] = s);
+
+    // --- Connections ---
+    // Forward connections (main happy path)
+    const forwardConnections = [];
+    const backConnections = [];
+    flowData.screens.forEach(s => {
+      s.exits.forEach(exit => {
+        const target = screenMap[exit.target];
+        if (!target) return;
+        const conn = { source: s, target: target, action: exit.action };
+        if (exit.action === "Go Back" || exit.action === "Tap Home") {
+          backConnections.push(conn);
+        } else {
+          forwardConnections.push(conn);
+        }
+      });
+    });
+
+    // --- SVG setup ---
+    const width = window.innerWidth;
+    const height = window.innerHeight - 56;
+    const svg = d3.select('#flow-svg')
+      .attr('width', width)
+      .attr('height', height);
+
+    // Drop shadow filter
+    const defs = svg.append('defs');
+    const filter = defs.append('filter').attr('id', 'shadow').attr('x', '-10%').attr('y', '-10%').attr('width', '130%').attr('height', '130%');
+    filter.append('feDropShadow').attr('dx', 0).attr('dy', 2).attr('stdDeviation', 4).attr('flood-color', 'rgba(0,0,0,0.08)');
+
+    const filterHover = defs.append('filter').attr('id', 'shadow-hover').attr('x', '-10%').attr('y', '-10%').attr('width', '130%').attr('height', '130%');
+    filterHover.append('feDropShadow').attr('dx', 0).attr('dy', 3).attr('stdDeviation', 6).attr('flood-color', 'rgba(0,0,0,0.12)');
+
+    // Arrowhead marker
+    defs.append('marker')
+      .attr('id', 'arrowhead')
+      .attr('viewBox', '0 0 8 6')
+      .attr('refX', 8).attr('refY', 3)
+      .attr('markerWidth', 8).attr('markerHeight', 6)
+      .attr('orient', 'auto')
+      .append('polygon')
+      .attr('points', '0,0 8,3 0,6')
+      .attr('fill', '#66BB6A');
+
+    // Arrowhead for back connections
+    defs.append('marker')
+      .attr('id', 'arrowhead-back')
+      .attr('viewBox', '0 0 8 6')
+      .attr('refX', 8).attr('refY', 3)
+      .attr('markerWidth', 8).attr('markerHeight', 6)
+      .attr('orient', 'auto')
+      .append('polygon')
+      .attr('points', '0,0 8,3 0,6')
+      .attr('fill', '#66BB6A');
+
+    const container = svg.append('g');
+
+    // Zoom behavior
+    const zoomBehavior = d3.zoom()
+      .scaleExtent([0.15, 3])
+      .on('zoom', (event) => container.attr('transform', event.transform));
+    svg.call(zoomBehavior);
+
+    // --- Draw connectors (behind screens) ---
+    const connectorsGroup = container.append('g').attr('class', 'connectors');
+
+    // Forward connectors
+    forwardConnections.forEach(conn => {
+      const s = conn.source;
+      const t = conn.target;
+      const exitX = s.x + SCREEN_W;
+      const exitY = s.y + SCREEN_H / 2;
+      const entryX = t.x;
+      const entryY = t.y + SCREEN_H / 2;
+      const midX = (exitX + entryX) / 2;
+
+      // Orthogonal path
+      const path = `M ${exitX},${exitY} H ${midX} V ${entryY} H ${entryX}`;
+
+      connectorsGroup.append('path')
+        .attr('d', path)
+        .attr('stroke', '#66BB6A')
+        .attr('stroke-width', 2)
+        .attr('fill', 'none')
+        .attr('marker-end', 'url(#arrowhead)');
+
+      // Exit port
+      connectorsGroup.append('circle')
+        .attr('cx', exitX).attr('cy', exitY)
+        .attr('r', 5).attr('fill', '#66BB6A')
+        .attr('stroke', 'white').attr('stroke-width', 2);
+
+      // Entry port
+      connectorsGroup.append('circle')
+        .attr('cx', entryX).attr('cy', entryY)
+        .attr('r', 5).attr('fill', '#66BB6A')
+        .attr('stroke', 'white').attr('stroke-width', 2);
+
+      // Action pill
+      const pillX = midX;
+      const pillY = (exitY + entryY) / 2;
+      const pillG = connectorsGroup.append('g')
+        .attr('class', 'action-pill')
+        .attr('transform', `translate(${pillX}, ${pillY})`);
+
+      const textLen = conn.action.length * 6.5 + 24;
+      pillG.append('rect')
+        .attr('x', -textLen / 2).attr('y', -12)
+        .attr('width', textLen).attr('height', 24)
+        .attr('rx', 12)
+        .attr('fill', '#66BB6A');
+
+      pillG.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '0.35em')
+        .attr('fill', 'white')
+        .attr('font-size', '11px')
+        .attr('font-weight', '500')
+        .text(conn.action);
+    });
+
+    // Back connectors (curved paths going above the screens)
+    backConnections.forEach(conn => {
+      const s = conn.source;
+      const t = conn.target;
+
+      // Exit from left edge of source, enter left edge of target (or top)
+      const exitX = s.x + SCREEN_W / 2;
+      const exitY = s.y;
+      const entryX = t.x + SCREEN_W / 2;
+      const entryY = t.y;
+
+      // Curve above the screens
+      const topY = Math.min(s.y, t.y) - 70;
+
+      const path = `M ${exitX},${exitY} V ${topY} H ${entryX} V ${entryY}`;
+
+      connectorsGroup.append('path')
+        .attr('d', path)
+        .attr('stroke', '#66BB6A')
+        .attr('stroke-width', 1.5)
+        .attr('fill', 'none')
+        .attr('stroke-dasharray', '6,3')
+        .attr('marker-end', 'url(#arrowhead-back)');
+
+      // Exit port
+      connectorsGroup.append('circle')
+        .attr('cx', exitX).attr('cy', exitY)
+        .attr('r', 4).attr('fill', '#66BB6A')
+        .attr('stroke', 'white').attr('stroke-width', 1.5);
+
+      // Entry port
+      connectorsGroup.append('circle')
+        .attr('cx', entryX).attr('cy', entryY)
+        .attr('r', 4).attr('fill', '#66BB6A')
+        .attr('stroke', 'white').attr('stroke-width', 1.5);
+
+      // Action pill on back connector
+      const pillX = (exitX + entryX) / 2;
+      const pillY = topY - 2;
+      const pillG = connectorsGroup.append('g')
+        .attr('class', 'action-pill')
+        .attr('transform', `translate(${pillX}, ${pillY})`);
+
+      const textLen = conn.action.length * 6.5 + 24;
+      pillG.append('rect')
+        .attr('x', -textLen / 2).attr('y', -12)
+        .attr('width', textLen).attr('height', 24)
+        .attr('rx', 12)
+        .attr('fill', '#66BB6A')
+        .attr('opacity', 0.85);
+
+      pillG.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '0.35em')
+        .attr('fill', 'white')
+        .attr('font-size', '10px')
+        .attr('font-weight', '500')
+        .text(conn.action);
+    });
+
+    // --- Draw screens ---
+    const screensGroup = container.append('g').attr('class', 'screens');
+
+    flowData.screens.forEach(screen => {
+      const g = screensGroup.append('g')
+        .attr('class', 'screen-group')
+        .attr('transform', `translate(${screen.x}, ${screen.y})`)
+        .on('click', (event) => {
+          event.stopPropagation();
+          openPanel(screen);
+        })
+        .on('mouseenter', function() {
+          d3.select(this).select('.screen-frame')
+            .attr('stroke', '#BDBDBD')
+            .attr('filter', 'url(#shadow-hover)');
+          d3.select(this).attr('transform', `translate(${screen.x - 0.8}, ${screen.y - 0.8}) scale(1.01)`);
+        })
+        .on('mouseleave', function() {
+          d3.select(this).select('.screen-frame')
+            .attr('stroke', '#E0E0E0')
+            .attr('filter', 'url(#shadow)');
+          d3.select(this).attr('transform', `translate(${screen.x}, ${screen.y})`);
+        });
+
+      // Frame
+      g.append('rect')
+        .attr('class', 'screen-frame')
+        .attr('width', SCREEN_W).attr('height', SCREEN_H)
+        .attr('rx', 16).attr('ry', 16)
+        .attr('fill', '#FFFFFF')
+        .attr('stroke', '#E0E0E0')
+        .attr('stroke-width', 1)
+        .attr('filter', 'url(#shadow)');
+
+      // Status bar dots
+      [20, 30, 40].forEach(cx => {
+        g.append('circle')
+          .attr('cx', cx).attr('cy', 8)
+          .attr('r', 2)
+          .attr('fill', '#DEE2E6');
+      });
+
+      // Nav bar background
+      const navY = STATUS_H;
+      g.append('rect')
+        .attr('x', 0).attr('y', navY)
+        .attr('width', SCREEN_W).attr('height', NAV_H)
+        .attr('fill', '#F8F9FA');
+
+      // Nav bar separator
+      g.append('line')
+        .attr('x1', 0).attr('y1', navY + NAV_H)
+        .attr('x2', SCREEN_W).attr('y2', navY + NAV_H)
+        .attr('stroke', '#E9ECEF').attr('stroke-width', 0.5);
+
+      // Back arrow if needed
+      if (screen.hasBack) {
+        g.append('text')
+          .attr('x', 10).attr('y', navY + NAV_H / 2)
+          .attr('dy', '0.35em')
+          .attr('font-size', '12px')
+          .attr('fill', '#66BB6A')
+          .text('\u25C0');
+      }
+
+      // Nav title
+      g.append('text')
+        .attr('x', screen.hasBack ? 24 : SCREEN_W / 2)
+        .attr('y', navY + NAV_H / 2)
+        .attr('dy', '0.35em')
+        .attr('text-anchor', screen.hasBack ? 'start' : 'middle')
+        .attr('font-size', '10px')
+        .attr('font-weight', '600')
+        .attr('fill', '#212529')
+        .text(screen.navTitle);
+
+      // Menu dots
+      g.append('text')
+        .attr('x', SCREEN_W - 14).attr('y', navY + NAV_H / 2)
+        .attr('dy', '0.35em')
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '10px')
+        .attr('fill', '#ADB5BD')
+        .text('\u22EE');
+
+      // --- Content area ---
+      let curY = navY + NAV_H + 6;
+      const contentW = CONTENT_W;
+      const cx = CONTENT_X;
+
+      screen.elements.forEach(el => {
+        if (el.type === 'navbar' || curY > SCREEN_H - 10) return;
+
+        if (el.type === 'search-bar') {
+          g.append('rect')
+            .attr('x', cx).attr('y', curY)
+            .attr('width', contentW).attr('height', 18)
+            .attr('rx', 9).attr('fill', '#E9ECEF');
+          g.append('text')
+            .attr('x', cx + 10).attr('y', curY + 9)
+            .attr('dy', '0.35em')
+            .attr('font-size', '7px')
+            .attr('fill', '#ADB5BD')
+            .text(el.content || 'Search...');
+          curY += 24;
+        }
+
+        else if (el.type === 'card-row') {
+          // Card with icon square + text
+          g.append('rect')
+            .attr('x', cx).attr('y', curY)
+            .attr('width', contentW).attr('height', 30)
+            .attr('rx', 4).attr('fill', '#F8F9FA')
+            .attr('stroke', '#E9ECEF').attr('stroke-width', 0.5);
+
+          // Icon placeholder
+          g.append('rect')
+            .attr('x', cx + 4).attr('y', curY + 4)
+            .attr('width', 22).attr('height', 22)
+            .attr('rx', 4).attr('fill', '#E9ECEF');
+
+          // Text
+          g.append('text')
+            .attr('x', cx + 30).attr('y', curY + 11)
+            .attr('font-size', '7px')
+            .attr('font-weight', '500')
+            .attr('fill', '#212529')
+            .text(el.content || '');
+
+          if (el.subtitle) {
+            g.append('text')
+              .attr('x', cx + 30).attr('y', curY + 22)
+              .attr('font-size', '6px')
+              .attr('fill', '#ADB5BD')
+              .text(el.subtitle);
+          }
+          curY += 36;
+        }
+
+        else if (el.type === 'hero-image') {
+          g.append('rect')
+            .attr('x', cx).attr('y', curY)
+            .attr('width', contentW).attr('height', 50)
+            .attr('rx', 6).attr('fill', '#E9ECEF');
+          // Image icon
+          g.append('text')
+            .attr('x', cx + contentW / 2).attr('y', curY + 28)
+            .attr('text-anchor', 'middle')
+            .attr('font-size', '16px')
+            .attr('fill', '#DEE2E6')
+            .text('\u25A1');
+          curY += 56;
+        }
+
+        else if (el.type === 'text-block') {
+          g.append('text')
+            .attr('x', cx + 2).attr('y', curY + 9)
+            .attr('font-size', '8px')
+            .attr('font-weight', '600')
+            .attr('fill', '#212529')
+            .text(el.content || '');
+          if (el.subtitle) {
+            g.append('text')
+              .attr('x', cx + 2).attr('y', curY + 20)
+              .attr('font-size', '6px')
+              .attr('fill', '#ADB5BD')
+              .text(el.subtitle);
+          }
+          curY += 28;
+        }
+
+        else if (el.type === 'text-center') {
+          g.append('text')
+            .attr('x', SCREEN_W / 2).attr('y', curY + 10)
+            .attr('text-anchor', 'middle')
+            .attr('font-size', '10px')
+            .attr('font-weight', '700')
+            .attr('fill', '#212529')
+            .text(el.content || '');
+          if (el.subtitle) {
+            g.append('text')
+              .attr('x', SCREEN_W / 2).attr('y', curY + 22)
+              .attr('text-anchor', 'middle')
+              .attr('font-size', '7px')
+              .attr('fill', '#ADB5BD')
+              .text(el.subtitle);
+          }
+          curY += 30;
+        }
+
+        else if (el.type === 'icon-center') {
+          g.append('circle')
+            .attr('cx', SCREEN_W / 2).attr('cy', curY + 18)
+            .attr('r', 16)
+            .attr('fill', '#E8F5E9');
+          g.append('text')
+            .attr('x', SCREEN_W / 2).attr('y', curY + 18)
+            .attr('dy', '0.35em')
+            .attr('text-anchor', 'middle')
+            .attr('font-size', '16px')
+            .attr('fill', '#66BB6A')
+            .text('\u2713');
+          curY += 42;
+        }
+
+        else if (el.type === 'input') {
+          // Label
+          g.append('text')
+            .attr('x', cx + 2).attr('y', curY + 7)
+            .attr('font-size', '6px')
+            .attr('font-weight', '500')
+            .attr('fill', '#6C757D')
+            .text(el.label || 'Field');
+          // Input box
+          g.append('rect')
+            .attr('x', cx).attr('y', curY + 10)
+            .attr('width', contentW).attr('height', 16)
+            .attr('rx', 4)
+            .attr('fill', '#FFFFFF')
+            .attr('stroke', '#DEE2E6').attr('stroke-width', 0.5);
+          // Placeholder text
+          g.append('text')
+            .attr('x', cx + 6).attr('y', curY + 21)
+            .attr('font-size', '6px')
+            .attr('fill', '#ADB5BD')
+            .text(el.placeholder || '');
+          curY += 32;
+        }
+
+        else if (el.type === 'button' && el.isAction) {
+          g.append('rect')
+            .attr('x', cx + 10).attr('y', curY)
+            .attr('width', contentW - 20).attr('height', 22)
+            .attr('rx', 11).attr('fill', '#66BB6A');
+          g.append('text')
+            .attr('x', SCREEN_W / 2).attr('y', curY + 11)
+            .attr('dy', '0.35em')
+            .attr('text-anchor', 'middle')
+            .attr('font-size', '8px')
+            .attr('font-weight', '600')
+            .attr('fill', 'white')
+            .text(el.content || 'Button');
+          curY += 28;
+        }
+
+        else if (el.type === 'button-secondary') {
+          g.append('rect')
+            .attr('x', cx + 10).attr('y', curY)
+            .attr('width', contentW - 20).attr('height', 22)
+            .attr('rx', 11)
+            .attr('fill', 'transparent')
+            .attr('stroke', '#66BB6A').attr('stroke-width', 1);
+          g.append('text')
+            .attr('x', SCREEN_W / 2).attr('y', curY + 11)
+            .attr('dy', '0.35em')
+            .attr('text-anchor', 'middle')
+            .attr('font-size', '8px')
+            .attr('font-weight', '600')
+            .attr('fill', '#66BB6A')
+            .text(el.content || 'Button');
+          curY += 28;
+        }
+
+        else if (el.type === 'divider') {
+          g.append('line')
+            .attr('x1', cx).attr('y1', curY + 4)
+            .attr('x2', cx + contentW).attr('y2', curY + 4)
+            .attr('stroke', '#E9ECEF').attr('stroke-width', 0.5);
+          curY += 10;
+        }
+      });
+
+      // Screen name label below
+      g.append('text')
+        .attr('x', SCREEN_W / 2).attr('y', SCREEN_H + 16)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '13px')
+        .attr('font-weight', '600')
+        .attr('fill', '#212529')
+        .text(screen.name);
+    });
+
+    // --- Fit to content ---
+    function fitToContent() {
+      const bounds = container.node().getBBox();
+      if (!bounds.width || !bounds.height) return;
+      const pad = 60;
+      const bx = bounds.x - pad;
+      const by = bounds.y - pad;
+      const bw = bounds.width + pad * 2;
+      const bh = bounds.height + pad * 2;
+
+      const scale = Math.min(width / bw, height / bh, 1.2);
+      const tx = (width - bw * scale) / 2 - bx * scale;
+      const ty = (height - bh * scale) / 2 - by * scale;
+
+      svg.transition().duration(600)
+        .call(zoomBehavior.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+    }
+
+    fitToContent();
+
+    // Double-click canvas to fit
+    svg.on('dblclick.zoom', null);
+    svg.on('dblclick', () => fitToContent());
+
+    // --- Detail panel ---
+    function openPanel(screen) {
+      document.getElementById('panel-name').textContent = screen.name;
+      document.getElementById('panel-type').textContent = screen.type.charAt(0).toUpperCase() + screen.type.slice(1) + ' View';
+      document.getElementById('panel-desc').textContent = screen.description;
+
+      const elList = document.getElementById('panel-elements');
+      elList.innerHTML = '';
+      screen.elements.forEach(el => {
+        if (el.type === 'navbar') return;
+        const li = document.createElement('li');
+        const label = el.type.replace(/-/g, ' ');
+        li.textContent = el.content ? `${label}: ${el.content}` : label;
+        elList.appendChild(li);
+      });
+
+      const exList = document.getElementById('panel-exits');
+      exList.innerHTML = '';
+      screen.exits.forEach(exit => {
+        const li = document.createElement('li');
+        const span = document.createElement('span');
+        span.className = 'action';
+        span.textContent = exit.action;
+        li.appendChild(span);
+        li.appendChild(document.createTextNode(' ' + (screenMap[exit.target] ? screenMap[exit.target].name : exit.target)));
+        exList.appendChild(li);
+      });
+
+      document.getElementById('detail-panel').classList.add('open');
+    }
+
+    function closePanel() {
+      document.getElementById('detail-panel').classList.remove('open');
+    }
+
+    // Close panel on canvas click
+    svg.on('click', () => closePanel());
+
+    // Keyboard zoom
+    d3.select('body').on('keydown', (event) => {
+      if (event.key === '+' || event.key === '=') {
+        svg.transition().duration(300).call(zoomBehavior.scaleBy, 1.3);
+      } else if (event.key === '-') {
+        svg.transition().duration(300).call(zoomBehavior.scaleBy, 0.7);
+      }
+    });
+  </script>
+</body>
+</html>

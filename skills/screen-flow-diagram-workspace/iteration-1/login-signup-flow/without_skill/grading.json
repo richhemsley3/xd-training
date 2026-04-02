@@ -1,0 +1,57 @@
+{
+  "eval_name": "login-signup-flow",
+  "configuration": "without_skill",
+  "expectations": [
+    {
+      "text": "HTML file exists",
+      "passed": true,
+      "evidence": "screen-flow.html exists in outputs directory"
+    },
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": true,
+      "evidence": "Found: d3js.org/d3.v7.min.js"
+    },
+    {
+      "text": "Landing page screen",
+      "passed": true,
+      "evidence": "Found: Landing Page node defined"
+    },
+    {
+      "text": "Login form screen",
+      "passed": true,
+      "evidence": "Found: Login Form node defined"
+    },
+    {
+      "text": "Sign up form screen",
+      "passed": true,
+      "evidence": "Found: Sign Up Form node defined"
+    },
+    {
+      "text": "Dashboard screen",
+      "passed": true,
+      "evidence": "Found: Dashboard node defined"
+    },
+    {
+      "text": "Error state screen",
+      "passed": true,
+      "evidence": "Found: Invalid Credentials node with type 'error'"
+    },
+    {
+      "text": "Email verification screen",
+      "passed": true,
+      "evidence": "Found: Email Verification node with type 'verify'"
+    },
+    {
+      "text": "Branching paths",
+      "passed": false,
+      "evidence": "Missing: branch; The word 'branch' does not appear in the file, though two paths from landing are implemented"
+    },
+    {
+      "text": "Green connectors",
+      "passed": false,
+      "evidence": "Missing: #66BB6A; File uses #6366f1 (purple) for normal connectors and #10b981 (teal-green) for success paths"
+    }
+  ],
+  "pass_rate": 0.8
+}

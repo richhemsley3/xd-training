@@ -1,0 +1,57 @@
+{
+  "eval_name": "structured-data",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "HTML file exists",
+      "passed": true,
+      "evidence": "Found: journey-map.html exists in outputs directory"
+    },
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": true,
+      "evidence": "Found: 'd3@7' in output"
+    },
+    {
+      "text": "All 4 phases present",
+      "passed": true,
+      "evidence": "Found: 'Discovery' in output"
+    },
+    {
+      "text": "All 12 steps present",
+      "passed": true,
+      "evidence": "Found: 'Google Search' in output"
+    },
+    {
+      "text": "Emotion scores in data",
+      "passed": true,
+      "evidence": "Found: '0.2' in output"
+    },
+    {
+      "text": "Pain point: trust reviews",
+      "passed": true,
+      "evidence": "Found: 'trust reviews' in output"
+    },
+    {
+      "text": "Opportunity: comparison tool",
+      "passed": true,
+      "evidence": "Found: 'comparison tool' in output"
+    },
+    {
+      "text": "Pain point: procurement",
+      "passed": true,
+      "evidence": "Found: 'procurement' in output"
+    },
+    {
+      "text": "Opportunity: pre-built integrations",
+      "passed": true,
+      "evidence": "Found: 'integrations' in output"
+    },
+    {
+      "text": "Emotion curve SVG",
+      "passed": false,
+      "evidence": "Missing: '<svg' not found in output"
+    }
+  ],
+  "pass_rate": 0.9
+}

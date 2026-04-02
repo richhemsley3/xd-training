@@ -1,0 +1,57 @@
+{
+  "eval_name": "mermaid-conversion",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "HTML file exists",
+      "passed": true,
+      "evidence": "Found: mermaid-flow.html exists in outputs directory"
+    },
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": true,
+      "evidence": "Found: 'd3@7' in output"
+    },
+    {
+      "text": "Start node present",
+      "passed": true,
+      "evidence": "Found: 'Start' in output"
+    },
+    {
+      "text": "Search Products node",
+      "passed": true,
+      "evidence": "Found: 'Search Products' in output"
+    },
+    {
+      "text": "Decision: Found results",
+      "passed": true,
+      "evidence": "Found: 'Found results' in output"
+    },
+    {
+      "text": "Decision: In Stock",
+      "passed": true,
+      "evidence": "Found: 'In Stock' in output"
+    },
+    {
+      "text": "End node: Order Confirmed",
+      "passed": true,
+      "evidence": "Found: 'Order Confirmed' in output"
+    },
+    {
+      "text": "SDS warm canvas",
+      "passed": true,
+      "evidence": "Found: '#FAF8F5' in output"
+    },
+    {
+      "text": "SDS interactive-primary",
+      "passed": true,
+      "evidence": "Found: '#013D5B' in output"
+    },
+    {
+      "text": "SVG rendering",
+      "passed": true,
+      "evidence": "Found: '<svg' in output"
+    }
+  ],
+  "pass_rate": 1.0
+}

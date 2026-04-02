@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Access Request Portal — Component Gap Report</title>
+<style>
+  :root {
+    --sds-font-sans: 'Proxima Nova', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --sds-color-warm-gray-025: #FAF8F5; --sds-color-warm-gray-050: #F4F1EB;
+    --sds-color-warm-gray-100: #EBE6DD; --sds-color-warm-gray-150: #E0DCD3;
+    --sds-color-warm-gray-400: #948E85; --sds-color-warm-gray-550: #6B6760;
+    --sds-color-warm-gray-700: #47443F; --sds-color-warm-gray-900: #1C1A17;
+    --sds-color-blue-050: #EBF4F5; --sds-color-blue-700: #0C4A69; --sds-color-blue-750: #013D5B;
+    --sds-color-red-050: #FFEEEB; --sds-color-red-500: #BF5547;
+    --sds-color-green-025: #F4FAEB; --sds-color-green-400: #7A9A01; --sds-color-green-500: #62800B;
+    --sds-color-yellow-025: #FCF9D9; --sds-color-yellow-200: #EBCE2D; --sds-color-yellow-500: #8A7515;
+    --sds-color-purple-550: #805AA1;
+    --sds-color-white: #FFFFFF;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sds-font-sans); background: var(--sds-color-warm-gray-025); color: var(--sds-color-warm-gray-900); line-height: 1.5; font-size: 14px; padding: 32px 40px; -webkit-font-smoothing: antialiased; }
+  h1 { font-size: 28px; font-weight: 600; margin-bottom: 4px; }
+  .subtitle { font-size: 14px; color: var(--sds-color-warm-gray-550); margin-bottom: 32px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 8px; }
+  .desc { font-size: 13px; color: var(--sds-color-warm-gray-550); margin-bottom: 20px; max-width: 860px; }
+  .divider { border: none; border-top: 1px solid var(--sds-color-warm-gray-150); margin: 40px 0; }
+
+  .stat-row { display: flex; gap: 12px; margin-bottom: 24px; }
+  .stat-card { flex: 1; text-align: center; padding: 16px; background: var(--sds-color-white); border: 1px solid var(--sds-color-warm-gray-150); border-radius: 8px; }
+  .stat-value { font-size: 24px; font-weight: 600; color: var(--sds-color-blue-750); }
+  .stat-label { font-size: 11px; font-weight: 600; color: var(--sds-color-warm-gray-400); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 4px; }
+
+  .gap-table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+    background: var(--sds-color-white); border: 1px solid var(--sds-color-warm-gray-150);
+    border-radius: 8px; overflow: hidden;
+  }
+  .gap-table th {
+    text-align: left; padding: 10px 16px; font-size: 12px; font-weight: 600;
+    color: var(--sds-color-warm-gray-550); background: var(--sds-color-warm-gray-025);
+    border-bottom: 2px solid var(--sds-color-warm-gray-150); white-space: nowrap;
+  }
+  .gap-table td {
+    padding: 12px 16px; border-bottom: 1px solid var(--sds-color-warm-gray-100);
+    color: var(--sds-color-warm-gray-700); vertical-align: top;
+  }
+  .gap-table tr:last-child td { border-bottom: none; }
+  .gap-table td:first-child { font-weight: 500; color: var(--sds-color-warm-gray-900); }
+
+  .priority { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .priority--high { background: var(--sds-color-red-050); color: var(--sds-color-red-500); }
+  .priority--med { background: var(--sds-color-yellow-025); color: var(--sds-color-yellow-500); }
+  .priority--low { background: var(--sds-color-blue-050); color: var(--sds-color-blue-700); }
+
+  .exists { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .exists--yes { background: var(--sds-color-green-025); color: var(--sds-color-green-500); }
+  .exists--partial { background: var(--sds-color-yellow-025); color: var(--sds-color-yellow-500); }
+  .exists--no { background: var(--sds-color-warm-gray-100); color: var(--sds-color-warm-gray-550); }
+</style>
+</head>
+<body>
+
+<h1>Component Gap Report</h1>
+<p class="subtitle">Missing Design System Lab components needed by the Access Request Portal &middot; Compared against /software-ds/components/</p>
+
+<!-- Summary -->
+<div class="stat-row">
+  <div class="stat-card"><div class="stat-value">3</div><div class="stat-label">Existing Components Used</div></div>
+  <div class="stat-card"><div class="stat-value">14</div><div class="stat-label">New Components Needed</div></div>
+  <div class="stat-card"><div class="stat-value">3</div><div class="stat-label">Partial Matches</div></div>
+  <div class="stat-card"><div class="stat-value">11</div><div class="stat-label">No Match</div></div>
+</div>
+
+<!-- Existing components used -->
+<h2>Existing Components Used</h2>
+<p class="desc">These Design System Lab components were used directly from the existing library.</p>
+
+<table class="gap-table">
+  <thead>
+    <tr><th>Component</th><th>Source</th><th>Used In</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Header</td>
+      <td>header.html</td>
+      <td>All screens (app shell header with logo, help, profile)</td>
+    </tr>
+    <tr>
+      <td>Side Navigation</td>
+      <td>side-navigation.html</td>
+      <td>All screens (sidebar with icons, labels, groups, active state)</td>
+    </tr>
+    <tr>
+      <td>Color Tokens</td>
+      <td>tokens/colors.css</td>
+      <td>All screens (semantic tokens, status colors, backgrounds)</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr class="divider">
+
+<!-- Missing components -->
+<h2>Missing Components</h2>
+<p class="desc">Components needed by the designs that do not exist in the Design System Lab. Ranked by usage frequency and design impact.</p>
+
+<table class="gap-table">
+  <thead>
+    <tr><th>Component</th><th>Priority</th><th>Where Used</th><th>Description</th><th>Closest Existing</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Data Table</td>
+      <td><span class="priority priority--high">High</span></td>
+      <td>My Requests, Approval Queue, Audit Log</td>
+      <td>Sortable, filterable table with row selection (checkboxes), hover state, and sticky first column. Supports pagination and bulk actions.</td>
+      <td><span class="exists exists--no">None</span></td>
+    </tr>
+    <tr>
+      <td>Status Tag</td>
+      <td><span class="priority priority--high">High</span></td>
+      <td>All list views, detail screens</td>
+      <td>Inline tag with icon + text showing request status (Pending, In Review, Approved, Denied, Provisioned). Color-coded with icon differentiator for accessibility.</td>
+      <td><span class="exists exists--partial">Partial: sds-tag exists in report template but lacks icon support</span></td>
+    </tr>
+    <tr>
+      <td>Button</td>
+      <td><span class="priority priority--high">High</span></td>
+      <td>All screens</td>
+      <td>Primary, secondary, success, and danger variants. Supports icon + text, icon-only, small size. Includes loading state with spinner.</td>
+      <td><span class="exists exists--no">None</span></td>
+    </tr>
+    <tr>
+      <td>Form Input</td>
+      <td><span class="priority priority--high">High</span></td>
+      <td>New Request, Review Request, Audit Log</td>
+      <td>Text input, select, textarea with labels, hint text, error states, and focus ring. Includes searchable combobox variant.</td>
+      <td><span class="exists exists--no">None</span></td>
+    </tr>
+    <tr>
+      <td>Stat Card</td>
+      <td><span class="priority priority--med">Medium</span></td>
+      <td>My Requests, Approval Queue</td>
+      <td>Compact card showing a metric value and label. Used in horizontal stat rows for dashboard-style summaries.</td>
+      <td><span class="exists exists--partial">Partial: sds-stat-card exists in report template but may need size variants</span></td>
+    </tr>
+    <tr>
+      <td>Status Timeline</td>
+      <td><span class="priority priority--med">Medium</span></td>
+      <td>Request Detail, Denied State</td>
+      <td>Vertical timeline showing ordered events with colored dots (active, success, error), labels, and timestamps. Used for request status history.</td>
+      <td><span class="exists exists--no">None</span></td>
+    </tr>
+    <tr>
+      <td>Callout Banner</td>
+      <td><span class="priority priority--med">Medium</span></td>
+      <td>Duplicate Warning, Review Request, Denied State</td>
+      <td>Full-width inline banner with icon, title, and description. Warning, info, and error variants. Used for contextual alerts within the page flow.</td>
+      <td><span class="exists exists--partial">Partial: callout exists in report template but as a left-border card, not a full banner</span></td>
+    </tr>
+    <tr>
+      <td>Risk Meter</td>
+      <td><span class="priority priority--med">Medium</span></td>
+      <td>Approval Queue</td>
+      <td>Compact visual indicator showing risk level as 3 bars with pattern fills and a text label. Includes tooltip with risk factor breakdown.</td>
+      <td><span class="exists exists--no">None</span></td>
+    </tr>
+    <tr>
+      <td>Filter Bar</td>
+      <td><span class="priority priority--med">Medium</span></td>
+      <td>My Requests, Audit Log</td>
+      <td>Horizontal bar with filter chips (toggle selection), search input, and optional date range picker. Shows active filter state with result count.</td>
+      <td><span class="exists exists--no">None</span></td>
+    </tr>
+    <tr>
+      <td>Confirmation Dialog / Modal</td>
+      <td><span class="priority priority--med">Medium</span></td>
+      <td>Approval Queue, Review Request</td>
+      <td>Modal overlay with title, body content, and action buttons. Supports focus trap, keyboard shortcuts (Enter/Escape), and aria attributes.</td>
+      <td><span class="exists exists--no">None</span></td>
+    </tr>
+    <tr>
+      <td>Toast Notification</td>
+      <td><span class="priority priority--low">Low</span></td>
+      <td>New Request (post-submit), Approval Queue (post-action)</td>
+      <td>Transient notification that appears at the top of the viewport, auto-dismisses after a delay. Success, info, and error variants.</td>
+      <td><span class="exists exists--no">None</span></td>
+    </tr>
+    <tr>
+      <td>Empty State</td>
+      <td><span class="priority priority--low">Low</span></td>
+      <td>My Requests, Approval Queue (filtered views)</td>
+      <td>Centered message with icon, descriptive text, and optional CTA button. Shown when a list or table has no results.</td>
+      <td><span class="exists exists--no">None</span></td>
+    </tr>
+    <tr>
+      <td>Sensitivity Badge</td>
+      <td><span class="priority priority--low">Low</span></td>
+      <td>Request Detail, Review Request</td>
+      <td>Small inline badge indicating data sensitivity level (Low, Medium, High) with color coding. Similar to status tag but specific to data classification.</td>
+      <td><span class="exists exists--partial">Could extend sds-tag with new semantic variants</span></td>
+    </tr>
+    <tr>
+      <td>Pagination</td>
+      <td><span class="priority priority--low">Low</span></td>
+      <td>Audit Log</td>
+      <td>Page navigation with page count, per-page selector (25/50/100), and "Jump to date" shortcut. Pairs with Data Table component.</td>
+      <td><span class="exists exists--no">None</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<hr class="divider">
+
+<h2>Recommendations for the Design System Team</h2>
+<p class="desc">Suggested build order based on frequency of use and number of screens impacted.</p>
+
+<table class="gap-table">
+  <thead>
+    <tr><th>Phase</th><th>Components</th><th>Rationale</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Phase 1</strong><br><span style="font-size:11px;color:var(--sds-color-warm-gray-400);">Foundations</span></td>
+      <td>Button, Form Input, Data Table</td>
+      <td>Used on every screen. These three components form the foundation for all CRUD interfaces. Building them first unblocks all other product design work.</td>
+    </tr>
+    <tr>
+      <td><strong>Phase 2</strong><br><span style="font-size:11px;color:var(--sds-color-warm-gray-400);">Feedback</span></td>
+      <td>Status Tag (extend sds-tag), Callout Banner, Confirmation Dialog, Toast Notification</td>
+      <td>User feedback and messaging components. Status Tag can extend the existing sds-tag. Dialog is needed for any destructive or irreversible action pattern.</td>
+    </tr>
+    <tr>
+      <td><strong>Phase 3</strong><br><span style="font-size:11px;color:var(--sds-color-warm-gray-400);">Patterns</span></td>
+      <td>Status Timeline, Filter Bar, Stat Card (extend), Empty State, Pagination</td>
+      <td>Higher-level patterns that compose foundation components. Filter Bar uses Form Input. Pagination pairs with Data Table. These can follow once Phase 1 ships.</td>
+    </tr>
+    <tr>
+      <td><strong>Phase 4</strong><br><span style="font-size:11px;color:var(--sds-color-warm-gray-400);">Domain-specific</span></td>
+      <td>Risk Meter, Sensitivity Badge</td>
+      <td>Specific to the access management domain. Could be product-level components rather than design system components if they do not generalize well.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p style="margin-top:24px;font-size:12px;color:var(--sds-color-warm-gray-400);">[CHECKPOINT] Stage 9 complete — all pipeline stages finished.</p>
+
+</body>
+</html>

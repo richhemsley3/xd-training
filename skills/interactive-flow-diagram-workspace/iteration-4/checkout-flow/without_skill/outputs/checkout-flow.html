@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-Commerce Checkout Flow</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f1117;
+    color: #e1e4e8;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  #toolbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    z-index: 100;
+  }
+
+  #toolbar h1 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #e1e4e8;
+    letter-spacing: -0.01em;
+  }
+
+  #toolbar .controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  #toolbar button {
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  #toolbar button:hover { background: #30363d; }
+
+  #toolbar .zoom-display {
+    font-size: 12px;
+    color: #8b949e;
+    min-width: 44px;
+    text-align: center;
+  }
+
+  #legend {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 16px 20px;
+    z-index: 100;
+    font-size: 12px;
+  }
+
+  #legend h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #8b949e;
+    margin-bottom: 10px;
+  }
+
+  #legend .item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  #legend .swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  #legend .swatch.diamond {
+    transform: rotate(45deg);
+    width: 11px;
+    height: 11px;
+  }
+
+  #canvas { width: 100%; height: 100vh; padding-top: 56px; }
+
+  .node-group { cursor: pointer; }
+  .node-group:hover .node-body { filter: brightness(1.15); }
+
+  .tooltip {
+    position: fixed;
+    background: #1c2128;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #c9d1d9;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 200;
+    max-width: 280px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  .tooltip .tt-title {
+    font-weight: 600;
+    color: #e1e4e8;
+    margin-bottom: 4px;
+  }
+
+  .tooltip .tt-desc {
+    color: #8b949e;
+    line-height: 1.4;
+  }
+
+  .edge-label {
+    font-size: 11px;
+    fill: #8b949e;
+    pointer-events: none;
+  }
+
+  .edge-label.yes { fill: #3fb950; }
+  .edge-label.no { fill: #f85149; }
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <h1>E-Commerce Checkout Flow</h1>
+  <div class="controls">
+    <button id="btn-zoom-out">−</button>
+    <span class="zoom-display" id="zoom-display">100%</span>
+    <button id="btn-zoom-in">+</button>
+    <button id="btn-fit">Fit</button>
+    <button id="btn-reset">Reset</button>
+  </div>
+</div>
+
+<div id="legend">
+  <h3>Legend</h3>
+  <div class="item"><div class="swatch" style="background:#238636;"></div><span>Happy path</span></div>
+  <div class="item"><div class="swatch" style="background:#1f6feb;"></div><span>Process step</span></div>
+  <div class="item"><div class="swatch diamond" style="background:#d29922;"></div><span>Decision / Validation</span></div>
+  <div class="item"><div class="swatch" style="background:#f85149; border-radius:50%;"></div><span>Error handling</span></div>
+  <div class="item"><div class="swatch" style="background:#8b949e;"></div><span>Terminal</span></div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<svg id="canvas"></svg>
+
+<script>
+const nodes = [
+  { id: 'start',           label: 'Start',                  type: 'terminal',  col: 0, row: 0, happy: true,
+    desc: 'User lands on the e-commerce storefront.' },
+  { id: 'browse',          label: 'Browse Products',        type: 'process',   col: 0, row: 1, happy: true,
+    desc: 'User searches and browses the product catalogue.' },
+  { id: 'add_to_cart',     label: 'Add to Cart',            type: 'process',   col: 0, row: 2, happy: true,
+    desc: 'User selects items and adds them to their shopping cart.' },
+  { id: 'view_cart',       label: 'View Cart',              type: 'process',   col: 0, row: 3, happy: true,
+    desc: 'User reviews cart contents, quantities, and subtotal.' },
+  { id: 'enter_shipping',  label: 'Enter Shipping\nAddress', type: 'process',  col: 0, row: 4, happy: true,
+    desc: 'User enters their shipping address details.' },
+  { id: 'validate_addr',   label: 'Address\nValid?',        type: 'decision',  col: 0, row: 5, happy: true,
+    desc: 'System validates the shipping address via address verification service.' },
+  { id: 'addr_error',      label: 'Show Address\nError',    type: 'error',     col: 1, row: 5, happy: false,
+    desc: 'Display validation errors: missing fields, unrecognized address, etc.' },
+  { id: 'enter_payment',   label: 'Enter Payment\nDetails', type: 'process',   col: 0, row: 6, happy: true,
+    desc: 'User enters credit card or payment method information.' },
+  { id: 'process_payment', label: 'Process\nPayment',       type: 'process',   col: 0, row: 7, happy: true,
+    desc: 'System submits payment to the payment gateway for authorization.' },
+  { id: 'payment_ok',      label: 'Payment\nSuccessful?',   type: 'decision',  col: 0, row: 8, happy: true,
+    desc: 'Check whether the payment gateway authorized the transaction.' },
+  { id: 'payment_error',   label: 'Show Payment\nError',    type: 'error',     col: 1, row: 8, happy: false,
+    desc: 'Display payment failure reason: declined card, insufficient funds, network error.' },
+  { id: 'retry_decision',  label: 'Retry or\nCancel?',      type: 'decision',  col: 1, row: 9, happy: false,
+    desc: 'User decides whether to retry with different payment info or cancel checkout.' },
+  { id: 'confirmation',    label: 'Order\nConfirmation',    type: 'process',   col: 0, row: 9, happy: true,
+    desc: 'Display order summary, confirmation number, and estimated delivery.' },
+  { id: 'end',             label: 'End',                    type: 'terminal',  col: 0, row: 10, happy: true,
+    desc: 'Checkout complete. User receives confirmation email.' },
+  { id: 'cancelled',       label: 'Order\nCancelled',       type: 'terminal',  col: 2, row: 9, happy: false,
+    desc: 'User abandoned checkout. Cart is preserved for later.' },
+];
+
+const edges = [
+  { from: 'start',          to: 'browse',          label: '',       happy: true },
+  { from: 'browse',         to: 'add_to_cart',     label: '',       happy: true },
+  { from: 'add_to_cart',    to: 'view_cart',       label: '',       happy: true },
+  { from: 'view_cart',      to: 'enter_shipping',  label: 'Checkout', happy: true },
+  { from: 'enter_shipping', to: 'validate_addr',   label: '',       happy: true },
+  { from: 'validate_addr',  to: 'enter_payment',   label: 'Yes',    happy: true,  labelClass: 'yes' },
+  { from: 'validate_addr',  to: 'addr_error',      label: 'No',     happy: false, labelClass: 'no' },
+  { from: 'addr_error',     to: 'enter_shipping',  label: 'Fix',    happy: false },
+  { from: 'enter_payment',  to: 'process_payment', label: '',       happy: true },
+  { from: 'process_payment',to: 'payment_ok',      label: '',       happy: true },
+  { from: 'payment_ok',     to: 'confirmation',    label: 'Yes',    happy: true,  labelClass: 'yes' },
+  { from: 'payment_ok',     to: 'payment_error',   label: 'No',     happy: false, labelClass: 'no' },
+  { from: 'payment_error',  to: 'retry_decision',  label: '',       happy: false },
+  { from: 'retry_decision', to: 'enter_payment',   label: 'Retry',  happy: false, labelClass: 'yes' },
+  { from: 'retry_decision', to: 'cancelled',       label: 'Cancel', happy: false, labelClass: 'no' },
+  { from: 'confirmation',   to: 'end',             label: '',       happy: true },
+];
+
+const CELL_W = 220;
+const CELL_H = 120;
+const NODE_W = 160;
+const NODE_H = 56;
+const DIAMOND_R = 42;
+const ORIGIN_X = 400;
+const ORIGIN_Y = 80;
+
+function nodeCenter(n) {
+  return {
+    x: ORIGIN_X + n.col * CELL_W,
+    y: ORIGIN_Y + n.row * CELL_H
+  };
+}
+
+const colorMap = {
+  process:  { fill: '#1f6feb', stroke: '#388bfd', text: '#fff' },
+  decision: { fill: '#d29922', stroke: '#e3b341', text: '#fff' },
+  error:    { fill: '#f85149', stroke: '#ff7b72', text: '#fff' },
+  terminal: { fill: '#30363d', stroke: '#484f58', text: '#c9d1d9' },
+};
+
+const happyFill = '#238636';
+const happyStroke = '#3fb950';
+
+const svg = d3.select('#canvas');
+const g = svg.append('g');
+
+const zoom = d3.zoom()
+  .scaleExtent([0.2, 3])
+  .on('zoom', (e) => {
+    g.attr('transform', e.transform);
+    d3.select('#zoom-display').text(Math.round(e.transform.k * 100) + '%');
+  });
+
+svg.call(zoom);
+
+// Arrowhead markers
+const defs = svg.append('defs');
+
+function addMarker(id, color) {
+  defs.append('marker')
+    .attr('id', id)
+    .attr('viewBox', '0 0 10 7')
+    .attr('refX', 10)
+    .attr('refY', 3.5)
+    .attr('markerWidth', 8)
+    .attr('markerHeight', 6)
+    .attr('orient', 'auto')
+    .append('path')
+    .attr('d', 'M0,0 L10,3.5 L0,7 Z')
+    .attr('fill', color);
+}
+
+addMarker('arrow-happy', happyStroke);
+addMarker('arrow-default', '#484f58');
+addMarker('arrow-error', '#ff7b72');
+
+// Drop shadow filter
+const filter = defs.append('filter').attr('id', 'shadow').attr('x', '-20%').attr('y', '-20%').attr('width', '140%').attr('height', '140%');
+filter.append('feDropShadow').attr('dx', 0).attr('dy', 2).attr('stdDeviation', 4).attr('flood-color', '#000').attr('flood-opacity', 0.35);
+
+// Glow filter for happy path
+const glow = defs.append('filter').attr('id', 'glow').attr('x', '-30%').attr('y', '-30%').attr('width', '160%').attr('height', '160%');
+glow.append('feGaussianBlur').attr('in', 'SourceGraphic').attr('stdDeviation', 3).attr('result', 'blur');
+glow.append('feMerge').selectAll('feMergeNode').data(['blur', 'SourceGraphic']).enter().append('feMergeNode').attr('in', d => d);
+
+// Build node map
+const nodeMap = {};
+nodes.forEach(n => nodeMap[n.id] = n);
+
+// --- Draw edges ---
+const edgeGroup = g.append('g').attr('class', 'edges');
+
+edges.forEach(e => {
+  const from = nodeMap[e.from];
+  const to = nodeMap[e.to];
+  const fc = nodeCenter(from);
+  const tc = nodeCenter(to);
+
+  let markerEnd, strokeColor, strokeWidth, dasharray;
+
+  if (e.happy) {
+    markerEnd = 'url(#arrow-happy)';
+    strokeColor = happyStroke;
+    strokeWidth = 2.5;
+    dasharray = 'none';
+  } else if (from.type === 'error' || to.type === 'error' || from.type === 'decision' && !e.happy) {
+    markerEnd = 'url(#arrow-error)';
+    strokeColor = '#ff7b72';
+    strokeWidth = 1.5;
+    dasharray = '6,3';
+  } else {
+    markerEnd = 'url(#arrow-default)';
+    strokeColor = '#484f58';
+    strokeWidth = 1.5;
+    dasharray = 'none';
+  }
+
+  // Build path
+  let path;
+  const sameCol = from.col === to.col;
+
+  if (sameCol) {
+    // Straight vertical
+    let sy = fc.y + (from.type === 'decision' ? DIAMOND_R : NODE_H / 2);
+    let ey = tc.y - (to.type === 'decision' ? DIAMOND_R : NODE_H / 2);
+    path = `M${fc.x},${sy} L${tc.x},${ey}`;
+  } else if (e.from === 'addr_error' && e.to === 'enter_shipping') {
+    // Loop back: addr_error → enter_shipping
+    const sy = tc.y;
+    const sx = fc.x + NODE_W / 2;
+    const ey = tc.y;
+    const ex = tc.x + NODE_W / 2;
+    const top = fc.y - CELL_H * 0.6;
+    path = `M${fc.x},${fc.y - NODE_H / 2} L${fc.x},${top} L${tc.x + NODE_W / 2 + 20},${top} L${tc.x + NODE_W / 2 + 20},${ey} L${ex},${ey}`;
+  } else if (e.from === 'retry_decision' && e.to === 'enter_payment') {
+    // Loop back: retry → enter_payment
+    const sx = fc.x;
+    const ex = tc.x;
+    const farRight = fc.x + CELL_W * 0.6;
+    const topY = nodeCenter(nodeMap['enter_payment']).y;
+    path = `M${sx},${fc.y - NODE_H / 2 - (DIAMOND_R - NODE_H / 2)} L${sx},${topY - CELL_H * 0.45} L${farRight},${topY - CELL_H * 0.45} L${farRight},${topY} L${ex + NODE_W / 2},${topY}`;
+  } else {
+    // Horizontal from decision
+    let sx, sy, ex, ey;
+    if (from.type === 'decision') {
+      sx = fc.x + DIAMOND_R;
+      sy = fc.y;
+    } else {
+      sx = fc.x + NODE_W / 2;
+      sy = fc.y;
+    }
+    if (to.type === 'decision') {
+      ex = tc.x - DIAMOND_R;
+      ey = tc.y;
+    } else {
+      ex = tc.x - NODE_W / 2;
+      ey = tc.y;
+    }
+    if (Math.abs(sy - ey) < 2) {
+      path = `M${sx},${sy} L${ex},${ey}`;
+    } else {
+      const midX = (sx + ex) / 2;
+      path = `M${sx},${sy} L${midX},${sy} L${midX},${ey} L${ex},${ey}`;
+    }
+  }
+
+  edgeGroup.append('path')
+    .attr('d', path)
+    .attr('fill', 'none')
+    .attr('stroke', strokeColor)
+    .attr('stroke-width', strokeWidth)
+    .attr('stroke-dasharray', dasharray)
+    .attr('marker-end', markerEnd);
+
+  // Edge label
+  if (e.label) {
+    let lx, ly;
+    if (sameCol) {
+      lx = fc.x + 14;
+      ly = (fc.y + tc.y) / 2;
+    } else if (from.type === 'decision') {
+      lx = fc.x + DIAMOND_R + 14;
+      ly = fc.y - 8;
+    } else {
+      lx = (fc.x + tc.x) / 2;
+      ly = fc.y - 8;
+    }
+
+    edgeGroup.append('text')
+      .attr('class', `edge-label ${e.labelClass || ''}`)
+      .attr('x', lx)
+      .attr('y', ly)
+      .attr('text-anchor', 'start')
+      .attr('dominant-baseline', 'middle')
+      .text(e.label);
+  }
+});
+
+// --- Draw nodes ---
+const nodeGroup = g.append('g').attr('class', 'nodes');
+
+const tooltip = d3.select('#tooltip');
+
+nodes.forEach(n => {
+  const c = nodeCenter(n);
+  const colors = colorMap[n.type];
+  const isHappy = n.happy && n.type !== 'terminal';
+  const fill = isHappy ? happyFill : colors.fill;
+  const stroke = isHappy ? happyStroke : colors.stroke;
+
+  const group = nodeGroup.append('g')
+    .attr('class', 'node-group')
+    .attr('transform', `translate(${c.x},${c.y})`)
+    .on('mouseenter', function(event) {
+      tooltip.style('opacity', 1)
+        .html(`<div class="tt-title">${n.label.replace(/\n/g, ' ')}</div><div class="tt-desc">${n.desc}</div>`);
+      const rect = tooltip.node().getBoundingClientRect();
+      tooltip.style('left', (event.clientX + 16) + 'px')
+             .style('top', (event.clientY - rect.height / 2) + 'px');
+
+      d3.select(this).select('.node-body').transition().duration(150)
+        .attr('stroke-width', 3);
+    })
+    .on('mousemove', function(event) {
+      const rect = tooltip.node().getBoundingClientRect();
+      tooltip.style('left', (event.clientX + 16) + 'px')
+             .style('top', (event.clientY - rect.height / 2) + 'px');
+    })
+    .on('mouseleave', function() {
+      tooltip.style('opacity', 0);
+      d3.select(this).select('.node-body').transition().duration(150)
+        .attr('stroke-width', 2);
+    });
+
+  if (n.type === 'decision') {
+    group.append('rect')
+      .attr('class', 'node-body')
+      .attr('x', -DIAMOND_R)
+      .attr('y', -DIAMOND_R)
+      .attr('width', DIAMOND_R * 2)
+      .attr('height', DIAMOND_R * 2)
+      .attr('rx', 4)
+      .attr('transform', 'rotate(45)')
+      .attr('fill', fill)
+      .attr('stroke', stroke)
+      .attr('stroke-width', 2)
+      .attr('filter', 'url(#shadow)');
+  } else if (n.type === 'terminal') {
+    group.append('rect')
+      .attr('class', 'node-body')
+      .attr('x', -NODE_W / 2)
+      .attr('y', -NODE_H / 2)
+      .attr('width', NODE_W)
+      .attr('height', NODE_H)
+      .attr('rx', NODE_H / 2)
+      .attr('fill', isHappy ? happyFill : fill)
+      .attr('stroke', isHappy ? happyStroke : stroke)
+      .attr('stroke-width', 2)
+      .attr('filter', 'url(#shadow)');
+  } else {
+    group.append('rect')
+      .attr('class', 'node-body')
+      .attr('x', -NODE_W / 2)
+      .attr('y', -NODE_H / 2)
+      .attr('width', NODE_W)
+      .attr('height', NODE_H)
+      .attr('rx', 10)
+      .attr('fill', fill)
+      .attr('stroke', stroke)
+      .attr('stroke-width', 2)
+      .attr('filter', 'url(#shadow)');
+  }
+
+  // Label (multiline support)
+  const lines = n.label.split('\n');
+  const lineH = 15;
+  const startY = -(lines.length - 1) * lineH / 2;
+
+  lines.forEach((line, i) => {
+    group.append('text')
+      .attr('x', 0)
+      .attr('y', startY + i * lineH)
+      .attr('text-anchor', 'middle')
+      .attr('dominant-baseline', 'central')
+      .attr('fill', n.happy && n.type === 'terminal' ? '#fff' : colors.text)
+      .attr('font-size', '13px')
+      .attr('font-weight', 600)
+      .attr('pointer-events', 'none')
+      .text(line);
+  });
+
+  // Pulse animation on happy path nodes
+  if (isHappy) {
+    group.select('.node-body').attr('filter', 'url(#glow)');
+  }
+});
+
+// --- Controls ---
+function fitToView() {
+  const bounds = g.node().getBBox();
+  const parent = svg.node().getBoundingClientRect();
+  const pw = parent.width;
+  const ph = parent.height - 56;
+  const scale = Math.min(pw / (bounds.width + 120), ph / (bounds.height + 120)) * 0.9;
+  const tx = pw / 2 - (bounds.x + bounds.width / 2) * scale;
+  const ty = (ph / 2 + 56) - (bounds.y + bounds.height / 2) * scale;
+
+  svg.transition().duration(500).call(
+    zoom.transform,
+    d3.zoomIdentity.translate(tx, ty).scale(scale)
+  );
+}
+
+d3.select('#btn-fit').on('click', fitToView);
+d3.select('#btn-reset').on('click', () => {
+  svg.transition().duration(500).call(zoom.transform, d3.zoomIdentity);
+});
+d3.select('#btn-zoom-in').on('click', () => {
+  svg.transition().duration(200).call(zoom.scaleBy, 1.3);
+});
+d3.select('#btn-zoom-out').on('click', () => {
+  svg.transition().duration(200).call(zoom.scaleBy, 0.7);
+});
+
+// Initial fit
+fitToView();
+</script>
+</body>
+</html>

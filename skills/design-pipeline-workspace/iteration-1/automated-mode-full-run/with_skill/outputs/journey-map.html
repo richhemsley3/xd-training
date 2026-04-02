@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Classification Workflow — Customer Journey Map</title>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg-canvas: #FAF8F5;
+    --bg-card: #FFFFFF;
+    --bg-header: #F4F1EB;
+    --bg-elevated: #FFFFFF;
+    --border-subtle: #EBE6DD;
+    --border-default: #E0DCD3;
+    --border-strong: #D0CBC3;
+    --border-focus: #013D5B;
+    --text-primary: #1C1A17;
+    --text-secondary: #54514D;
+    --text-tertiary: #6B6760;
+    --text-disabled: #B0ABA2;
+    --text-on-primary: #FFFFFF;
+    --interactive-primary: #013D5B;
+    --interactive-primary-hover: #05314D;
+    --interactive-primary-subtle: #D9EBED;
+    --phase-header-bg: #F4F1EB;
+    --phase-1: #805AA1;
+    --phase-2: #013D5B;
+    --phase-3: #0C4A69;
+    --phase-4: #7A9A01;
+    --phase-5: #8A7515;
+    --emotion-positive: #7A9A01;
+    --emotion-neutral: #0C4A69;
+    --emotion-negative: #CF6253;
+    --accent-pain: #BF5547;
+    --accent-pain-bg: #FFEEEB;
+    --accent-opportunity: #62800B;
+    --accent-opportunity-bg: #F4FAEB;
+    --accent-need: #8A7515;
+    --accent-need-bg: #FCF9D9;
+    --role-1: #013D5B;
+    --role-2: #4A6E82;
+    --role-3: #5C7A3D;
+    --role-4: #805AA1;
+  }
+
+  body {
+    background: var(--bg-canvas);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.5;
+  }
+
+  /* Title bar */
+  .title-bar {
+    padding: 24px 32px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .title-main h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .title-main h1 .sep { color: var(--border-strong); font-weight: 300; margin: 0 8px; }
+  .title-main h1 .subtitle { font-weight: 400; color: var(--text-tertiary); font-size: 18px; }
+  .title-persona {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+  .role-legend {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    padding-top: 8px;
+  }
+  .role-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .role-legend-item .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Grid container */
+  .journey-grid-wrapper {
+    overflow-x: auto;
+    padding: 0 32px 32px;
+  }
+  .journey-grid {
+    display: grid;
+    min-width: 1400px;
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg-card);
+  }
+
+  /* Row labels */
+  .row-label {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    background: var(--bg-header);
+    padding: 12px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    border-right: 1px solid var(--border-default);
+    border-bottom: 1px solid rgba(208,203,195,0.4);
+  }
+  .row-label-sub {
+    display: block;
+    font-size: 9px;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--text-disabled);
+    margin-top: 2px;
+  }
+
+  /* Phase headers */
+  .phase-header {
+    background: var(--phase-header-bg);
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-default);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .phase-header-corner {
+    position: sticky;
+    left: 0;
+    z-index: 4;
+    background: var(--phase-header-bg);
+    border-right: 1px solid var(--border-default);
+    border-bottom: 1px solid var(--border-default);
+  }
+
+  /* Step headers */
+  .step-header {
+    background: var(--bg-card);
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-tertiary);
+    text-align: center;
+    border-bottom: 1px solid var(--border-default);
+  }
+  .step-header-corner {
+    position: sticky;
+    left: 0;
+    z-index: 4;
+    background: var(--bg-card);
+    border-right: 1px solid var(--border-default);
+    border-bottom: 1px solid var(--border-default);
+    padding: 8px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Content cells */
+  .cell {
+    padding: 12px 16px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid rgba(208,203,195,0.4);
+    border-right: 1px solid rgba(208,203,195,0.2);
+    min-height: 60px;
+    transition: background 0.15s;
+    line-height: 1.5;
+    background: var(--bg-card);
+  }
+  .cell:hover { background: rgba(244,241,235,0.6); }
+
+  /* Role badges */
+  .role-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    height: 28px;
+    border-radius: 14px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-on-primary);
+    width: 100%;
+    max-width: 180px;
+    transition: opacity 0.2s;
+  }
+  .role-badge-secondary {
+    height: 22px;
+    padding: 0 10px;
+    border-radius: 11px;
+    font-size: 10px;
+    font-weight: 500;
+    width: auto;
+    margin: 2px 0;
+    display: inline-flex;
+  }
+
+  /* Pain points */
+  .pain-cell { background: var(--accent-pain-bg); }
+  .pain-text { color: var(--accent-pain); font-size: 12px; }
+
+  /* Opportunities */
+  .opp-cell { background: var(--accent-opportunity-bg); }
+  .opp-text { color: var(--accent-opportunity); font-size: 12px; }
+
+  /* Needs */
+  .need-cell { background: var(--accent-need-bg); }
+  .need-text { color: var(--accent-need); font-size: 12px; font-style: italic; }
+
+  /* Emotion row */
+  .emotion-row-container {
+    position: relative;
+    z-index: 1;
+    overflow: visible;
+    border-bottom: 1px solid rgba(208,203,195,0.4);
+    background: var(--bg-card);
+  }
+
+  /* Role dot prefix */
+  .role-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  /* Emotion curve legend */
+  .emotion-legend {
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    display: flex;
+    gap: 16px;
+    font-size: 9px;
+    color: var(--text-tertiary);
+  }
+  .emotion-legend-line {
+    width: 20px;
+    height: 2px;
+    margin-right: 4px;
+    vertical-align: middle;
+    display: inline-block;
+  }
+
+  /* Support bar */
+  .support-bar {
+    height: 8px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+  }
+  .support-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-align: center;
+  }
+
+  /* Print */
+  @media print {
+    .journey-grid-wrapper { overflow: visible; }
+    .journey-grid { min-width: unset; }
+    body { background: white; }
+  }
+</style>
+</head>
+<body>
+
+<div class="title-bar">
+  <div class="title-main">
+    <h1>Data Classification<span class="sep">|</span><span class="subtitle">Sensitive Data Tagging Workflow</span></h1>
+    <p class="title-persona">Persona: Maria Santos (Data Steward) &amp; James Kim (Security Admin)</p>
+  </div>
+  <div class="role-legend" id="role-legend"></div>
+</div>
+
+<div class="journey-grid-wrapper">
+  <div class="journey-grid" id="journey-grid"></div>
+</div>
+
+<script>
+const journeyData = {
+  title: "Data Classification Workflow",
+  roles: [
+    { name: "Data Steward", abbrev: "DS", color: "#013D5B" },
+    { name: "Security Admin", abbrev: "SA", color: "#4A6E82" },
+    { name: "Data Owner", abbrev: "DO", color: "#5C7A3D" },
+    { name: "System", abbrev: "Sys", color: "#805AA1" }
+  ],
+  phases: [
+    {
+      id: "discovery",
+      label: "Discovery",
+      color: "#805AA1",
+      steps: [
+        {
+          id: "connect-sources",
+          label: "Connect data sources",
+          primaryUser: { name: "Data Steward", color: "#013D5B" },
+          secondaryUsers: [{ name: "Security Admin", color: "#4A6E82" }],
+          emotion: { score: 0.5, label: "Uncertain", annotation: "Connecting multiple sources requires configuration" },
+          secondaryEmotions: [{ role: "Security Admin", score: 0.6, label: "Cautious", annotation: "Reviewing connection security" }],
+          needs: { "Data Steward": "Clear list of supported connectors", "Security Admin": "Secure credential management" },
+          painPoints: { "Data Steward": ["Unclear which connectors are available"], "Security Admin": ["Cannot verify connection security settings"] },
+          opportunities: { "Data Steward": ["One-click connector catalog with status"], "Security Admin": ["Security posture indicator per connection"] },
+          touchpoints: ["Web portal"],
+          supportReliance: "medium"
+        },
+        {
+          id: "run-scan",
+          label: "Run automated scan",
+          primaryUser: { name: "System", color: "#805AA1" },
+          secondaryUsers: [{ name: "Data Steward", color: "#013D5B" }],
+          emotion: { score: 0.4, label: "Waiting", annotation: "Scan takes time with no progress visibility" },
+          secondaryEmotions: [{ role: "Security Admin", score: 0.5, label: "Neutral", annotation: "Monitors from dashboard" }],
+          needs: { "Data Steward": "Real-time scan progress with ETA" },
+          painPoints: { "Data Steward": ["No progress indicator during scan", "Cannot estimate when scan will complete"] },
+          opportunities: { "Data Steward": ["Live progress bar with field count and ETA"] },
+          touchpoints: ["Web portal"],
+          supportReliance: "light"
+        },
+        {
+          id: "view-results",
+          label: "View scan results",
+          primaryUser: { name: "Data Steward", color: "#013D5B" },
+          secondaryUsers: [],
+          emotion: { score: 0.55, label: "Curious", annotation: "Results arrive but overwhelming volume" },
+          needs: { "Data Steward": "Summary overview before diving into details" },
+          painPoints: { "Data Steward": ["Flat list of thousands of fields with no prioritization"] },
+          opportunities: { "Data Steward": ["Summary dashboard: fields found, confidence distribution, sensitive data preview"] },
+          touchpoints: ["Web portal"],
+          supportReliance: "light"
+        }
+      ]
+    },
+    {
+      id: "triage",
+      label: "Triage & Review",
+      color: "#013D5B",
+      steps: [
+        {
+          id: "review-high-confidence",
+          label: "Review high-confidence suggestions",
+          primaryUser: { name: "Data Steward", color: "#013D5B" },
+          secondaryUsers: [],
+          emotion: { score: 0.75, label: "Confident", annotation: "AI suggestions are mostly accurate for obvious fields" },
+          needs: { "Data Steward": "Bulk approve high-confidence items quickly" },
+          painPoints: { "Data Steward": ["Must click through each field individually even when AI is clearly correct"] },
+          opportunities: { "Data Steward": ["One-click bulk approve for fields above confidence threshold"] },
+          touchpoints: ["Web portal"],
+          supportReliance: "light"
+        },
+        {
+          id: "review-low-confidence",
+          label: "Review low-confidence items",
+          primaryUser: { name: "Data Steward", color: "#013D5B" },
+          secondaryUsers: [{ name: "Data Owner", color: "#5C7A3D" }],
+          emotion: { score: 0.35, label: "Frustrated", annotation: "Ambiguous fields require domain knowledge and context" },
+          secondaryEmotions: [{ role: "Data Owner", score: 0.3, label: "Confused", annotation: "Asked to classify fields they don't understand" }],
+          needs: { "Data Steward": "Explainability for AI suggestions, sample data values", "Data Owner": "Clear context about what classification means" },
+          painPoints: { "Data Steward": ["No explanation for why AI suggested a classification", "Cannot see sample data values inline"], "Data Owner": ["Pulled in without context about what is needed"] },
+          opportunities: { "Data Steward": ["Inline explainability: sample values, pattern match, similar fields"], "Data Owner": ["Contextual onboarding for classification review"] },
+          touchpoints: ["Web portal", "Email notification"],
+          supportReliance: "medium"
+        },
+        {
+          id: "cross-source-group",
+          label: "Group similar fields across sources",
+          primaryUser: { name: "Data Steward", color: "#013D5B" },
+          secondaryUsers: [],
+          emotion: { score: 0.3, label: "Tedious", annotation: "Same field classified repeatedly across sources" },
+          needs: { "Data Steward": "Automatic grouping of semantically similar fields" },
+          painPoints: { "Data Steward": ["Must classify 'email' in every source separately", "No cross-source view of similar fields"] },
+          opportunities: { "Data Steward": ["Smart grouping: classify once, apply across all matching sources"] },
+          touchpoints: ["Web portal"],
+          supportReliance: "light"
+        }
+      ]
+    },
+    {
+      id: "classify",
+      label: "Classify & Tag",
+      color: "#0C4A69",
+      steps: [
+        {
+          id: "apply-classifications",
+          label: "Apply classifications",
+          primaryUser: { name: "Data Steward", color: "#013D5B" },
+          secondaryUsers: [],
+          emotion: { score: 0.65, label: "Productive", annotation: "Finally applying tags feels like progress" },
+          needs: { "Data Steward": "Fast inline editing with keyboard shortcuts" },
+          painPoints: { "Data Steward": ["Multi-step modal for each classification change"] },
+          opportunities: { "Data Steward": ["Inline dropdown classification with keyboard navigation"] },
+          touchpoints: ["Web portal"],
+          supportReliance: "light"
+        },
+        {
+          id: "flag-uncertain",
+          label: "Flag uncertain fields for review",
+          primaryUser: { name: "Data Steward", color: "#013D5B" },
+          secondaryUsers: [{ name: "Security Admin", color: "#4A6E82" }],
+          emotion: { score: 0.5, label: "Cautious", annotation: "Wants to escalate but no formal process" },
+          secondaryEmotions: [{ role: "Security Admin", score: 0.4, label: "Unaware", annotation: "Not notified about pending reviews" }],
+          needs: { "Data Steward": "Mark fields as 'needs review' with comment", "Security Admin": "Notification when fields need security review" },
+          painPoints: { "Data Steward": ["No way to flag fields for another person's review"], "Security Admin": ["Relies on email/Slack for review requests"] },
+          opportunities: { "Data Steward": ["In-app flag + comment workflow"], "Security Admin": ["Review queue with notification badges"] },
+          touchpoints: ["Web portal", "Email"],
+          supportReliance: "medium"
+        }
+      ]
+    },
+    {
+      id: "govern",
+      label: "Govern & Protect",
+      color: "#7A9A01",
+      steps: [
+        {
+          id: "review-approve",
+          label: "Security admin reviews & approves",
+          primaryUser: { name: "Security Admin", color: "#4A6E82" },
+          secondaryUsers: [{ name: "Data Steward", color: "#013D5B" }],
+          emotion: { score: 0.45, label: "Concerned", annotation: "Reviewing in spreadsheet exports is error-prone" },
+          secondaryEmotions: [{ role: "Data Steward", score: 0.5, label: "Waiting", annotation: "Waiting for approval to proceed" }],
+          needs: { "Security Admin": "Structured review queue sorted by sensitivity", "Data Steward": "Visibility into approval status" },
+          painPoints: { "Security Admin": ["Reviews happen in exported CSVs, not in the tool"], "Data Steward": ["No visibility into where approvals stand"] },
+          opportunities: { "Security Admin": ["In-app review queue with approve/reject/comment"], "Data Steward": ["Status tracker for pending approvals"] },
+          touchpoints: ["Web portal", "Spreadsheet export"],
+          supportReliance: "heavy"
+        },
+        {
+          id: "map-policies",
+          label: "Map classifications to protection policies",
+          primaryUser: { name: "Security Admin", color: "#4A6E82" },
+          secondaryUsers: [],
+          emotion: { score: 0.55, label: "Focused", annotation: "Critical step but disconnected from classification" },
+          needs: { "Security Admin": "Visual mapping of classification tags to protection actions" },
+          painPoints: { "Security Admin": ["Classification and policy are in separate tools", "Cannot see which classified fields lack protection"] },
+          opportunities: { "Security Admin": ["Unified view: classification + policy + protection status"] },
+          touchpoints: ["Web portal", "Policy engine"],
+          supportReliance: "medium"
+        }
+      ]
+    },
+    {
+      id: "monitor",
+      label: "Monitor & Iterate",
+      color: "#8A7515",
+      steps: [
+        {
+          id: "coverage-dashboard",
+          label: "Monitor classification coverage",
+          primaryUser: { name: "Security Admin", color: "#4A6E82" },
+          secondaryUsers: [{ name: "Data Steward", color: "#013D5B" }],
+          emotion: { score: 0.6, label: "Informed", annotation: "Dashboard provides some visibility" },
+          secondaryEmotions: [{ role: "Data Steward", score: 0.55, label: "Motivated", annotation: "Seeing progress is motivating" }],
+          needs: { "Security Admin": "Real-time coverage metrics for audit readiness", "Data Steward": "Progress tracking by source" },
+          painPoints: { "Security Admin": ["Metrics are stale, manually compiled"], "Data Steward": ["Cannot see personal progress toward coverage goals"] },
+          opportunities: { "Security Admin": ["Live dashboard with coverage by source, sensitivity, policy"], "Data Steward": ["Personal progress tracker with completion targets"] },
+          touchpoints: ["Web portal", "Reports"],
+          supportReliance: "light"
+        },
+        {
+          id: "handle-new-data",
+          label: "Handle newly discovered data",
+          primaryUser: { name: "System", color: "#805AA1" },
+          secondaryUsers: [{ name: "Data Steward", color: "#013D5B" }, { name: "Security Admin", color: "#4A6E82" }],
+          emotion: { score: 0.4, label: "Anxious", annotation: "New data appears without warning, classification gaps grow" },
+          secondaryEmotions: [{ role: "Security Admin", score: 0.35, label: "Worried", annotation: "Unclassified sensitive data is a compliance risk" }],
+          needs: { "Data Steward": "Alerts when new unclassified fields appear", "Security Admin": "Automated pre-classification for new data" },
+          painPoints: { "Data Steward": ["New sources added without notification"], "Security Admin": ["Discovers classification gaps only during audits"] },
+          opportunities: { "Data Steward": ["Smart alerts with pre-classified suggestions for new fields"], "Security Admin": ["Continuous compliance monitoring with auto-alerts"] },
+          touchpoints: ["Web portal", "Email alerts"],
+          supportReliance: "medium"
+        }
+      ]
+    }
+  ]
+};
+
+// Build the grid
+const grid = document.getElementById('journey-grid');
+const allSteps = journeyData.phases.flatMap(p => p.steps);
+const totalSteps = allSteps.length;
+const colWidth = 200;
+const labelColWidth = 140;
+
+// Set grid template
+grid.style.gridTemplateColumns = `${labelColWidth}px repeat(${totalSteps}, minmax(${colWidth}px, 1fr))`;
+
+// Dimension rows to render
+const dimensions = [
+  { key: 'primaryUser', label: 'Primary User' },
+  { key: 'secondaryUsers', label: 'Secondary Users' },
+  { key: 'emotion', label: 'UX Score', sub: 'Emotion curve' },
+  { key: 'needs', label: 'Critical Unmet Needs' },
+  { key: 'painPoints', label: 'Pain Points' },
+  { key: 'opportunities', label: 'Opportunities' },
+  { key: 'touchpoints', label: 'Touchpoints' },
+  { key: 'supportReliance', label: 'Reliance on Support', sub: 'If applicable' }
+];
+
+// Active role filter
+let activeRole = null;
+
+// Role legend
+const legendEl = document.getElementById('role-legend');
+legendEl.innerHTML = '<span style="font-size:11px;color:#6B6760;font-weight:600;">Roles:</span>';
+journeyData.roles.forEach(role => {
+  const item = document.createElement('span');
+  item.className = 'role-legend-item';
+  item.dataset.role = role.name;
+  item.innerHTML = `<span class="dot" style="background:${role.color};"></span>${role.abbrev}`;
+  item.addEventListener('click', () => toggleRoleFilter(role.name));
+  legendEl.appendChild(item);
+});
+
+// --- PHASE HEADER ROW ---
+// Corner
+const phCorner = document.createElement('div');
+phCorner.className = 'phase-header phase-header-corner';
+phCorner.textContent = '';
+grid.appendChild(phCorner);
+
+// Phase headers spanning step columns
+let colIndex = 2;
+journeyData.phases.forEach(phase => {
+  const ph = document.createElement('div');
+  ph.className = 'phase-header';
+  ph.style.gridColumn = `${colIndex} / span ${phase.steps.length}`;
+  ph.textContent = phase.label;
+  grid.appendChild(ph);
+  colIndex += phase.steps.length;
+});
+
+// --- STEP HEADER ROW ---
+const stCorner = document.createElement('div');
+stCorner.className = 'step-header step-header-corner';
+stCorner.textContent = 'Steps';
+grid.appendChild(stCorner);
+
+allSteps.forEach(step => {
+  const sh = document.createElement('div');
+  sh.className = 'step-header';
+  sh.textContent = step.label;
+  grid.appendChild(sh);
+});
+
+// --- DIMENSION ROWS ---
+dimensions.forEach(dim => {
+  // Row label
+  const label = document.createElement('div');
+  label.className = 'row-label';
+  label.innerHTML = dim.label + (dim.sub ? `<span class="row-label-sub">${dim.sub}</span>` : '');
+  label.style.flexDirection = 'column';
+  label.style.justifyContent = 'center';
+  label.style.alignItems = 'flex-start';
+  grid.appendChild(label);
+
+  if (dim.key === 'emotion') {
+    // Emotion row spans all columns
+    const emotionContainer = document.createElement('div');
+    emotionContainer.className = 'emotion-row-container';
+    emotionContainer.id = 'emotion-row';
+    emotionContainer.style.gridColumn = `2 / -1`;
+    emotionContainer.style.height = '150px';
+    emotionContainer.style.position = 'relative';
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.id = 'emotion-svg';
+    svg.style.overflow = 'visible';
+    svg.style.position = 'relative';
+    svg.style.zIndex = '1';
+    emotionContainer.appendChild(svg);
+
+    // Legend
+    const legend = document.createElement('div');
+    legend.className = 'emotion-legend';
+    legend.innerHTML = `
+      <span><span class="emotion-legend-line" style="background:#0C4A69;display:inline-block;"></span> Data Steward</span>
+      <span><span class="emotion-legend-line" style="background:#4A6E82;display:inline-block;border-top:2px dashed #4A6E82;height:0;"></span> Security Admin</span>
+    `;
+    emotionContainer.appendChild(legend);
+
+    grid.appendChild(emotionContainer);
+  } else {
+    // Regular cells
+    allSteps.forEach(step => {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.stepId = step.id;
+
+      if (dim.key === 'primaryUser') {
+        const badge = document.createElement('div');
+        badge.className = 'role-badge';
+        badge.style.background = step.primaryUser.color;
+        badge.textContent = step.primaryUser.name;
+        badge.dataset.role = step.primaryUser.name;
+        badge.addEventListener('click', () => toggleRoleFilter(step.primaryUser.name));
+        badge.style.cursor = 'pointer';
+        cell.style.display = 'flex';
+        cell.style.alignItems = 'center';
+        cell.style.justifyContent = 'center';
+        cell.appendChild(badge);
+      } else if (dim.key === 'secondaryUsers') {
+        cell.style.display = 'flex';
+        cell.style.flexDirection = 'column';
+        cell.style.alignItems = 'center';
+        cell.style.gap = '4px';
+        cell.style.justifyContent = 'center';
+        if (step.secondaryUsers && step.secondaryUsers.length > 0) {
+          step.secondaryUsers.forEach(su => {
+            const badge = document.createElement('div');
+            badge.className = 'role-badge role-badge-secondary';
+            badge.style.background = su.color;
+            badge.textContent = su.name;
+            badge.dataset.role = su.name;
+            badge.addEventListener('click', () => toggleRoleFilter(su.name));
+            badge.style.cursor = 'pointer';
+            cell.appendChild(badge);
+          });
+        } else {
+          cell.innerHTML = '<span style="color:var(--text-disabled);">&mdash;</span>';
+          cell.style.justifyContent = 'center';
+          cell.style.textAlign = 'center';
+        }
+      } else if (dim.key === 'needs') {
+        cell.classList.add('need-cell');
+        cell.dataset.dimKey = 'needs';
+        renderRoleScopedContent(cell, step.needs, 'need-text');
+      } else if (dim.key === 'painPoints') {
+        cell.classList.add('pain-cell');
+        cell.dataset.dimKey = 'painPoints';
+        renderRoleScopedContent(cell, step.painPoints, 'pain-text');
+      } else if (dim.key === 'opportunities') {
+        cell.classList.add('opp-cell');
+        cell.dataset.dimKey = 'opportunities';
+        renderRoleScopedContent(cell, step.opportunities, 'opp-text');
+      } else if (dim.key === 'touchpoints') {
+        if (step.touchpoints && step.touchpoints.length > 0) {
+          cell.innerHTML = step.touchpoints.map(tp => {
+            const icon = tp.includes('Email') ? '&#9993;' : tp.includes('Spreadsheet') ? '&#128200;' : tp.includes('Policy') ? '&#128274;' : tp.includes('Report') ? '&#128202;' : '&#128187;';
+            return `<div style="margin:2px 0;">${icon} ${tp}</div>`;
+          }).join('');
+        } else {
+          cell.innerHTML = '<span style="color:var(--text-disabled);">&mdash;</span>';
+        }
+      } else if (dim.key === 'supportReliance') {
+        const level = step.supportReliance || 'light';
+        const colors = { heavy: '#1C1A17', medium: '#54514D', light: '#B0ABA2' };
+        const widths = { heavy: '100%', medium: '60%', light: '30%' };
+        cell.innerHTML = `
+          <div class="support-bar" style="background:var(--border-subtle);"><div style="height:8px;border-radius:4px;background:${colors[level]};width:${widths[level]};"></div></div>
+          <div class="support-label">${level.charAt(0).toUpperCase() + level.slice(1)}</div>
+        `;
+        cell.style.display = 'flex';
+        cell.style.flexDirection = 'column';
+        cell.style.justifyContent = 'center';
+      }
+
+      grid.appendChild(cell);
+    });
+  }
+});
+
+function renderRoleScopedContent(cell, data, textClass) {
+  if (!data) {
+    cell.innerHTML = '<span style="color:var(--text-disabled);">&mdash;</span>';
+    return;
+  }
+  if (typeof data === 'string') {
+    cell.innerHTML = `<span class="${textClass}">${data}</span>`;
+    return;
+  }
+  let html = '';
+  for (const [role, content] of Object.entries(data)) {
+    const roleObj = journeyData.roles.find(r => r.name === role);
+    const color = roleObj ? roleObj.color : '#6B6760';
+    const items = Array.isArray(content) ? content : [content];
+    items.forEach(item => {
+      html += `<div class="role-content-item" data-role="${role}" style="margin:3px 0;"><span class="role-dot" style="background:${color};"></span><span class="${textClass}">${item}</span></div>`;
+    });
+  }
+  cell.innerHTML = html;
+}
+
+// Role filter
+function toggleRoleFilter(roleName) {
+  if (activeRole === roleName) {
+    activeRole = null;
+  } else {
+    activeRole = roleName;
+  }
+  applyRoleFilter();
+}
+
+function applyRoleFilter() {
+  // Role badges opacity
+  document.querySelectorAll('.role-badge').forEach(badge => {
+    if (!activeRole) {
+      badge.style.opacity = '1';
+    } else {
+      badge.style.opacity = badge.dataset.role === activeRole ? '1' : '0.3';
+    }
+  });
+
+  // Legend opacity
+  document.querySelectorAll('.role-legend-item').forEach(item => {
+    if (!activeRole) {
+      item.style.opacity = '1';
+    } else {
+      item.style.opacity = item.dataset.role === activeRole ? '1' : '0.3';
+    }
+  });
+
+  // Role-scoped content
+  document.querySelectorAll('.role-content-item').forEach(item => {
+    if (!activeRole) {
+      item.style.display = '';
+    } else {
+      item.style.display = item.dataset.role === activeRole ? '' : 'none';
+    }
+  });
+}
+
+// Emotion curve with D3
+requestAnimationFrame(() => {
+  const container = document.getElementById('emotion-row');
+  const totalWidth = container.scrollWidth || container.clientWidth;
+  const height = 150;
+
+  const emotionSvg = d3.select('#emotion-svg')
+    .attr('width', totalWidth)
+    .attr('height', height);
+
+  // Background bands
+  emotionSvg.append('rect').attr('x', 0).attr('y', 0).attr('width', totalWidth).attr('height', height / 3).attr('fill', 'rgba(122,154,1,0.04)');
+  emotionSvg.append('rect').attr('x', 0).attr('y', height / 3).attr('width', totalWidth).attr('height', height / 3).attr('fill', 'rgba(12,74,105,0.04)');
+  emotionSvg.append('rect').attr('x', 0).attr('y', 2 * height / 3).attr('width', totalWidth).attr('height', height / 3).attr('fill', 'rgba(207,98,83,0.04)');
+
+  const padding = totalWidth / (totalSteps * 2);
+  const xScale = d3.scaleLinear().domain([0, totalSteps - 1]).range([padding, totalWidth - padding]);
+  const yScale = d3.scaleLinear().domain([0, 1]).range([height - 15, 15]);
+
+  // Primary emotion line
+  const primaryLine = d3.line()
+    .x((d, i) => xScale(i))
+    .y(d => yScale(d.emotion.score))
+    .curve(d3.curveMonotoneX);
+
+  emotionSvg.append('path')
+    .datum(allSteps)
+    .attr('d', primaryLine)
+    .attr('fill', 'none')
+    .attr('stroke', '#0C4A69')
+    .attr('stroke-width', 2.5)
+    .attr('stroke-linecap', 'round');
+
+  // Secondary emotion line (Security Admin)
+  const saLine = d3.line()
+    .x((d, i) => xScale(i))
+    .y(d => {
+      const se = (d.secondaryEmotions || []).find(e => e.role === 'Security Admin');
+      return yScale(se ? se.score : 0.5);
+    })
+    .curve(d3.curveMonotoneX);
+
+  emotionSvg.append('path')
+    .datum(allSteps)
+    .attr('d', saLine)
+    .attr('fill', 'none')
+    .attr('stroke', '#4A6E82')
+    .attr('stroke-width', 2)
+    .attr('stroke-dasharray', '6,3')
+    .attr('stroke-linecap', 'round');
+
+  // Secondary data points
+  emotionSvg.selectAll('.sa-dot')
+    .data(allSteps)
+    .join('circle')
+    .attr('cx', (d, i) => xScale(i))
+    .attr('cy', d => {
+      const se = (d.secondaryEmotions || []).find(e => e.role === 'Security Admin');
+      return yScale(se ? se.score : 0.5);
+    })
+    .attr('r', 4)
+    .attr('fill', '#4A6E82')
+    .attr('opacity', 0.7);
+
+  // Primary data points
+  emotionSvg.selectAll('.primary-dot')
+    .data(allSteps)
+    .join('circle')
+    .attr('cx', (d, i) => xScale(i))
+    .attr('cy', d => yScale(d.emotion.score))
+    .attr('r', 5)
+    .attr('fill', d => d.emotion.score > 0.6 ? '#7A9A01' : d.emotion.score > 0.3 ? '#0C4A69' : '#CF6253');
+
+  // Emoji markers
+  emotionSvg.selectAll('.emoji')
+    .data(allSteps)
+    .join('text')
+    .attr('x', (d, i) => xScale(i))
+    .attr('y', d => yScale(d.emotion.score) - 12)
+    .attr('text-anchor', 'middle')
+    .attr('font-size', '14px')
+    .text(d => d.emotion.score > 0.6 ? '\u{1F60A}' : d.emotion.score > 0.3 ? '\u{1F610}' : '\u{1F61E}');
+
+  // Tooltips
+  const tooltip = document.createElement('div');
+  tooltip.style.cssText = 'position:fixed;background:#fff;border:1px solid #E0DCD3;border-radius:6px;padding:8px 12px;font-size:12px;color:#1C1A17;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.1);max-width:220px;';
+  document.body.appendChild(tooltip);
+
+  emotionSvg.selectAll('.primary-dot')
+    .on('mouseover', function(event, d) {
+      const i = allSteps.indexOf(d);
+      tooltip.innerHTML = `<strong>${d.label}</strong><br/>Score: ${d.emotion.score.toFixed(2)}<br/>${d.emotion.label}<br/><em style="color:#6B6760;">${d.emotion.annotation}</em>`;
+      tooltip.style.opacity = '1';
+      tooltip.style.left = (event.clientX + 12) + 'px';
+      tooltip.style.top = (event.clientY - 10) + 'px';
+      d3.select(this).attr('r', 8);
+    })
+    .on('mouseout', function() {
+      tooltip.style.opacity = '0';
+      d3.select(this).attr('r', 5);
+    });
+});
+</script>
+</body>
+</html>

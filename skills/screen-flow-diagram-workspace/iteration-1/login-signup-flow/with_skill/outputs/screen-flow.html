@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login / Sign Up Flow — Screen Flow</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #F5F5F5;
+      color: #212529;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #title-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 60px;
+      background: #FFFFFF;
+      border-bottom: 1px solid #E0E0E0;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 100;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    #title-bar h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #212529;
+    }
+    #title-bar p {
+      font-size: 14px;
+      font-weight: 400;
+      color: #6C757D;
+      margin-left: 16px;
+    }
+
+    #flow-svg {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      width: 100vw;
+      height: calc(100vh - 60px);
+    }
+
+    #detail-panel {
+      position: fixed;
+      top: 60px;
+      right: -340px;
+      width: 320px;
+      height: calc(100vh - 60px);
+      background: #FFFFFF;
+      border-left: 1px solid #E0E0E0;
+      box-shadow: -2px 0 12px rgba(0,0,0,0.06);
+      z-index: 200;
+      transition: right 0.3s ease;
+      overflow-y: auto;
+      padding: 24px;
+    }
+    #detail-panel.open { right: 0; }
+    #detail-panel .close-btn {
+      position: absolute;
+      top: 12px; right: 12px;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1px solid #E0E0E0;
+      background: #FFFFFF;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #6C757D;
+    }
+    #detail-panel .close-btn:hover { background: #F5F5F5; }
+    #detail-panel h2 { font-size: 18px; font-weight: 700; margin-bottom: 8px; color: #212529; }
+    #detail-panel .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #E8F5E9;
+      color: #4CAF50;
+      margin-bottom: 12px;
+    }
+    #detail-panel .desc { font-size: 13px; color: #6C757D; margin-bottom: 16px; line-height: 1.5; }
+    #detail-panel h3 { font-size: 13px; font-weight: 600; color: #212529; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    #detail-panel .element-list { list-style: none; margin-bottom: 16px; }
+    #detail-panel .element-list li {
+      font-size: 12px;
+      color: #6C757D;
+      padding: 6px 0;
+      border-bottom: 1px solid #F5F5F5;
+    }
+    #detail-panel .exit-item {
+      display: flex;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid #F5F5F5;
+    }
+    #detail-panel .exit-action {
+      background: #66BB6A;
+      color: white;
+      font-size: 10px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 8px;
+      margin-right: 8px;
+      white-space: nowrap;
+    }
+    #detail-panel .exit-target { font-size: 12px; color: #6C757D; }
+  </style>
+</head>
+<body>
+
+<div id="title-bar">
+  <h1>Login / Sign Up Flow</h1>
+  <p>User authentication paths: login and sign up with email verification</p>
+</div>
+
+<svg id="flow-svg"></svg>
+
+<div id="detail-panel">
+  <button class="close-btn" onclick="closePanel()">&#10005;</button>
+  <div id="panel-content"></div>
+</div>
+
+<script>
+const flowData = {
+  title: "Login / Sign Up Flow",
+  description: "User authentication paths: login and sign up with email verification",
+  deviceType: "mobile",
+  screens: [
+    {
+      id: "landing",
+      name: "Landing Page",
+      type: "empty",
+      description: "Welcome page with branding, value proposition, and two main CTAs to log in or sign up.",
+      navTitle: "Welcome",
+      x: 100, y: 300,
+      elements: [
+        { type: "navbar", content: "Welcome" },
+        { type: "logo" },
+        { type: "text-block", lines: 2 },
+        { type: "button", content: "Log In", isAction: true },
+        { type: "button", content: "Sign Up", isAction: true }
+      ],
+      exits: [
+        { action: "Tap Log In", target: "login" },
+        { action: "Tap Sign Up", target: "signup" }
+      ]
+    },
+    {
+      id: "login",
+      name: "Login Form",
+      type: "login",
+      description: "Standard login form with email and password fields. Shows error state on invalid credentials.",
+      navTitle: "Log In",
+      x: 480, y: 100,
+      elements: [
+        { type: "navbar", content: "Log In", hasBack: true },
+        { type: "logo" },
+        { type: "input", content: "Email" },
+        { type: "input", content: "Password" },
+        { type: "button", content: "Log In", isAction: true },
+        { type: "link", content: "Forgot Password?" }
+      ],
+      exits: [
+        { action: "Submit (Success)", target: "dashboard" },
+        { action: "Submit (Fail)", target: "error" }
+      ]
+    },
+    {
+      id: "error",
+      name: "Invalid Credentials",
+      type: "login",
+      description: "Login form showing an error banner for invalid email or password. User can retry.",
+      navTitle: "Log In",
+      x: 480, y: 520,
+      isError: true,
+      elements: [
+        { type: "navbar", content: "Log In", hasBack: true },
+        { type: "error-banner", content: "Invalid email or password" },
+        { type: "input", content: "Email" },
+        { type: "input", content: "Password" },
+        { type: "button", content: "Try Again", isAction: true }
+      ],
+      exits: [
+        { action: "Retry Login", target: "login" }
+      ]
+    },
+    {
+      id: "signup",
+      name: "Sign Up Form",
+      type: "form",
+      description: "Registration form with name, email, and password fields to create a new account.",
+      navTitle: "Sign Up",
+      x: 480, y: 940,
+      elements: [
+        { type: "navbar", content: "Sign Up", hasBack: true },
+        { type: "input", content: "Full Name" },
+        { type: "input", content: "Email" },
+        { type: "input", content: "Password" },
+        { type: "input", content: "Confirm Password" },
+        { type: "button", content: "Create Account", isAction: true }
+      ],
+      exits: [
+        { action: "Submit Form", target: "verification" }
+      ]
+    },
+    {
+      id: "verification",
+      name: "Email Verification",
+      type: "empty",
+      description: "Confirmation screen asking the user to check their email and enter the verification code.",
+      navTitle: "Verify Email",
+      x: 860, y: 940,
+      elements: [
+        { type: "navbar", content: "Verify Email" },
+        { type: "icon", content: "envelope" },
+        { type: "text-block", lines: 2 },
+        { type: "input", content: "Verification Code" },
+        { type: "button", content: "Verify", isAction: true },
+        { type: "link", content: "Resend Code" }
+      ],
+      exits: [
+        { action: "Verify Code", target: "dashboard" }
+      ]
+    },
+    {
+      id: "dashboard",
+      name: "Dashboard",
+      type: "dashboard",
+      description: "Main application dashboard shown after successful authentication. Displays key metrics and recent activity.",
+      navTitle: "Dashboard",
+      x: 860, y: 100,
+      elements: [
+        { type: "navbar", content: "Dashboard" },
+        { type: "metric-card", content: "Metric 1" },
+        { type: "metric-card", content: "Metric 2" },
+        { type: "metric-card", content: "Metric 3" },
+        { type: "metric-card", content: "Metric 4" },
+        { type: "chart-area" }
+      ],
+      exits: []
+    }
+  ],
+  connections: [
+    { from: "landing", to: "login", action: "Tap Log In", direction: "right-up" },
+    { from: "landing", to: "signup", action: "Tap Sign Up", direction: "right-down" },
+    { from: "login", to: "dashboard", action: "Submit (Success)", direction: "right" },
+    { from: "login", to: "error", action: "Submit (Fail)", direction: "down" },
+    { from: "error", to: "login", action: "Retry Login", direction: "up-loop" },
+    { from: "signup", to: "verification", action: "Submit Form", direction: "right" },
+    { from: "verification", to: "dashboard", action: "Verify Code", direction: "right-up" }
+  ]
+};
+
+// ─── Constants ───
+const SCREEN_W = 160;
+const SCREEN_H = 280;
+const width = window.innerWidth;
+const height = window.innerHeight - 60;
+
+// ─── SVG Setup ───
+const svg = d3.select('#flow-svg')
+  .attr('width', width)
+  .attr('height', height);
+
+// Shadow filter
+const defs = svg.append('defs');
+const filter = defs.append('filter')
+  .attr('id', 'drop-shadow')
+  .attr('x', '-10%').attr('y', '-10%')
+  .attr('width', '130%').attr('height', '130%');
+filter.append('feDropShadow')
+  .attr('dx', 0).attr('dy', 2)
+  .attr('stdDeviation', 4)
+  .attr('flood-color', 'rgba(0,0,0,0.08)');
+
+// Error shadow filter
+const errFilter = defs.append('filter')
+  .attr('id', 'drop-shadow-error')
+  .attr('x', '-10%').attr('y', '-10%')
+  .attr('width', '130%').attr('height', '130%');
+errFilter.append('feDropShadow')
+  .attr('dx', 0).attr('dy', 2)
+  .attr('stdDeviation', 4)
+  .attr('flood-color', 'rgba(239,83,80,0.15)');
+
+// Arrowhead marker (green)
+defs.append('marker')
+  .attr('id', 'arrowhead')
+  .attr('viewBox', '0 0 8 6')
+  .attr('refX', 8).attr('refY', 3)
+  .attr('markerWidth', 8).attr('markerHeight', 6)
+  .attr('orient', 'auto')
+  .append('path')
+  .attr('d', 'M0,0 L8,3 L0,6 Z')
+  .attr('fill', '#66BB6A');
+
+// Arrowhead marker (red for error)
+defs.append('marker')
+  .attr('id', 'arrowhead-error')
+  .attr('viewBox', '0 0 8 6')
+  .attr('refX', 8).attr('refY', 3)
+  .attr('markerWidth', 8).attr('markerHeight', 6)
+  .attr('orient', 'auto')
+  .append('path')
+  .attr('d', 'M0,0 L8,3 L0,6 Z')
+  .attr('fill', '#EF5350');
+
+const container = svg.append('g');
+
+// ─── Zoom ───
+const zoom = d3.zoom()
+  .scaleExtent([0.15, 3])
+  .on('zoom', (event) => container.attr('transform', event.transform));
+svg.call(zoom);
+
+// ─── Build screen lookup ───
+const screenMap = {};
+flowData.screens.forEach(s => { screenMap[s.id] = s; });
+
+// ─── Render Connectors ───
+const connectorsGroup = container.append('g').attr('class', 'connectors');
+
+function getScreenCenter(s) {
+  return { x: s.x + SCREEN_W / 2, y: s.y + SCREEN_H / 2 };
+}
+
+flowData.connections.forEach(conn => {
+  const src = screenMap[conn.from];
+  const tgt = screenMap[conn.to];
+  if (!src || !tgt) return;
+
+  const isError = conn.from === 'login' && conn.to === 'error';
+  const isErrorLoop = conn.from === 'error' && conn.to === 'login';
+  const lineColor = (isError || isErrorLoop) ? '#EF5350' : '#66BB6A';
+  const pillColor = (isError || isErrorLoop) ? '#EF5350' : '#66BB6A';
+  const markerUrl = (isError || isErrorLoop) ? 'url(#arrowhead-error)' : 'url(#arrowhead)';
+
+  let exitX, exitY, entryX, entryY, path, midX, midY;
+
+  if (conn.direction === 'right') {
+    exitX = src.x + SCREEN_W;
+    exitY = src.y + SCREEN_H / 2;
+    entryX = tgt.x;
+    entryY = tgt.y + SCREEN_H / 2;
+    midX = (exitX + entryX) / 2;
+    midY = (exitY + entryY) / 2;
+    path = `M ${exitX},${exitY} H ${midX} V ${entryY} H ${entryX}`;
+  } else if (conn.direction === 'right-up') {
+    exitX = src.x + SCREEN_W;
+    exitY = src.y + SCREEN_H * 0.3;
+    entryX = tgt.x;
+    entryY = tgt.y + SCREEN_H / 2;
+    midX = (exitX + entryX) / 2;
+    midY = (exitY + entryY) / 2;
+    path = `M ${exitX},${exitY} H ${midX} V ${entryY} H ${entryX}`;
+  } else if (conn.direction === 'right-down') {
+    exitX = src.x + SCREEN_W;
+    exitY = src.y + SCREEN_H * 0.7;
+    entryX = tgt.x;
+    entryY = tgt.y + SCREEN_H / 2;
+    midX = (exitX + entryX) / 2;
+    midY = (exitY + entryY) / 2;
+    path = `M ${exitX},${exitY} H ${midX} V ${entryY} H ${entryX}`;
+  } else if (conn.direction === 'down') {
+    exitX = src.x + SCREEN_W / 2;
+    exitY = src.y + SCREEN_H;
+    entryX = tgt.x + SCREEN_W / 2;
+    entryY = tgt.y;
+    midX = (exitX + entryX) / 2;
+    midY = (exitY + entryY) / 2;
+    path = `M ${exitX},${exitY} V ${midY} H ${entryX} V ${entryY}`;
+  } else if (conn.direction === 'up-loop') {
+    // Error loop: exit left side of error, arc up to left side of login
+    exitX = src.x - 0;
+    exitY = src.y + SCREEN_H * 0.4;
+    entryX = tgt.x - 0;
+    entryY = tgt.y + SCREEN_H * 0.7;
+    const loopX = Math.min(src.x, tgt.x) - 60;
+    midX = loopX;
+    midY = (exitY + entryY) / 2;
+    path = `M ${exitX},${exitY} H ${loopX} V ${entryY} H ${entryX}`;
+  } else {
+    exitX = src.x + SCREEN_W;
+    exitY = src.y + SCREEN_H / 2;
+    entryX = tgt.x;
+    entryY = tgt.y + SCREEN_H / 2;
+    midX = (exitX + entryX) / 2;
+    midY = (exitY + entryY) / 2;
+    path = `M ${exitX},${exitY} H ${midX} V ${entryY} H ${entryX}`;
+  }
+
+  // Draw path
+  connectorsGroup.append('path')
+    .attr('d', path)
+    .attr('stroke', lineColor)
+    .attr('stroke-width', 2)
+    .attr('fill', 'none')
+    .attr('marker-end', markerUrl);
+
+  // Exit port
+  connectorsGroup.append('circle')
+    .attr('cx', exitX).attr('cy', exitY)
+    .attr('r', 5)
+    .attr('fill', lineColor)
+    .attr('stroke', 'white')
+    .attr('stroke-width', 2);
+
+  // Entry port
+  connectorsGroup.append('circle')
+    .attr('cx', entryX).attr('cy', entryY)
+    .attr('r', 5)
+    .attr('fill', lineColor)
+    .attr('stroke', 'white')
+    .attr('stroke-width', 2);
+
+  // Action pill
+  const pillG = connectorsGroup.append('g')
+    .attr('transform', `translate(${midX}, ${midY})`)
+    .style('cursor', 'pointer');
+
+  const textWidth = conn.action.length * 6.5 + 24;
+  pillG.append('rect')
+    .attr('x', -textWidth / 2).attr('y', -12)
+    .attr('width', textWidth).attr('height', 24)
+    .attr('rx', 12)
+    .attr('fill', pillColor);
+
+  pillG.append('text')
+    .attr('text-anchor', 'middle')
+    .attr('dy', '0.35em')
+    .attr('fill', 'white')
+    .attr('font-size', '11px')
+    .attr('font-weight', '500')
+    .text(conn.action);
+
+  pillG.on('mouseenter', function() {
+    d3.select(this).select('rect').attr('fill', (isError || isErrorLoop) ? '#D32F2F' : '#4CAF50');
+  }).on('mouseleave', function() {
+    d3.select(this).select('rect').attr('fill', pillColor);
+  });
+});
+
+// ─── Render Screens ───
+const screensGroup = container.append('g').attr('class', 'screens');
+
+function drawScreen(screenData) {
+  const g = screensGroup.append('g')
+    .attr('transform', `translate(${screenData.x}, ${screenData.y})`)
+    .style('cursor', 'pointer');
+
+  const isErr = screenData.isError;
+  const borderColor = isErr ? '#EF5350' : '#E0E0E0';
+  const shadowFilter = isErr ? 'url(#drop-shadow-error)' : 'url(#drop-shadow)';
+
+  // Frame
+  g.append('rect')
+    .attr('width', SCREEN_W)
+    .attr('height', SCREEN_H)
+    .attr('rx', 16)
+    .attr('fill', '#FFFFFF')
+    .attr('stroke', borderColor)
+    .attr('stroke-width', 1)
+    .attr('filter', shadowFilter);
+
+  // Status bar dots
+  [20, 30, 40].forEach(cx => {
+    g.append('circle')
+      .attr('cx', cx).attr('cy', 12)
+      .attr('r', 2.5)
+      .attr('fill', '#DEE2E6');
+  });
+
+  // Nav bar background
+  g.append('rect')
+    .attr('x', 8).attr('y', 22)
+    .attr('width', SCREEN_W - 16).attr('height', 22)
+    .attr('rx', 4)
+    .attr('fill', '#F8F9FA');
+
+  // Nav title
+  const hasBack = screenData.elements?.some(e => e.hasBack);
+  g.append('text')
+    .attr('x', hasBack ? 22 : SCREEN_W / 2)
+    .attr('y', 37)
+    .attr('text-anchor', hasBack ? 'start' : 'middle')
+    .attr('font-size', '10px')
+    .attr('font-weight', '600')
+    .attr('fill', '#212529')
+    .text(screenData.navTitle || screenData.name);
+
+  if (hasBack) {
+    g.append('text')
+      .attr('x', 14).attr('y', 37)
+      .attr('font-size', '10px')
+      .attr('fill', '#66BB6A')
+      .text('\u25C0');
+  }
+
+  // Content area based on type
+  let yOffset = 50;
+  const contentX = 12;
+  const contentW = SCREEN_W - 24;
+
+  if (screenData.type === 'login') {
+    // Logo placeholder
+    g.append('rect')
+      .attr('x', SCREEN_W / 2 - 18).attr('y', yOffset)
+      .attr('width', 36).attr('height', 36)
+      .attr('rx', 8)
+      .attr('fill', '#E9ECEF');
+    yOffset += 44;
+
+    // Error banner (for error screen)
+    if (isErr) {
+      g.append('rect')
+        .attr('x', contentX).attr('y', yOffset)
+        .attr('width', contentW).attr('height', 22)
+        .attr('rx', 4)
+        .attr('fill', '#FFEBEE');
+      g.append('text')
+        .attr('x', SCREEN_W / 2).attr('y', yOffset + 14)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '7px')
+        .attr('fill', '#EF5350')
+        .attr('font-weight', '500')
+        .text('Invalid credentials');
+      yOffset += 28;
+    }
+
+    // Email input
+    g.append('rect')
+      .attr('x', contentX).attr('y', yOffset)
+      .attr('width', contentW).attr('height', 24)
+      .attr('rx', 6)
+      .attr('fill', '#FFFFFF')
+      .attr('stroke', isErr ? '#EF5350' : '#DEE2E6')
+      .attr('stroke-width', 1);
+    g.append('text')
+      .attr('x', contentX + 8).attr('y', yOffset + 15)
+      .attr('font-size', '8px')
+      .attr('fill', '#ADB5BD')
+      .text('Email');
+    yOffset += 32;
+
+    // Password input
+    g.append('rect')
+      .attr('x', contentX).attr('y', yOffset)
+      .attr('width', contentW).attr('height', 24)
+      .attr('rx', 6)
+      .attr('fill', '#FFFFFF')
+      .attr('stroke', isErr ? '#EF5350' : '#DEE2E6')
+      .attr('stroke-width', 1);
+    g.append('text')
+      .attr('x', contentX + 8).attr('y', yOffset + 15)
+      .attr('font-size', '8px')
+      .attr('fill', '#ADB5BD')
+      .text('Password');
+    yOffset += 36;
+
+    // Submit button
+    const btnLabel = isErr ? 'Try Again' : 'Log In';
+    g.append('rect')
+      .attr('x', contentX).attr('y', yOffset)
+      .attr('width', contentW).attr('height', 28)
+      .attr('rx', 8)
+      .attr('fill', isErr ? '#EF5350' : '#66BB6A');
+    g.append('text')
+      .attr('x', SCREEN_W / 2).attr('y', yOffset + 18)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '10px')
+      .attr('font-weight', '600')
+      .attr('fill', 'white')
+      .text(btnLabel);
+    yOffset += 36;
+
+    // Forgot password link
+    if (!isErr) {
+      g.append('text')
+        .attr('x', SCREEN_W / 2).attr('y', yOffset + 8)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '7px')
+        .attr('fill', '#66BB6A')
+        .text('Forgot Password?');
+    }
+
+  } else if (screenData.type === 'form') {
+    // Sign up form fields
+    const fields = ['Full Name', 'Email', 'Password', 'Confirm Password'];
+    fields.forEach(label => {
+      g.append('rect')
+        .attr('x', contentX).attr('y', yOffset)
+        .attr('width', contentW).attr('height', 24)
+        .attr('rx', 6)
+        .attr('fill', '#FFFFFF')
+        .attr('stroke', '#DEE2E6')
+        .attr('stroke-width', 1);
+      g.append('text')
+        .attr('x', contentX + 8).attr('y', yOffset + 15)
+        .attr('font-size', '8px')
+        .attr('fill', '#ADB5BD')
+        .text(label);
+      yOffset += 30;
+    });
+    yOffset += 6;
+
+    // Submit button
+    g.append('rect')
+      .attr('x', contentX).attr('y', yOffset)
+      .attr('width', contentW).attr('height', 28)
+      .attr('rx', 8)
+      .attr('fill', '#66BB6A');
+    g.append('text')
+      .attr('x', SCREEN_W / 2).attr('y', yOffset + 18)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '10px')
+      .attr('font-weight', '600')
+      .attr('fill', 'white')
+      .text('Create Account');
+
+  } else if (screenData.type === 'empty' && screenData.id === 'landing') {
+    // Landing page: logo, tagline, two buttons
+    g.append('rect')
+      .attr('x', SCREEN_W / 2 - 24).attr('y', yOffset + 10)
+      .attr('width', 48).attr('height', 48)
+      .attr('rx', 12)
+      .attr('fill', '#E9ECEF');
+    g.append('text')
+      .attr('x', SCREEN_W / 2).attr('y', yOffset + 40)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '8px')
+      .attr('fill', '#ADB5BD')
+      .text('LOGO');
+    yOffset += 70;
+
+    // Tagline placeholder
+    g.append('rect')
+      .attr('x', contentX + 8).attr('y', yOffset)
+      .attr('width', contentW - 16).attr('height', 6)
+      .attr('rx', 3)
+      .attr('fill', '#DEE2E6');
+    yOffset += 12;
+    g.append('rect')
+      .attr('x', contentX + 16).attr('y', yOffset)
+      .attr('width', contentW - 32).attr('height', 6)
+      .attr('rx', 3)
+      .attr('fill', '#DEE2E6');
+    yOffset += 30;
+
+    // Log In button
+    g.append('rect')
+      .attr('x', contentX).attr('y', yOffset)
+      .attr('width', contentW).attr('height', 28)
+      .attr('rx', 8)
+      .attr('fill', '#66BB6A');
+    g.append('text')
+      .attr('x', SCREEN_W / 2).attr('y', yOffset + 18)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '10px')
+      .attr('font-weight', '600')
+      .attr('fill', 'white')
+      .text('Log In');
+    yOffset += 36;
+
+    // Sign Up button
+    g.append('rect')
+      .attr('x', contentX).attr('y', yOffset)
+      .attr('width', contentW).attr('height', 28)
+      .attr('rx', 8)
+      .attr('fill', 'white')
+      .attr('stroke', '#66BB6A')
+      .attr('stroke-width', 1.5);
+    g.append('text')
+      .attr('x', SCREEN_W / 2).attr('y', yOffset + 18)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '10px')
+      .attr('font-weight', '600')
+      .attr('fill', '#66BB6A')
+      .text('Sign Up');
+
+  } else if (screenData.type === 'empty' && screenData.id === 'verification') {
+    // Email verification screen
+    // Envelope icon placeholder
+    g.append('circle')
+      .attr('cx', SCREEN_W / 2).attr('cy', yOffset + 24)
+      .attr('r', 22)
+      .attr('fill', '#E8F5E9');
+    g.append('text')
+      .attr('x', SCREEN_W / 2).attr('y', yOffset + 28)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '16px')
+      .attr('fill', '#66BB6A')
+      .text('\u2709');
+    yOffset += 56;
+
+    // Text lines
+    g.append('rect')
+      .attr('x', contentX + 4).attr('y', yOffset)
+      .attr('width', contentW - 8).attr('height', 6)
+      .attr('rx', 3)
+      .attr('fill', '#DEE2E6');
+    yOffset += 12;
+    g.append('rect')
+      .attr('x', contentX + 12).attr('y', yOffset)
+      .attr('width', contentW - 24).attr('height', 6)
+      .attr('rx', 3)
+      .attr('fill', '#DEE2E6');
+    yOffset += 22;
+
+    // Code input
+    g.append('rect')
+      .attr('x', contentX).attr('y', yOffset)
+      .attr('width', contentW).attr('height', 28)
+      .attr('rx', 6)
+      .attr('fill', '#FFFFFF')
+      .attr('stroke', '#DEE2E6')
+      .attr('stroke-width', 1);
+    g.append('text')
+      .attr('x', SCREEN_W / 2).attr('y', yOffset + 18)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '8px')
+      .attr('fill', '#ADB5BD')
+      .text('Enter Code');
+    yOffset += 36;
+
+    // Verify button
+    g.append('rect')
+      .attr('x', contentX).attr('y', yOffset)
+      .attr('width', contentW).attr('height', 28)
+      .attr('rx', 8)
+      .attr('fill', '#66BB6A');
+    g.append('text')
+      .attr('x', SCREEN_W / 2).attr('y', yOffset + 18)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '10px')
+      .attr('font-weight', '600')
+      .attr('fill', 'white')
+      .text('Verify');
+    yOffset += 36;
+
+    // Resend link
+    g.append('text')
+      .attr('x', SCREEN_W / 2).attr('y', yOffset + 6)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '7px')
+      .attr('fill', '#66BB6A')
+      .text('Resend Code');
+
+  } else if (screenData.type === 'dashboard') {
+    // 2x2 metric cards
+    const cardW = (contentW - 6) / 2;
+    const cardH = 40;
+    for (let row = 0; row < 2; row++) {
+      for (let col = 0; col < 2; col++) {
+        const cx = contentX + col * (cardW + 6);
+        const cy = yOffset + row * (cardH + 6);
+        g.append('rect')
+          .attr('x', cx).attr('y', cy)
+          .attr('width', cardW).attr('height', cardH)
+          .attr('rx', 6)
+          .attr('fill', '#E8F5E9');
+        // Metric label
+        g.append('rect')
+          .attr('x', cx + 6).attr('y', cy + 8)
+          .attr('width', cardW - 12).attr('height', 5)
+          .attr('rx', 2.5)
+          .attr('fill', '#C8E6C9');
+        // Metric value
+        g.append('rect')
+          .attr('x', cx + 6).attr('y', cy + 18)
+          .attr('width', cardW * 0.6).attr('height', 8)
+          .attr('rx', 2)
+          .attr('fill', '#A5D6A7');
+      }
+    }
+    yOffset += 2 * (cardH + 6) + 8;
+
+    // Chart area
+    g.append('rect')
+      .attr('x', contentX).attr('y', yOffset)
+      .attr('width', contentW).attr('height', 80)
+      .attr('rx', 6)
+      .attr('fill', '#F8F9FA')
+      .attr('stroke', '#E9ECEF')
+      .attr('stroke-width', 1);
+    // Simple bar chart lines
+    const barW = 10;
+    const barHeights = [40, 55, 30, 60, 45, 50];
+    barHeights.forEach((h, i) => {
+      g.append('rect')
+        .attr('x', contentX + 10 + i * (barW + 8))
+        .attr('y', yOffset + 76 - h)
+        .attr('width', barW)
+        .attr('height', h)
+        .attr('rx', 2)
+        .attr('fill', '#C8E6C9');
+    });
+  }
+
+  // Screen name label below frame
+  g.append('text')
+    .attr('x', SCREEN_W / 2)
+    .attr('y', SCREEN_H + 18)
+    .attr('text-anchor', 'middle')
+    .attr('font-size', '13px')
+    .attr('font-weight', '600')
+    .attr('fill', isErr ? '#EF5350' : '#212529')
+    .text(screenData.name);
+
+  // Hover effects
+  g.on('mouseenter', function() {
+    d3.select(this).select('rect')
+      .attr('stroke', isErr ? '#D32F2F' : '#BDBDBD')
+      .attr('filter', isErr ? 'url(#drop-shadow-error)' : 'url(#drop-shadow)');
+    d3.select(this).attr('transform', `translate(${screenData.x}, ${screenData.y}) scale(1.01)`);
+  }).on('mouseleave', function() {
+    d3.select(this).select('rect')
+      .attr('stroke', borderColor)
+      .attr('filter', shadowFilter);
+    d3.select(this).attr('transform', `translate(${screenData.x}, ${screenData.y}) scale(1)`);
+  });
+
+  // Click to open detail panel
+  g.on('click', function(event) {
+    event.stopPropagation();
+    openPanel(screenData);
+  });
+}
+
+flowData.screens.forEach(drawScreen);
+
+// ─── Detail Panel ───
+function openPanel(screen) {
+  const panel = document.getElementById('detail-panel');
+  const content = document.getElementById('panel-content');
+
+  const typeLabels = {
+    login: 'Login', form: 'Form', dashboard: 'Dashboard',
+    empty: 'Empty State', list: 'List', detail: 'Detail',
+    settings: 'Settings', modal: 'Modal'
+  };
+
+  let html = `<h2>${screen.name}</h2>`;
+  html += `<span class="badge" style="${screen.isError ? 'background:#FFEBEE;color:#EF5350;' : ''}">${screen.isError ? 'Error State' : (typeLabels[screen.type] || screen.type)}</span>`;
+  html += `<p class="desc">${screen.description}</p>`;
+
+  html += `<h3>UI Elements</h3><ul class="element-list">`;
+  (screen.elements || []).forEach(el => {
+    const label = el.content || el.type;
+    html += `<li>${label}</li>`;
+  });
+  html += `</ul>`;
+
+  if (screen.exits && screen.exits.length > 0) {
+    html += `<h3>Exits</h3>`;
+    screen.exits.forEach(exit => {
+      const targetScreen = screenMap[exit.target];
+      html += `<div class="exit-item">
+        <span class="exit-action">${exit.action}</span>
+        <span class="exit-target">${targetScreen ? targetScreen.name : exit.target}</span>
+      </div>`;
+    });
+  }
+
+  content.innerHTML = html;
+  panel.classList.add('open');
+}
+
+function closePanel() {
+  document.getElementById('detail-panel').classList.remove('open');
+}
+
+// Close panel on canvas click
+svg.on('click', closePanel);
+
+// ─── Fit to Content ───
+function fitToContent() {
+  const allX = flowData.screens.map(s => s.x);
+  const allY = flowData.screens.map(s => s.y);
+  const minX = Math.min(...allX) - 60;
+  const minY = Math.min(...allY) - 40;
+  const maxX = Math.max(...allX) + SCREEN_W + 60;
+  const maxY = Math.max(...allY) + SCREEN_H + 40;
+
+  const bw = maxX - minX;
+  const bh = maxY - minY;
+  const scale = Math.min(width / bw, height / bh) * 0.85;
+  const tx = (width - bw * scale) / 2 - minX * scale;
+  const ty = (height - bh * scale) / 2 - minY * scale;
+
+  svg.transition().duration(600)
+    .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+}
+
+fitToContent();
+
+// Double-click to reset
+svg.on('dblclick.zoom', null);
+svg.on('dblclick', function(event) {
+  if (event.target === svg.node()) fitToContent();
+});
+
+// Keyboard shortcuts
+d3.select('body').on('keydown', function(event) {
+  if (event.key === '+' || event.key === '=') {
+    svg.transition().duration(200).call(zoom.scaleBy, 1.2);
+  } else if (event.key === '-') {
+    svg.transition().duration(200).call(zoom.scaleBy, 0.8);
+  }
+});
+
+// Handle resize
+window.addEventListener('resize', () => {
+  const w = window.innerWidth;
+  const h = window.innerHeight - 60;
+  svg.attr('width', w).attr('height', h);
+  fitToContent();
+});
+</script>
+</body>
+</html>

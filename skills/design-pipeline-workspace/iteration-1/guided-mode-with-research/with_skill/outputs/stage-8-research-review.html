@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Access Request Portal — Research Review</title>
+<style>
+  :root {
+    --sds-font-sans: 'Proxima Nova', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --sds-color-warm-gray-025: #FAF8F5; --sds-color-warm-gray-050: #F4F1EB;
+    --sds-color-warm-gray-100: #EBE6DD; --sds-color-warm-gray-150: #E0DCD3;
+    --sds-color-warm-gray-400: #948E85; --sds-color-warm-gray-550: #6B6760;
+    --sds-color-warm-gray-700: #47443F; --sds-color-warm-gray-900: #1C1A17;
+    --sds-color-blue-050: #EBF4F5; --sds-color-blue-700: #0C4A69; --sds-color-blue-750: #013D5B;
+    --sds-color-red-050: #FFEEEB; --sds-color-red-500: #BF5547;
+    --sds-color-green-025: #F4FAEB; --sds-color-green-400: #7A9A01; --sds-color-green-500: #62800B;
+    --sds-color-yellow-025: #FCF9D9; --sds-color-yellow-200: #EBCE2D; --sds-color-yellow-500: #8A7515;
+    --sds-color-purple-550: #805AA1;
+    --sds-color-white: #FFFFFF;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sds-font-sans); background: var(--sds-color-warm-gray-025); color: var(--sds-color-warm-gray-900); line-height: 1.5; font-size: 14px; padding: 32px 40px; -webkit-font-smoothing: antialiased; }
+  h1 { font-size: 28px; font-weight: 600; margin-bottom: 4px; }
+  .subtitle { font-size: 14px; color: var(--sds-color-warm-gray-550); margin-bottom: 32px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 8px; }
+  h3 { font-size: 14px; font-weight: 600; margin: 24px 0 12px; color: var(--sds-color-warm-gray-700); }
+  .desc { font-size: 13px; color: var(--sds-color-warm-gray-550); margin-bottom: 20px; max-width: 860px; }
+  .divider { border: none; border-top: 1px solid var(--sds-color-warm-gray-150); margin: 40px 0; }
+
+  .score-card {
+    background: var(--sds-color-white); border: 1px solid var(--sds-color-warm-gray-150);
+    border-radius: 12px; padding: 24px; margin-bottom: 16px;
+    display: flex; gap: 24px; align-items: center;
+  }
+  .score-ring {
+    width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 28px; font-weight: 700; flex-shrink: 0;
+  }
+  .score-ring--high { background: var(--sds-color-green-025); color: var(--sds-color-green-500); border: 3px solid var(--sds-color-green-400); }
+  .score-ring--med { background: var(--sds-color-yellow-025); color: var(--sds-color-yellow-500); border: 3px solid var(--sds-color-yellow-200); }
+  .score-ring--low { background: var(--sds-color-red-050); color: var(--sds-color-red-500); border: 3px solid var(--sds-color-red-500); }
+  .score-details { flex: 1; }
+  .score-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .score-desc { font-size: 13px; color: var(--sds-color-warm-gray-550); }
+
+  .eval-card {
+    background: var(--sds-color-white); border: 1px solid var(--sds-color-warm-gray-150);
+    border-radius: 8px; padding: 16px 20px; margin-bottom: 12px;
+  }
+  .eval-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .eval-title { font-size: 14px; font-weight: 600; }
+  .eval-body { font-size: 13px; color: var(--sds-color-warm-gray-550); }
+  .eval-evidence { font-size: 12px; color: var(--sds-color-warm-gray-400); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--sds-color-warm-gray-100); }
+
+  .verdict { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .verdict--addressed { background: var(--sds-color-green-025); color: var(--sds-color-green-500); }
+  .verdict--partial { background: var(--sds-color-yellow-025); color: var(--sds-color-yellow-500); }
+  .verdict--gap { background: var(--sds-color-red-050); color: var(--sds-color-red-500); }
+
+  .rec-card {
+    background: var(--sds-color-white); border: 1px solid var(--sds-color-warm-gray-150);
+    border-radius: 8px; padding: 16px 20px; margin-bottom: 12px;
+    border-left: 4px solid var(--sds-color-blue-750);
+  }
+  .rec-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .rec-body { font-size: 13px; color: var(--sds-color-warm-gray-550); }
+  .rec-priority { display: inline-block; padding: 1px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-top: 8px; }
+  .rec-priority--high { background: var(--sds-color-red-050); color: var(--sds-color-red-500); }
+  .rec-priority--med { background: var(--sds-color-yellow-025); color: var(--sds-color-yellow-500); }
+  .rec-priority--low { background: var(--sds-color-blue-050); color: var(--sds-color-blue-700); }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<h1>Research Review</h1>
+<p class="subtitle">Evaluating designs against original user interview findings &middot; Are we solving the right problems?</p>
+
+<!-- Overall Score -->
+<div class="score-card">
+  <div class="score-ring score-ring--high">87%</div>
+  <div class="score-details">
+    <div class="score-title">Overall Research Alignment Score</div>
+    <div class="score-desc">The designs strongly address the core pain points identified in user interviews. 5 of 6 pain points are fully addressed, 1 is partially addressed. All 3 personas' primary goals are served. Two opportunities for deeper alignment are identified below.</div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- Pain Point Coverage -->
+<h2>Pain Point Coverage</h2>
+<p class="desc">Evaluating each research-identified pain point against the current designs.</p>
+
+<div class="eval-card">
+  <div class="eval-header">
+    <div class="eval-title">No visibility into request status</div>
+    <span class="verdict verdict--addressed">Fully Addressed</span>
+  </div>
+  <div class="eval-body">The design provides real-time status tracking through multiple touchpoints: status tags on the request list, a detailed status timeline on request detail, and a stat card summary showing active/approved/denied counts. Requestors can see exactly where their request stands at all times.</div>
+  <div class="eval-evidence"><strong>Design evidence:</strong> My Requests list view (status column), Request Detail screen (status timeline component), stat cards showing request counts by status.</div>
+</div>
+
+<div class="eval-card">
+  <div class="eval-header">
+    <div class="eval-title">Duplicate requests</div>
+    <span class="verdict verdict--addressed">Fully Addressed</span>
+  </div>
+  <div class="eval-body">The Duplicate Warning screen directly intercepts duplicate submissions by detecting matching pending requests and surfacing them to the user. This addresses the ~30% duplicate rate identified in interviews and breaks the negative feedback loop of resubmission.</div>
+  <div class="eval-evidence"><strong>Design evidence:</strong> Duplicate Warning screen with callout banner, existing request card, and "View Existing Request" / "Submit Anyway" options.</div>
+</div>
+
+<div class="eval-card">
+  <div class="eval-header">
+    <div class="eval-title">Approvals getting lost</div>
+    <span class="verdict verdict--addressed">Fully Addressed</span>
+  </div>
+  <div class="eval-body">Automated routing eliminates the manual email forwarding that caused requests to be lost. Every request is tracked in the system from submission to resolution, with an immutable audit log. The centralized approval queue ensures approvers see all pending requests in one place.</div>
+  <div class="eval-evidence"><strong>Design evidence:</strong> Auto-routing shown in status timeline, Approval Queue with pending count, Audit Log with complete event history.</div>
+</div>
+
+<div class="eval-card">
+  <div class="eval-header">
+    <div class="eval-title">3-5 manual handoffs per request</div>
+    <span class="verdict verdict--addressed">Fully Addressed</span>
+  </div>
+  <div class="eval-body">The proposed flow reduces handoffs from 3-5 to effectively zero manual handoffs. The system handles routing (auto-route to owner), notification (in-app + configurable), and provisioning (auto-provision after approval). The only human step is the approval decision itself.</div>
+  <div class="eval-evidence"><strong>Design evidence:</strong> New Request form submits directly to system, auto-routing shown in timeline, auto-provisioning mentioned in flow design.</div>
+</div>
+
+<div class="eval-card">
+  <div class="eval-header">
+    <div class="eval-title">No audit trail</div>
+    <span class="verdict verdict--addressed">Fully Addressed</span>
+  </div>
+  <div class="eval-body">The Audit Log screen provides a complete, filterable, exportable record of every access request action. Security admins can search by event type, date range, actor, or dataset. The CSV export capability directly supports compliance audit preparation.</div>
+  <div class="eval-evidence"><strong>Design evidence:</strong> Audit Log screen with event table, filter chips (Approvals, Denials, Provisioning, Revocations), Export CSV button, search input.</div>
+</div>
+
+<div class="eval-card">
+  <div class="eval-header">
+    <div class="eval-title">Inconsistent access policies</div>
+    <span class="verdict verdict--partial">Partially Addressed</span>
+  </div>
+  <div class="eval-body">The sidenav includes a Policies section and the IA proposes policy management, routing rules, and auto-approval policies. However, the current prototype does not include detailed screens for policy creation, editing, or enforcement visualization. Security admins can see the audit log but cannot yet define or manage the policies that govern access decisions.</div>
+  <div class="eval-evidence"><strong>Design evidence:</strong> Policies nav item exists but no screen is designed. IA proposes Policy Management, Routing Rules, and Auto-Approval Policies screens. Review Request screen shows sensitivity context but does not reference specific policies.</div>
+</div>
+
+<hr class="divider">
+
+<!-- Persona Goal Coverage -->
+<h2>Persona Goal Coverage</h2>
+<p class="desc">Does each persona's primary workflow deliver on their stated goals?</p>
+
+<div class="grid-2">
+  <div class="eval-card">
+    <div class="eval-header">
+      <div class="eval-title" style="color:var(--sds-color-blue-750);">Data Engineer (Requestor)</div>
+      <span class="verdict verdict--addressed">Goals Met</span>
+    </div>
+    <div class="eval-body">
+      <ul style="padding-left:16px;margin-top:4px;">
+        <li><strong>Get access quickly:</strong> Self-service form with auto-routing targets under 1 hour for standard requests vs. 5-10 days currently.</li>
+        <li><strong>Understand what data is available:</strong> Data Catalog section in sidenav with inline request capability from catalog detail.</li>
+        <li><strong>Avoid administrative overhead:</strong> Structured form with searchable dataset picker reduces time spent composing emails and tracking down owners.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="eval-card">
+    <div class="eval-header">
+      <div class="eval-title" style="color:var(--sds-color-green-500);">Data Owner (Approver)</div>
+      <span class="verdict verdict--addressed">Goals Met</span>
+    </div>
+    <div class="eval-body">
+      <ul style="padding-left:16px;margin-top:4px;">
+        <li><strong>Make informed decisions quickly:</strong> Review Request screen shows requestor profile, dataset details, sensitivity, PII field count, and risk level all in one view.</li>
+        <li><strong>Not become a bottleneck:</strong> Batch approval for low-risk requests, risk-based triage, and one-click approve/deny reduce review time.</li>
+        <li><strong>Track and revoke access:</strong> Approval Queue shows all decisions; future Access Review screen supports periodic certification.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="eval-card">
+    <div class="eval-header">
+      <div class="eval-title" style="color:var(--sds-color-purple-550);">Security Admin (Auditor)</div>
+      <span class="verdict verdict--partial">Partially Met</span>
+    </div>
+    <div class="eval-body">
+      <ul style="padding-left:16px;margin-top:4px;">
+        <li><strong>Complete audit trail:</strong> Fully addressed with the Audit Log screen, filterable and exportable.</li>
+        <li><strong>On-demand access reviews:</strong> IA proposes Access Reviews but no screen is designed yet.</li>
+        <li><strong>Enforce consistent policies:</strong> Policies nav item exists but screens are not designed. This is the main gap for this persona.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- Recommendations -->
+<h2>Recommendations for Next Iteration</h2>
+<p class="desc">Based on the gaps identified above, these improvements would strengthen research alignment.</p>
+
+<div class="rec-card">
+  <div class="rec-title">1. Design the Policy Management screens</div>
+  <div class="rec-body">The "inconsistent access policies" pain point is only partially addressed. Security admins need screens to create, edit, and visualize access policies. This should include: policy templates for common scenarios, a rule builder for routing logic, and a policy conflict detector. This directly addresses the Security Admin persona's primary gap.</div>
+  <div class="rec-priority rec-priority--high">High Priority</div>
+</div>
+
+<div class="rec-card">
+  <div class="rec-title">2. Design the Access Review workflow</div>
+  <div class="rec-body">The "audit fire drill" pattern from the journey map is addressed by the audit log for historical review, but the periodic certification flow (Flow 8 in the IA) has no designed screens. Security admins need to be able to initiate reviews, track owner responses, and execute bulk revocations. This is a key differentiator from email-based processes.</div>
+  <div class="rec-priority rec-priority--high">High Priority</div>
+</div>
+
+<div class="rec-card">
+  <div class="rec-title">3. Add notification channel integration</div>
+  <div class="rec-body">The research showed that email is the wrong medium for approvals, yet the current design only shows in-app notifications. Adding Slack integration for approval notifications (with one-click approve from Slack) would meet users where they already work and further reduce the time-to-approval. This aligns with the "embed in existing workflows" principle from the broader product strategy.</div>
+  <div class="rec-priority rec-priority--med">Medium Priority</div>
+</div>
+
+<div class="rec-card">
+  <div class="rec-title">4. Add time-based access expiration</div>
+  <div class="rec-body">The new request form includes a Duration field, but the design does not show what happens when access expires. Adding expiration reminders, renewal workflows, and automatic revocation would prevent the accumulation of stale access grants that the research identified as a compliance risk.</div>
+  <div class="rec-priority rec-priority--med">Medium Priority</div>
+</div>
+
+<div class="rec-card">
+  <div class="rec-title">5. Deeper Data Catalog integration</div>
+  <div class="rec-body">The research mentioned Data Engineers need to "understand what data is available and who owns it." The current Data Catalog is a nav item but has no designed screens. A catalog with search, browse by domain, sensitivity labeling, and inline "Request Access" would complete the end-to-end experience from discovery to access.</div>
+  <div class="rec-priority rec-priority--low">Low Priority (v2)</div>
+</div>
+
+<p style="margin-top:24px;font-size:12px;color:var(--sds-color-warm-gray-400);">[CHECKPOINT] Stage 8 complete — would pause here for user review before proceeding to component gap report.</p>
+
+</body>
+</html>

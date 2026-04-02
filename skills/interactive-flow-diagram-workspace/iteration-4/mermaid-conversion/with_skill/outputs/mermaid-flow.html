@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>E-Commerce Product Flow — Interactive Flow</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    /* SDS light theme canvas — all styles inline */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      /* Canvas & Surface */
+      --bg-canvas: #FAF8F5;
+      --bg-subtle: #F4F1EB;
+      --bg-card: #FFFFFF;
+      --bg-elevated: #FFFFFF;
+      /* Text */
+      --text-primary: #1C1A17;
+      --text-secondary: #54514D;
+      --text-tertiary: #6B6760;
+      --text-disabled: #B0ABA2;
+      --text-on-primary: #FFFFFF;
+      /* Borders */
+      --border-subtle: #EBE6DD;
+      --border-default: #E0DCD3;
+      --border-strong: #D0CBC3;
+      --border-focus: #013D5B;
+      /* Interactive */
+      --interactive-primary: #013D5B;
+      --interactive-primary-hover: #05314D;
+      --interactive-primary-active: #032740;
+      --interactive-primary-subtle: #D9EBED;
+      /* Accents */
+      --accent-action: #013D5B;
+      --accent-action-text: #FFFFFF;
+      --accent-decision: #EBCE2D;
+      --accent-decision-text: #1C1A17;
+      /* Status */
+      --status-success-strong: #7A9A01;
+      --status-success-bg: #F4FAEB;
+      --status-success-text: #62800B;
+      --status-info-text: #0C4A69;
+      --status-info-bg: #EBF4F5;
+      --status-warning-strong: #EBCE2D;
+      --status-warning-bg: #FCF9D9;
+      --status-warning-text: #8A7515;
+      --status-error-strong: #CF6253;
+      --status-error-bg: #FFEEEB;
+      --status-error-text: #BF5547;
+      /* Connectors */
+      --connector-line: #013D5B;
+      --connector-happy: #7A9A01;
+      --connector-error: #CF6253;
+    }
+
+    body {
+      background: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #breadcrumb {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 48px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border-default);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 100;
+      font-size: 13px;
+      color: var(--text-secondary);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    #breadcrumb span {
+      cursor: pointer;
+      color: var(--interactive-primary);
+      font-weight: 500;
+    }
+
+    #breadcrumb span:hover {
+      text-decoration: underline;
+    }
+
+    #breadcrumb .separator {
+      margin: 0 8px;
+      color: var(--text-disabled);
+      cursor: default;
+    }
+
+    #breadcrumb .current {
+      color: var(--text-primary);
+      font-weight: 600;
+      cursor: default;
+    }
+
+    #flow-svg {
+      position: fixed;
+      top: 48px;
+      left: 0;
+    }
+
+    /* Detail sidebar */
+    #detail-panel {
+      position: fixed;
+      top: 48px;
+      right: 0;
+      width: 380px;
+      height: calc(100vh - 48px);
+      background: var(--bg-elevated);
+      border-left: 1px solid var(--border-default);
+      box-shadow: -4px 0 16px rgba(0,0,0,0.08);
+      z-index: 200;
+      transform: translateX(100%);
+      transition: transform 300ms ease-out;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    #detail-panel.open {
+      transform: translateX(0);
+    }
+
+    #detail-panel .close-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid var(--border-default);
+      background: var(--bg-card);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      font-size: 16px;
+    }
+
+    #detail-panel .close-btn:hover {
+      background: var(--bg-subtle);
+      border-color: var(--border-strong);
+    }
+
+    #detail-panel h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      padding-right: 32px;
+    }
+
+    #detail-panel .node-type-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+    }
+
+    #detail-panel .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-tertiary);
+      margin-top: 20px;
+      margin-bottom: 8px;
+    }
+
+    #detail-panel .section-content {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    #detail-panel .edge-case-item {
+      font-size: 12px;
+      color: var(--text-secondary);
+      padding: 8px 12px;
+      background: var(--status-warning-bg);
+      border-radius: 6px;
+      margin-bottom: 6px;
+      border-left: 3px solid var(--status-warning-strong);
+    }
+
+    #detail-panel .exit-item {
+      font-size: 12px;
+      color: var(--text-secondary);
+      padding: 8px 12px;
+      background: var(--bg-subtle);
+      border-radius: 6px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #detail-panel .exit-arrow {
+      color: var(--interactive-primary);
+      font-weight: 600;
+    }
+
+    /* Minimap */
+    #minimap {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 150px;
+      height: 100px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid var(--border-default);
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      z-index: 150;
+      overflow: hidden;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="breadcrumb">
+    <span class="current">E-Commerce Product Flow</span>
+  </div>
+  <svg id="flow-svg"></svg>
+  <div id="detail-panel">
+    <button class="close-btn" onclick="closeDetail()">&times;</button>
+    <div id="detail-content"></div>
+  </div>
+  <div id="minimap">
+    <svg id="minimap-svg" width="150" height="100"></svg>
+  </div>
+
+  <script>
+    // ─── Flow Data ───
+    const flowData = {
+      title: "E-Commerce Product Flow",
+      phases: [
+        {
+          id: "shopping",
+          label: "Shopping Flow",
+          description: "Product search, selection, and purchase journey",
+          icon: "shopping-cart",
+          color: "rgba(1, 61, 91, 0.05)",
+          borderColor: "#0C4A69",
+          nodes: [
+            {
+              id: "start",
+              type: "start",
+              label: "Start",
+              screenType: null,
+              userAction: "User enters the e-commerce application",
+              description: "Entry point of the shopping flow. The user arrives at the platform ready to browse products.",
+              edgeCases: [],
+              exits: [{ to: "search-products", label: "Search Products" }]
+            },
+            {
+              id: "search-products",
+              type: "screen",
+              label: "Search Products",
+              screenType: "list",
+              userAction: "Enter search query and browse results",
+              description: "Product search page with search bar, filters, and paginated results grid. Users can type queries, apply category filters, and sort results.",
+              edgeCases: [
+                "Empty state: No search query entered — show trending/featured products",
+                "Slow connection: Show skeleton loading cards while fetching results"
+              ],
+              exits: [
+                { to: "found-results", label: "Submit search" },
+              ]
+            },
+            {
+              id: "found-results",
+              type: "decision",
+              label: "Found results?",
+              screenType: null,
+              userAction: "System evaluates whether search returned results",
+              description: "Decision point after search execution. The system checks if the query matched any products in the catalog.",
+              edgeCases: [
+                "Partial matches: Show approximate results with suggestions"
+              ],
+              exits: [
+                { to: "product-detail", label: "Yes — results found" },
+                { to: "no-results", label: "No — empty results" }
+              ]
+            },
+            {
+              id: "product-detail",
+              type: "screen",
+              label: "Product Detail",
+              screenType: "detail",
+              userAction: "View product information, images, reviews, and pricing",
+              description: "Full product detail page with image carousel, description, specifications, pricing, reviews section, and stock availability indicator.",
+              edgeCases: [
+                "Product discontinued: Show notice and suggest alternatives",
+                "Price changed: Show updated price with strikethrough on old price",
+                "Reviews unavailable: Show fallback with rating summary only"
+              ],
+              exits: [
+                { to: "in-stock", label: "Check availability" }
+              ]
+            },
+            {
+              id: "no-results",
+              type: "error",
+              label: "No Results Page",
+              screenType: "empty",
+              userAction: "View empty results and refine search",
+              description: "Empty state page showing a friendly message that no products matched the query. Provides search suggestions, popular categories, and a prominent search bar to try again.",
+              edgeCases: [
+                "Misspelling detected: Show 'Did you mean...?' suggestion",
+                "All filters too restrictive: Suggest broadening filters"
+              ],
+              exits: [
+                { to: "search-products", label: "Refine search" }
+              ]
+            },
+            {
+              id: "in-stock",
+              type: "decision",
+              label: "In Stock?",
+              screenType: null,
+              userAction: "System checks product inventory availability",
+              description: "Inventory check for the selected product. Queries real-time stock levels across warehouses.",
+              edgeCases: [
+                "Low stock: Show 'Only X left' warning",
+                "Stock changes during browsing: Re-validate at cart addition"
+              ],
+              exits: [
+                { to: "add-to-cart", label: "Yes — in stock" },
+                { to: "notify-available", label: "No — out of stock" }
+              ]
+            },
+            {
+              id: "add-to-cart",
+              type: "screen",
+              label: "Add to Cart",
+              screenType: "form",
+              userAction: "Select quantity and add product to shopping cart",
+              description: "Cart addition interface showing quantity selector, size/variant options, and the Add to Cart button. Shows cart summary flyout on successful addition.",
+              edgeCases: [
+                "Max quantity exceeded: Show limit notice",
+                "Item already in cart: Show 'Update quantity' instead"
+              ],
+              exits: [
+                { to: "checkout", label: "Proceed to Checkout" }
+              ]
+            },
+            {
+              id: "notify-available",
+              type: "screen",
+              label: "Notify When Available",
+              screenType: "form",
+              userAction: "Enter email to receive stock notification",
+              description: "Out-of-stock notification signup. User provides email address to be notified when the product is back in stock. Shows estimated restock timeline if available.",
+              edgeCases: [
+                "Already subscribed: Show confirmation that notification is set",
+                "Invalid email: Show inline validation error"
+              ],
+              exits: []
+            },
+            {
+              id: "checkout",
+              type: "screen",
+              label: "Checkout",
+              screenType: "form",
+              userAction: "Enter shipping and payment details, review order",
+              description: "Multi-step checkout flow with shipping address, payment method selection, order review, and confirmation. Shows order summary sidebar with totals.",
+              edgeCases: [
+                "Payment declined: Show error and suggest alternative payment",
+                "Address validation failed: Prompt for correction",
+                "Cart item no longer available: Show notice and suggest removal"
+              ],
+              exits: [
+                { to: "order-confirmed", label: "Place order" }
+              ]
+            },
+            {
+              id: "order-confirmed",
+              type: "end",
+              label: "Order Confirmed",
+              screenType: null,
+              userAction: "View order confirmation and tracking details",
+              description: "Order success page showing order number, estimated delivery date, and tracking information. Provides links to order history and continued shopping.",
+              edgeCases: [],
+              exits: []
+            }
+          ],
+          edges: [
+            { from: "start", to: "search-products", label: "Search Products", isHappyPath: true, isAction: true },
+            { from: "search-products", to: "found-results", label: "", isHappyPath: true },
+            { from: "found-results", to: "product-detail", label: "Yes", isHappyPath: true },
+            { from: "found-results", to: "no-results", label: "No", isHappyPath: false },
+            { from: "no-results", to: "search-products", label: "Refine", isHappyPath: false, isReturn: true },
+            { from: "product-detail", to: "in-stock", label: "", isHappyPath: true },
+            { from: "in-stock", to: "add-to-cart", label: "Yes", isHappyPath: true },
+            { from: "in-stock", to: "notify-available", label: "No", isHappyPath: false },
+            { from: "add-to-cart", to: "checkout", label: "Checkout", isHappyPath: true, isAction: true },
+            { from: "checkout", to: "order-confirmed", label: "Place Order", isHappyPath: true, isAction: true }
+          ]
+        }
+      ]
+    };
+
+    // ─── SVG + Zoom Setup ───
+    const breadcrumb = document.getElementById('breadcrumb');
+    const detailPanel = document.getElementById('detail-panel');
+    const detailContent = document.getElementById('detail-content');
+    const minimap = document.getElementById('minimap');
+
+    const width = window.innerWidth;
+    const height = window.innerHeight - 48;
+
+    const svg = d3.select('#flow-svg')
+      .attr('width', width)
+      .attr('height', height);
+
+    const defs = svg.append('defs');
+
+    // Arrowhead markers
+    function addMarker(id, color) {
+      defs.append('marker')
+        .attr('id', id)
+        .attr('viewBox', '0 0 8 6')
+        .attr('refX', 8)
+        .attr('refY', 3)
+        .attr('markerWidth', 8)
+        .attr('markerHeight', 6)
+        .attr('orient', 'auto-start-reverse')
+        .append('path')
+        .attr('d', 'M 0 0 L 8 3 L 0 6 Z')
+        .attr('fill', color);
+    }
+
+    addMarker('arrow-default', '#013D5B');
+    addMarker('arrow-happy', '#7A9A01');
+    addMarker('arrow-error', '#CF6253');
+
+    const container = svg.append('g').attr('class', 'container');
+
+    const zoom = d3.zoom()
+      .scaleExtent([0.1, 4])
+      .on('zoom', (event) => {
+        container.attr('transform', event.transform);
+        updateMinimap(event.transform);
+      });
+
+    svg.call(zoom);
+
+    let currentLevel = 1;
+    let currentPhase = null;
+
+    // ─── Positioning ───
+    const nodePositions = {};
+
+    function computeLevel2Positions(phase) {
+      const nodes = phase.nodes;
+      const edges = phase.edges;
+      const pos = {};
+
+      // Manual layout for this specific flow
+      // Main happy path goes left to right
+      // Branches go downward
+      const startX = 120;
+      const spacingX = 350;
+      const mainY = 260;
+      const branchY = mainY + 220;
+
+      // Layout: start -> search -> found? -> product detail -> in stock? -> add to cart -> checkout -> order confirmed
+      //                                   \-> no results (loops back)
+      //                                                              \-> notify available
+      const mainPath = ['start', 'search-products', 'found-results', 'product-detail', 'in-stock', 'add-to-cart', 'checkout', 'order-confirmed'];
+      const branchNodes = {
+        'no-results': { col: 2, row: 1 },        // below found-results
+        'notify-available': { col: 4, row: 1 }   // below in-stock
+      };
+
+      mainPath.forEach((id, i) => {
+        pos[id] = { x: startX + i * spacingX, y: mainY };
+      });
+
+      Object.entries(branchNodes).forEach(([id, loc]) => {
+        pos[id] = { x: startX + loc.col * spacingX, y: mainY + loc.row * 220 };
+      });
+
+      return pos;
+    }
+
+    // ─── Node Dimensions ───
+    function getNodeDimensions(node) {
+      if (node.type === 'start' || node.type === 'end') {
+        return { w: 160, h: 44 };
+      }
+      if (node.type === 'decision') {
+        return { w: 60, h: 60 }; // diamond before rotation
+      }
+      if (node.type === 'error') {
+        return { w: 220, h: 90 };
+      }
+      return { w: 220, h: 90 };
+    }
+
+    // ─── Render Level 1 (Overview) ───
+    function renderLevel1() {
+      currentLevel = 1;
+      currentPhase = null;
+      container.selectAll('*').remove();
+      minimap.style.display = 'none';
+      closeDetail();
+
+      breadcrumb.innerHTML = '<span class="current">E-Commerce Product Flow</span>';
+
+      const phases = flowData.phases;
+      const phaseSpacing = 280;
+      const startX = 120;
+      const centerY = height / 2;
+
+      phases.forEach((phase, i) => {
+        phase.x = startX + i * phaseSpacing;
+        phase.y = centerY;
+      });
+
+      // Render phase cards
+      const phaseGroups = container.selectAll('.phase-node')
+        .data(phases)
+        .enter()
+        .append('g')
+        .attr('class', 'phase-node')
+        .attr('transform', d => `translate(${d.x}, ${d.y})`)
+        .style('cursor', 'pointer')
+        .style('opacity', 0)
+        .on('click', (event, d) => {
+          // Click feedback
+          d3.select(event.currentTarget)
+            .transition().duration(75)
+            .style('opacity', 0.7)
+            .transition().duration(75)
+            .style('opacity', 1)
+            .on('end', () => renderLevel2(d));
+        })
+        .on('mouseenter', function() {
+          d3.select(this).select('rect')
+            .transition().duration(150)
+            .attr('stroke', '#D0CBC3')
+            .attr('fill', '#FAF8F5');
+          d3.select(this).transition().duration(150)
+            .attr('transform', function() {
+              const d = d3.select(this).datum();
+              return `translate(${d.x}, ${d.y}) scale(1.02)`;
+            });
+        })
+        .on('mouseleave', function() {
+          d3.select(this).select('rect')
+            .transition().duration(150)
+            .attr('stroke', '#E0DCD3')
+            .attr('fill', '#FFFFFF');
+          d3.select(this).transition().duration(150)
+            .attr('transform', function() {
+              const d = d3.select(this).datum();
+              return `translate(${d.x}, ${d.y}) scale(1)`;
+            });
+        });
+
+      // Card background
+      phaseGroups.append('rect')
+        .attr('x', -110)
+        .attr('y', -60)
+        .attr('width', 220)
+        .attr('height', 120)
+        .attr('rx', 12)
+        .attr('fill', '#FFFFFF')
+        .attr('stroke', '#E0DCD3')
+        .attr('stroke-width', 1)
+        .style('filter', 'drop-shadow(0 1px 3px rgba(0,0,0,0.06))');
+
+      // Icon
+      phaseGroups.append('g')
+        .attr('transform', 'translate(-24, -20)')
+        .append('svg')
+        .attr('width', 48)
+        .attr('height', 48)
+        .attr('viewBox', '0 0 24 24')
+        .attr('fill', 'none')
+        .attr('stroke', '#0C4A69')
+        .attr('stroke-width', 1.5)
+        .attr('stroke-linecap', 'round')
+        .attr('stroke-linejoin', 'round')
+        .html('<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/><path d="M11 8v6"/>');
+
+      // Phase label
+      phaseGroups.append('text')
+        .attr('y', 20)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '14px')
+        .attr('font-weight', 600)
+        .attr('fill', '#1C1A17')
+        .text(d => d.label);
+
+      // Phase description
+      phaseGroups.append('text')
+        .attr('y', 36)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '11px')
+        .attr('fill', '#54514D')
+        .text(d => d.description.length > 40 ? d.description.slice(0, 38) + '...' : d.description);
+
+      // Animate in
+      phaseGroups.transition().duration(400).ease(d3.easeQuadOut)
+        .style('opacity', 1);
+
+      setTimeout(() => fitToContent(), 50);
+    }
+
+    // ─── Render Level 2 (Flow) ───
+    function renderLevel2(phase) {
+      currentLevel = 2;
+      currentPhase = phase;
+      container.selectAll('*').remove();
+      closeDetail();
+
+      // Breadcrumb
+      breadcrumb.innerHTML = `
+        <span onclick="renderLevel1()">Overview</span>
+        <span class="separator">›</span>
+        <span class="current">${phase.label}</span>
+      `;
+
+      const pos = computeLevel2Positions(phase);
+      const nodes = phase.nodes;
+      const edges = phase.edges;
+
+      // Assign positions to nodes
+      nodes.forEach(n => {
+        n.px = pos[n.id].x;
+        n.py = pos[n.id].y;
+      });
+
+      // Render edges first (behind nodes)
+      const edgeGroup = container.append('g').attr('class', 'edges');
+      const nodeGroup = container.append('g').attr('class', 'nodes');
+
+      edges.forEach(edge => {
+        const fromNode = nodes.find(n => n.id === edge.from);
+        const toNode = nodes.find(n => n.id === edge.to);
+        if (!fromNode || !toNode) return;
+
+        const fromDim = getNodeDimensions(fromNode);
+        const toDim = getNodeDimensions(toNode);
+
+        let fromX, fromY, toX, toY;
+
+        // Determine exit and entry points
+        if (edge.isReturn) {
+          // Return edge (no-results -> search-products): goes up and to the left
+          fromX = fromNode.px;
+          fromY = fromNode.py - toDim.h / 2;
+          toX = toNode.px;
+          toY = toNode.py + fromDim.h / 2;
+
+          renderReturnEdge(edgeGroup, fromNode, toNode, fromDim, toDim, edge);
+          return;
+        }
+
+        const sameRow = Math.abs(fromNode.py - toNode.py) < 10;
+
+        if (sameRow) {
+          // Horizontal: exit right, enter left
+          fromX = fromNode.px + fromDim.w / 2;
+          fromY = fromNode.py;
+          toX = toNode.px - toDim.w / 2;
+          toY = toNode.py;
+
+          if (fromNode.type === 'decision') {
+            fromX = fromNode.px + fromDim.w / 2 + 12;
+          }
+          if (toNode.type === 'decision') {
+            toX = toNode.px - toDim.w / 2 - 12;
+          }
+        } else {
+          // Vertical branch: exit bottom of decision, enter top of branch node
+          if (fromNode.type === 'decision') {
+            fromX = fromNode.px;
+            fromY = fromNode.py + fromDim.h / 2 + 12;
+          } else {
+            fromX = fromNode.px + fromDim.w / 2;
+            fromY = fromNode.py;
+          }
+          toX = toNode.px;
+          toY = toNode.py - toDim.h / 2;
+        }
+
+        const isHappy = edge.isHappyPath;
+        const strokeColor = isHappy ? '#7A9A01' : '#013D5B';
+        const strokeWidth = isHappy ? 2.5 : 2;
+        const markerEnd = isHappy ? 'url(#arrow-happy)' : 'url(#arrow-default)';
+
+        // Check if this is an error-type edge (going to error node)
+        const isError = toNode.type === 'error';
+        const finalStrokeColor = isError ? '#CF6253' : strokeColor;
+        const finalMarkerEnd = isError ? 'url(#arrow-error)' : markerEnd;
+        const dashArray = isError ? '6,4' : 'none';
+        const finalStrokeWidth = isError ? 1.5 : strokeWidth;
+
+        if (edge.isAction) {
+          // Render action pill on connector
+          renderActionEdge(edgeGroup, fromX, fromY, toX, toY, edge, fromNode, toNode, fromDim, toDim, isHappy);
+        } else if (sameRow) {
+          // Straight horizontal line
+          const portRadius = 5;
+
+          // Exit port
+          edgeGroup.append('circle')
+            .attr('cx', fromX)
+            .attr('cy', fromY)
+            .attr('r', portRadius)
+            .attr('fill', '#013D5B')
+            .attr('stroke', '#FFFFFF')
+            .attr('stroke-width', 2);
+
+          // Entry port
+          edgeGroup.append('circle')
+            .attr('cx', toX)
+            .attr('cy', toY)
+            .attr('r', portRadius)
+            .attr('fill', '#013D5B')
+            .attr('stroke', '#FFFFFF')
+            .attr('stroke-width', 2);
+
+          edgeGroup.append('line')
+            .attr('x1', fromX + portRadius)
+            .attr('y1', fromY)
+            .attr('x2', toX - portRadius - 8)
+            .attr('y2', toY)
+            .attr('stroke', finalStrokeColor)
+            .attr('stroke-width', finalStrokeWidth)
+            .attr('stroke-dasharray', dashArray)
+            .attr('marker-end', finalMarkerEnd);
+
+          // Edge label
+          if (edge.label) {
+            const midX = (fromX + toX) / 2;
+            const midY = fromY - 14;
+            edgeGroup.append('text')
+              .attr('x', midX)
+              .attr('y', midY)
+              .attr('text-anchor', 'middle')
+              .attr('font-size', '10px')
+              .attr('fill', '#54514D')
+              .text(edge.label);
+          }
+        } else {
+          // Orthogonal path (vertical branch)
+          const portRadius = 5;
+          const midY_line = fromY + (toY - fromY) / 2;
+
+          // Exit port
+          edgeGroup.append('circle')
+            .attr('cx', fromX)
+            .attr('cy', fromY)
+            .attr('r', portRadius)
+            .attr('fill', '#013D5B')
+            .attr('stroke', '#FFFFFF')
+            .attr('stroke-width', 2);
+
+          // Entry port
+          edgeGroup.append('circle')
+            .attr('cx', toX)
+            .attr('cy', toY)
+            .attr('r', portRadius)
+            .attr('fill', '#013D5B')
+            .attr('stroke', '#FFFFFF')
+            .attr('stroke-width', 2);
+
+          // Orthogonal path
+          const pathD = `M ${fromX} ${fromY + portRadius} V ${midY_line} H ${toX} V ${toY - portRadius - 8}`;
+
+          edgeGroup.append('path')
+            .attr('d', pathD)
+            .attr('fill', 'none')
+            .attr('stroke', finalStrokeColor)
+            .attr('stroke-width', finalStrokeWidth)
+            .attr('stroke-dasharray', dashArray)
+            .attr('marker-end', finalMarkerEnd);
+
+          // Edge label
+          if (edge.label) {
+            edgeGroup.append('text')
+              .attr('x', fromX + (toX - fromX) / 2)
+              .attr('y', midY_line - 8)
+              .attr('text-anchor', 'middle')
+              .attr('font-size', '10px')
+              .attr('fill', '#54514D')
+              .text(edge.label);
+          }
+        }
+      });
+
+      // Render nodes
+      nodes.forEach(node => {
+        const g = nodeGroup.append('g')
+          .attr('class', 'node')
+          .attr('transform', `translate(${node.px}, ${node.py})`)
+          .style('cursor', 'pointer')
+          .style('opacity', 0)
+          .on('click', () => showDetail(node))
+          .on('mouseenter', function() {
+            if (node.type !== 'decision') {
+              d3.select(this).select('.node-bg')
+                .transition().duration(150)
+                .attr('stroke', '#D0CBC3');
+            }
+            d3.select(this)
+              .transition().duration(150)
+              .attr('transform', `translate(${node.px}, ${node.py}) scale(1.02)`);
+          })
+          .on('mouseleave', function() {
+            if (node.type !== 'decision') {
+              const defaultStroke = node.type === 'start' ? '#7A9A01' :
+                                    node.type === 'end' ? '#7A9A01' :
+                                    node.type === 'error' ? '#E0DCD3' : '#E0DCD3';
+              d3.select(this).select('.node-bg')
+                .transition().duration(150)
+                .attr('stroke', defaultStroke);
+            }
+            d3.select(this)
+              .transition().duration(150)
+              .attr('transform', `translate(${node.px}, ${node.py}) scale(1)`);
+          });
+
+        renderNode(g, node);
+      });
+
+      // Animate nodes in
+      nodeGroup.selectAll('.node')
+        .transition().duration(400).ease(d3.easeQuadOut)
+        .style('opacity', 1);
+
+      // Show minimap for flows with > 8 nodes
+      if (nodes.length > 8) {
+        minimap.style.display = 'block';
+        renderMinimap(nodes, pos);
+      } else {
+        minimap.style.display = 'none';
+      }
+
+      setTimeout(() => fitToContent(), 50);
+    }
+
+    // ─── Render Return Edge (loops back) ───
+    function renderReturnEdge(edgeGroup, fromNode, toNode, fromDim, toDim, edge) {
+      const portRadius = 5;
+      // From no-results top, loop up and left to search-products bottom
+      const fromX = fromNode.px;
+      const fromY = fromNode.py - toDim.h / 2;
+      const toX = toNode.px;
+      const toY = toNode.py + fromDim.h / 2;
+
+      const loopY = fromY - 60;
+      const loopLeftX = toX - toDim.w / 2 - 40;
+
+      // Exit port (top of no-results)
+      edgeGroup.append('circle')
+        .attr('cx', fromX)
+        .attr('cy', fromY)
+        .attr('r', portRadius)
+        .attr('fill', '#013D5B')
+        .attr('stroke', '#FFFFFF')
+        .attr('stroke-width', 2);
+
+      // Entry port (bottom of search-products)
+      edgeGroup.append('circle')
+        .attr('cx', toX)
+        .attr('cy', toY)
+        .attr('r', portRadius)
+        .attr('fill', '#013D5B')
+        .attr('stroke', '#FFFFFF')
+        .attr('stroke-width', 2);
+
+      // Orthogonal path: go up from no-results, go left, go down to below search, go right into search bottom
+      const pathD = `M ${fromX} ${fromY - portRadius} V ${loopY} H ${loopLeftX} V ${toY + 40} H ${toX} V ${toY + portRadius + 8}`;
+
+      edgeGroup.append('path')
+        .attr('d', pathD)
+        .attr('fill', 'none')
+        .attr('stroke', '#CF6253')
+        .attr('stroke-width', 1.5)
+        .attr('stroke-dasharray', '6,4')
+        .attr('marker-end', 'url(#arrow-error)');
+
+      // Label
+      if (edge.label) {
+        edgeGroup.append('text')
+          .attr('x', loopLeftX + 40)
+          .attr('y', loopY - 8)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '10px')
+          .attr('fill', '#54514D')
+          .text(edge.label);
+      }
+    }
+
+    // ─── Render Action Edge (with pill) ───
+    function renderActionEdge(edgeGroup, fromX, fromY, toX, toY, edge, fromNode, toNode, fromDim, toDim, isHappy) {
+      const portRadius = 5;
+      const pillW = Math.max(120, edge.label.length * 8 + 40);
+      const pillH = 24;
+      const pillR = 20;
+      const midX = (fromX + toX) / 2;
+      const midY = fromY;
+
+      const strokeColor = isHappy ? '#7A9A01' : '#013D5B';
+      const strokeWidth = isHappy ? 2.5 : 2;
+      const markerEnd = isHappy ? 'url(#arrow-happy)' : 'url(#arrow-default)';
+
+      // Exit port
+      edgeGroup.append('circle')
+        .attr('cx', fromX)
+        .attr('cy', fromY)
+        .attr('r', portRadius)
+        .attr('fill', '#013D5B')
+        .attr('stroke', '#FFFFFF')
+        .attr('stroke-width', 2);
+
+      // Line from port to pill
+      edgeGroup.append('line')
+        .attr('x1', fromX + portRadius)
+        .attr('y1', fromY)
+        .attr('x2', midX - pillW / 2)
+        .attr('y2', midY)
+        .attr('stroke', strokeColor)
+        .attr('stroke-width', strokeWidth);
+
+      // Action pill
+      const pillGroup = edgeGroup.append('g')
+        .attr('transform', `translate(${midX}, ${midY})`);
+
+      pillGroup.append('rect')
+        .attr('x', -pillW / 2)
+        .attr('y', -pillH / 2)
+        .attr('width', pillW)
+        .attr('height', pillH)
+        .attr('rx', pillR)
+        .attr('fill', '#013D5B');
+
+      // Lightning bolt icon
+      pillGroup.append('g')
+        .attr('transform', `translate(${-pillW / 2 + 10}, -6)`)
+        .append('svg')
+        .attr('width', 12)
+        .attr('height', 12)
+        .attr('viewBox', '0 0 24 24')
+        .attr('fill', 'none')
+        .attr('stroke', '#FFFFFF')
+        .attr('stroke-width', 2)
+        .attr('stroke-linecap', 'round')
+        .attr('stroke-linejoin', 'round')
+        .html('<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>');
+
+      // Pill text
+      pillGroup.append('text')
+        .attr('x', 4)
+        .attr('y', 4)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '11px')
+        .attr('font-weight', 500)
+        .attr('fill', '#FFFFFF')
+        .text(edge.label);
+
+      // Line from pill to next port
+      edgeGroup.append('line')
+        .attr('x1', midX + pillW / 2)
+        .attr('y1', midY)
+        .attr('x2', toX - portRadius - 8)
+        .attr('y2', toY)
+        .attr('stroke', strokeColor)
+        .attr('stroke-width', strokeWidth)
+        .attr('marker-end', markerEnd);
+
+      // Entry port
+      edgeGroup.append('circle')
+        .attr('cx', toX)
+        .attr('cy', toY)
+        .attr('r', portRadius)
+        .attr('fill', '#013D5B')
+        .attr('stroke', '#FFFFFF')
+        .attr('stroke-width', 2);
+
+      // Adjust entry port positions for special node types
+      if (toNode.type === 'decision') {
+        // Already handled in main positioning
+      }
+    }
+
+    // ─── Render Individual Node ───
+    function renderNode(g, node) {
+      const dim = getNodeDimensions(node);
+
+      if (node.type === 'start') {
+        // Stadium shape with success background
+        g.append('rect')
+          .attr('class', 'node-bg')
+          .attr('x', -dim.w / 2)
+          .attr('y', -dim.h / 2)
+          .attr('width', dim.w)
+          .attr('height', dim.h)
+          .attr('rx', dim.h / 2)
+          .attr('fill', '#F4FAEB')
+          .attr('stroke', '#7A9A01')
+          .attr('stroke-width', 1.5);
+
+        g.append('text')
+          .attr('text-anchor', 'middle')
+          .attr('dominant-baseline', 'central')
+          .attr('font-size', '14px')
+          .attr('font-weight', 600)
+          .attr('fill', '#62800B')
+          .text(node.label);
+      }
+      else if (node.type === 'end') {
+        // Stadium shape with green fill
+        g.append('rect')
+          .attr('class', 'node-bg')
+          .attr('x', -dim.w / 2)
+          .attr('y', -dim.h / 2)
+          .attr('width', dim.w)
+          .attr('height', dim.h)
+          .attr('rx', dim.h / 2)
+          .attr('fill', '#7A9A01')
+          .attr('stroke', '#7A9A01')
+          .attr('stroke-width', 1.5);
+
+        // Checkmark icon
+        g.append('g')
+          .attr('transform', 'translate(-30, -8)')
+          .append('svg')
+          .attr('width', 16)
+          .attr('height', 16)
+          .attr('viewBox', '0 0 24 24')
+          .attr('fill', 'none')
+          .attr('stroke', '#FFFFFF')
+          .attr('stroke-width', 2.5)
+          .attr('stroke-linecap', 'round')
+          .attr('stroke-linejoin', 'round')
+          .html('<polyline points="20 6 9 17 4 12"/>');
+
+        g.append('text')
+          .attr('x', 4)
+          .attr('text-anchor', 'middle')
+          .attr('dominant-baseline', 'central')
+          .attr('font-size', '14px')
+          .attr('font-weight', 600)
+          .attr('fill', '#FFFFFF')
+          .text(node.label);
+      }
+      else if (node.type === 'decision') {
+        // Diamond shape
+        const size = dim.w / 2;
+        const diamondSize = 48;
+        g.append('polygon')
+          .attr('class', 'node-bg')
+          .attr('points', `0,${-diamondSize} ${diamondSize},0 0,${diamondSize} ${-diamondSize},0`)
+          .attr('fill', '#EBCE2D')
+          .attr('stroke', '#EBCE2D')
+          .attr('stroke-width', 1);
+
+        // Decision text - wrap if needed
+        const words = node.label.split(' ');
+        if (words.length <= 2) {
+          g.append('text')
+            .attr('text-anchor', 'middle')
+            .attr('dominant-baseline', 'central')
+            .attr('font-size', '12px')
+            .attr('font-weight', 600)
+            .attr('fill', '#1C1A17')
+            .text(node.label);
+        } else {
+          const line1 = words.slice(0, Math.ceil(words.length / 2)).join(' ');
+          const line2 = words.slice(Math.ceil(words.length / 2)).join(' ');
+          g.append('text')
+            .attr('text-anchor', 'middle')
+            .attr('y', -7)
+            .attr('font-size', '12px')
+            .attr('font-weight', 600)
+            .attr('fill', '#1C1A17')
+            .text(line1);
+          g.append('text')
+            .attr('text-anchor', 'middle')
+            .attr('y', 9)
+            .attr('font-size', '12px')
+            .attr('font-weight', 600)
+            .attr('fill', '#1C1A17')
+            .text(line2);
+        }
+      }
+      else if (node.type === 'error') {
+        // Rectangle with left red accent bar
+        g.append('rect')
+          .attr('class', 'node-bg')
+          .attr('x', -dim.w / 2)
+          .attr('y', -dim.h / 2)
+          .attr('width', dim.w)
+          .attr('height', dim.h)
+          .attr('rx', 8)
+          .attr('fill', '#FFFFFF')
+          .attr('stroke', '#E0DCD3')
+          .attr('stroke-width', 1)
+          .style('filter', 'drop-shadow(0 1px 3px rgba(0,0,0,0.06))');
+
+        // Red left accent bar
+        g.append('rect')
+          .attr('x', -dim.w / 2)
+          .attr('y', -dim.h / 2)
+          .attr('width', 3)
+          .attr('height', dim.h)
+          .attr('rx', 1.5)
+          .attr('fill', '#CF6253');
+
+        // Window dots
+        renderWindowDots(g, dim);
+
+        // Red status circle
+        g.append('circle')
+          .attr('cx', dim.w / 2 - 15)
+          .attr('cy', -dim.h / 2 + 15)
+          .attr('r', 4)
+          .attr('fill', '#CF6253');
+
+        // Node label
+        g.append('text')
+          .attr('x', -dim.w / 2 + 28)
+          .attr('y', -dim.h / 2 + 38)
+          .attr('font-size', '14px')
+          .attr('font-weight', 600)
+          .attr('fill', '#1C1A17')
+          .text(node.label);
+
+        // Subtitle
+        if (node.screenType) {
+          g.append('text')
+            .attr('x', -dim.w / 2 + 28)
+            .attr('y', -dim.h / 2 + 54)
+            .attr('font-size', '11px')
+            .attr('fill', '#54514D')
+            .text(node.screenType);
+        }
+      }
+      else {
+        // Screen node (rectangle)
+        g.append('rect')
+          .attr('class', 'node-bg')
+          .attr('x', -dim.w / 2)
+          .attr('y', -dim.h / 2)
+          .attr('width', dim.w)
+          .attr('height', dim.h)
+          .attr('rx', 8)
+          .attr('fill', '#FFFFFF')
+          .attr('stroke', '#E0DCD3')
+          .attr('stroke-width', 1)
+          .style('filter', 'drop-shadow(0 1px 3px rgba(0,0,0,0.06))');
+
+        // Window dots
+        renderWindowDots(g, dim);
+
+        // MoSCoW tag circle
+        const moscow = getMoscow(node);
+        g.append('circle')
+          .attr('cx', dim.w / 2 - 10)
+          .attr('cy', -dim.h / 2 + 10)
+          .attr('r', 10)
+          .attr('fill', '#FFFFFF')
+          .attr('stroke', moscow.color)
+          .attr('stroke-width', 2);
+
+        g.append('text')
+          .attr('x', dim.w / 2 - 10)
+          .attr('y', -dim.h / 2 + 10)
+          .attr('text-anchor', 'middle')
+          .attr('dominant-baseline', 'central')
+          .attr('font-size', '10px')
+          .attr('font-weight', 600)
+          .attr('fill', '#1C1A17')
+          .text(moscow.letter);
+
+        // Screen icon
+        const iconY = -dim.h / 2 + 32;
+        g.append('g')
+          .attr('transform', `translate(${-dim.w / 2 + 12}, ${iconY - 7})`)
+          .append('svg')
+          .attr('width', 14)
+          .attr('height', 14)
+          .attr('viewBox', '0 0 24 24')
+          .attr('fill', 'none')
+          .attr('stroke', '#54514D')
+          .attr('stroke-width', 2)
+          .attr('stroke-linecap', 'round')
+          .attr('stroke-linejoin', 'round')
+          .html(getNodeIcon(node));
+
+        // Node label
+        g.append('text')
+          .attr('x', -dim.w / 2 + 30)
+          .attr('y', iconY)
+          .attr('font-size', '14px')
+          .attr('font-weight', 600)
+          .attr('fill', '#1C1A17')
+          .text(node.label);
+
+        // Subtitle
+        if (node.screenType) {
+          g.append('text')
+            .attr('x', -dim.w / 2 + 30)
+            .attr('y', iconY + 16)
+            .attr('font-size', '11px')
+            .attr('fill', '#54514D')
+            .text(node.screenType.charAt(0).toUpperCase() + node.screenType.slice(1) + ' view');
+        }
+
+        // User action preview
+        if (node.userAction) {
+          const actionText = node.userAction.length > 30 ? node.userAction.slice(0, 28) + '...' : node.userAction;
+          g.append('text')
+            .attr('x', -dim.w / 2 + 14)
+            .attr('y', dim.h / 2 - 12)
+            .attr('font-size', '10px')
+            .attr('fill', '#6B6760')
+            .text('• ' + actionText);
+        }
+      }
+    }
+
+    // ─── Helper: Window Dots ───
+    function renderWindowDots(g, dim) {
+      const dotY = -dim.h / 2 + 14;
+      const dotStartX = -dim.w / 2 + 14;
+      for (let i = 0; i < 3; i++) {
+        g.append('circle')
+          .attr('cx', dotStartX + i * 8)
+          .attr('cy', dotY)
+          .attr('r', 2.5)
+          .attr('fill', '#D0CBC3');
+      }
+    }
+
+    // ─── Helper: MoSCoW Priority ───
+    function getMoscow(node) {
+      // Assign priorities based on node role in the flow
+      const priorities = {
+        'search-products': { letter: 'M', color: '#7A9A01' },
+        'product-detail': { letter: 'M', color: '#7A9A01' },
+        'add-to-cart': { letter: 'M', color: '#7A9A01' },
+        'checkout': { letter: 'M', color: '#7A9A01' },
+        'no-results': { letter: 'S', color: '#0C4A69' },
+        'notify-available': { letter: 'C', color: '#EBCE2D' }
+      };
+      return priorities[node.id] || { letter: 'M', color: '#7A9A01' };
+    }
+
+    // ─── Helper: Node Icons ───
+    function getNodeIcon(node) {
+      const icons = {
+        'list': '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="13" y2="16"/>',
+        'detail': '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+        'form': '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h4"/><path d="M7 12h10"/><path d="M7 17h6"/>',
+        'empty': '<circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/>',
+        'dashboard': '<rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/>'
+      };
+      return icons[node.screenType] || icons['list'];
+    }
+
+    // ─── Detail Panel (Level 3) ───
+    function showDetail(node) {
+      // Update breadcrumb
+      breadcrumb.innerHTML = `
+        <span onclick="renderLevel1()">Overview</span>
+        <span class="separator">›</span>
+        <span onclick="renderLevel2(currentPhase)">${currentPhase.label}</span>
+        <span class="separator">›</span>
+        <span class="current">${node.label}</span>
+      `;
+
+      // Build detail content
+      let html = `<h2>${node.label}</h2>`;
+
+      // Type badge
+      const typeColors = {
+        'screen': { bg: '#D9EBED', color: '#0C4A69' },
+        'decision': { bg: '#FCF9D9', color: '#8A7515' },
+        'error': { bg: '#FFEEEB', color: '#BF5547' },
+        'start': { bg: '#F4FAEB', color: '#62800B' },
+        'end': { bg: '#F4FAEB', color: '#62800B' }
+      };
+      const tc = typeColors[node.type] || typeColors['screen'];
+      const typeLabel = node.screenType
+        ? `${node.type.charAt(0).toUpperCase() + node.type.slice(1)} — ${node.screenType}`
+        : node.type.charAt(0).toUpperCase() + node.type.slice(1);
+
+      html += `<div class="node-type-badge" style="background:${tc.bg};color:${tc.color}">${typeLabel}</div>`;
+
+      // User Action
+      if (node.userAction) {
+        html += `<div class="section-title">User Action</div>`;
+        html += `<div class="section-content">${node.userAction}</div>`;
+      }
+
+      // Description
+      if (node.description) {
+        html += `<div class="section-title">Description</div>`;
+        html += `<div class="section-content">${node.description}</div>`;
+      }
+
+      // Edge Cases
+      if (node.edgeCases && node.edgeCases.length > 0) {
+        html += `<div class="section-title">Edge Cases</div>`;
+        node.edgeCases.forEach(ec => {
+          html += `<div class="edge-case-item">${ec}</div>`;
+        });
+      }
+
+      // Exits
+      if (node.exits && node.exits.length > 0) {
+        html += `<div class="section-title">Exits</div>`;
+        node.exits.forEach(exit => {
+          html += `<div class="exit-item"><span class="exit-arrow">→</span> ${exit.label} → <strong>${exit.to}</strong></div>`;
+        });
+      }
+
+      detailContent.innerHTML = html;
+      detailPanel.classList.add('open');
+    }
+
+    function closeDetail() {
+      detailPanel.classList.remove('open');
+      if (currentLevel === 2 && currentPhase) {
+        breadcrumb.innerHTML = `
+          <span onclick="renderLevel1()">Overview</span>
+          <span class="separator">›</span>
+          <span class="current">${currentPhase.label}</span>
+        `;
+      }
+    }
+
+    // Close detail on click outside
+    svg.on('click', function(event) {
+      if (event.target === this || event.target.tagName === 'svg') {
+        closeDetail();
+      }
+    });
+
+    // ─── Fit to Content ───
+    function fitToContent() {
+      const bounds = container.node().getBBox();
+      if (bounds.width === 0) return;
+      const padding = 80;
+      const fullWidth = bounds.width + padding * 2;
+      const fullHeight = bounds.height + padding * 2;
+      const scale = Math.min(width / fullWidth, height / fullHeight, 1);
+      const tx = (width - bounds.width * scale) / 2 - bounds.x * scale;
+      const ty = (height - bounds.height * scale) / 2 - bounds.y * scale;
+      svg.transition().duration(500)
+        .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+    }
+
+    // ─── Minimap ───
+    function renderMinimap(nodes, pos) {
+      const minimapSvg = d3.select('#minimap-svg');
+      minimapSvg.selectAll('*').remove();
+
+      // Calculate bounds
+      const xs = nodes.map(n => pos[n.id].x);
+      const ys = nodes.map(n => pos[n.id].y);
+      const minX = Math.min(...xs) - 50;
+      const maxX = Math.max(...xs) + 50;
+      const minY = Math.min(...ys) - 50;
+      const maxY = Math.max(...ys) + 50;
+
+      const rangeX = maxX - minX;
+      const rangeY = maxY - minY;
+      const scaleX = 140 / rangeX;
+      const scaleY = 90 / rangeY;
+      const s = Math.min(scaleX, scaleY);
+
+      const mmContainer = minimapSvg.append('g')
+        .attr('transform', `translate(5, 5)`);
+
+      // Node dots
+      nodes.forEach(n => {
+        const nx = (pos[n.id].x - minX) * s;
+        const ny = (pos[n.id].y - minY) * s;
+        const color = n.type === 'start' ? '#7A9A01' :
+                      n.type === 'end' ? '#7A9A01' :
+                      n.type === 'decision' ? '#EBCE2D' :
+                      n.type === 'error' ? '#CF6253' : '#013D5B';
+        mmContainer.append('rect')
+          .attr('x', nx - 4)
+          .attr('y', ny - 3)
+          .attr('width', 8)
+          .attr('height', 6)
+          .attr('rx', 1)
+          .attr('fill', color);
+      });
+
+      // Viewport indicator
+      mmContainer.append('rect')
+        .attr('class', 'viewport-indicator')
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('width', 140)
+        .attr('height', 90)
+        .attr('fill', 'none')
+        .attr('stroke', '#013D5B')
+        .attr('stroke-width', 1.5)
+        .attr('rx', 2);
+    }
+
+    function updateMinimap(transform) {
+      // Update viewport indicator position in minimap
+      // This is a simplified version
+    }
+
+    // ─── Window Resize ───
+    window.addEventListener('resize', () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight - 48;
+      svg.attr('width', w).attr('height', h);
+      fitToContent();
+    });
+
+    // ─── Initialize ───
+    renderLevel1();
+  </script>
+</body>
+</html>

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>B2B Software Purchase — Customer Journey Map</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #F8F9FA;
+      color: #212529;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 24px;
+    }
+
+    .title-bar { margin-bottom: 24px; }
+    .title-bar h1 { font-size: 24px; font-weight: 700; color: #212529; margin-bottom: 4px; }
+    .title-bar .subtitle { font-size: 14px; color: #868E96; }
+
+    .journey-container {
+      overflow-x: auto;
+      position: relative;
+      border-radius: 12px;
+      background: #FFFFFF;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .journey-grid {
+      display: grid;
+      min-width: max-content;
+    }
+
+    .row-label {
+      position: sticky;
+      left: 0;
+      z-index: 10;
+      background: #F1F3F5;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #868E96;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      border-right: 1px solid #E9ECEF;
+      min-width: 140px;
+      width: 140px;
+    }
+
+    .phase-header {
+      padding: 12px 16px;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+    }
+    .phase-header .phase-icon {
+      width: 20px; height: 20px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+    }
+
+    .step-header {
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #495057;
+      background: #F8F9FA;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #E9ECEF;
+    }
+
+    .cell {
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #495057;
+      border-bottom: 1px solid #E9ECEF;
+      border-right: 1px solid #E9ECEF;
+      min-height: 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+      transition: background 0.15s ease;
+    }
+    .cell:hover {
+      background: rgba(91, 141, 239, 0.05);
+      box-shadow: inset 0 0 0 1px rgba(91, 141, 239, 0.1);
+    }
+
+    .pain-text { color: #E53E3E; }
+    .opp-text { color: #48BB78; }
+    .empty-cell { color: #CED4DA; }
+
+    .phase-separator { border-left: 2px solid #DEE2E6; }
+
+    .tooltip {
+      position: fixed;
+      background: #212529;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      pointer-events: none;
+      z-index: 100;
+      max-width: 240px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+    .tooltip.visible { opacity: 1; }
+
+    @media print {
+      body { background: white; }
+      .journey-container { box-shadow: none; overflow: visible; }
+      .row-label { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <div class="title-bar">
+    <h1>B2B Software Purchase — Customer Journey Map</h1>
+    <div class="subtitle">Discovery through Implementation — 4 phases, 12 steps</div>
+  </div>
+  <div class="journey-container">
+    <div class="journey-grid" id="journeyGrid"></div>
+  </div>
+  <div class="tooltip" id="tooltip"></div>
+
+  <script>
+    const journeyData = {
+      title: "B2B Software Purchase Journey",
+      phases: [
+        {
+          id: "discovery", label: "Discovery", color: "#7C5CFC",
+          steps: [
+            { id: "google-search", label: "Google Search", emotion: { score: 0.5, label: "Neutral", annotation: "User searches for solutions" }, painPoints: ["Too many options"], opportunities: ["Add comparison tool"] },
+            { id: "read-reviews", label: "Read Reviews", emotion: { score: 0.6, label: "Interested", annotation: "User reads reviews to narrow options" }, painPoints: ["Hard to trust reviews"], opportunities: ["Add comparison tool"] },
+            { id: "visit-website", label: "Visit Website", emotion: { score: 0.7, label: "Engaged", annotation: "User visits the product website" }, painPoints: [], opportunities: [] }
+          ]
+        },
+        {
+          id: "evaluation", label: "Evaluation", color: "#5B8DEF",
+          steps: [
+            { id: "free-trial", label: "Free Trial", emotion: { score: 0.8, label: "Excited", annotation: "User starts a free trial and is impressed" }, painPoints: ["Trial too short"], opportunities: ["Extend trial"] },
+            { id: "demo-call", label: "Demo Call", emotion: { score: 0.7, label: "Interested", annotation: "User schedules and attends a demo" }, painPoints: ["Demo scheduling friction"], opportunities: ["Self-serve demo"] },
+            { id: "internal-discussion", label: "Internal Discussion", emotion: { score: 0.4, label: "Uncertain", annotation: "Internal stakeholders have concerns" }, painPoints: [], opportunities: [] }
+          ]
+        },
+        {
+          id: "purchase", label: "Purchase", color: "#38B2AC",
+          steps: [
+            { id: "procurement", label: "Procurement", emotion: { score: 0.3, label: "Frustrated", annotation: "Procurement process is slow and complex" }, painPoints: ["Complex procurement process"], opportunities: ["Streamline contract templates"] },
+            { id: "contract", label: "Contract", emotion: { score: 0.2, label: "Very Frustrated", annotation: "Legal review causes significant delays" }, painPoints: ["Legal review delays"], opportunities: ["Streamline contract templates"] },
+            { id: "payment", label: "Payment", emotion: { score: 0.5, label: "Relieved", annotation: "Payment processed, deal is done" }, painPoints: [], opportunities: [] }
+          ]
+        },
+        {
+          id: "implementation", label: "Implementation", color: "#48BB78",
+          steps: [
+            { id: "setup", label: "Setup", emotion: { score: 0.6, label: "Hopeful", annotation: "Technical setup begins" }, painPoints: ["Integration complexity"], opportunities: ["Pre-built integrations"] },
+            { id: "training", label: "Training", emotion: { score: 0.7, label: "Growing Confidence", annotation: "Team gets trained on the product" }, painPoints: [], opportunities: [] },
+            { id: "go-live", label: "Go-Live", emotion: { score: 0.9, label: "Thrilled", annotation: "Product is live and delivering value" }, painPoints: [], opportunities: [] }
+          ]
+        }
+      ]
+    };
+
+    const allSteps = journeyData.phases.flatMap(p => p.steps);
+    const totalSteps = allSteps.length;
+    const colWidth = 170;
+    const rowLabelWidth = 140;
+
+    function hexToRgb(hex) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `${r}, ${g}, ${b}`;
+    }
+
+    const grid = document.getElementById('journeyGrid');
+    grid.style.gridTemplateColumns = `${rowLabelWidth}px repeat(${totalSteps}, ${colWidth}px)`;
+
+    let row = 1;
+
+    // Phase headers
+    const phaseCorner = document.createElement('div');
+    phaseCorner.className = 'row-label';
+    phaseCorner.textContent = 'Phase';
+    phaseCorner.style.gridRow = `${row}`;
+    phaseCorner.style.gridColumn = '1';
+    grid.appendChild(phaseCorner);
+
+    let col = 2;
+    journeyData.phases.forEach((phase, pi) => {
+      const span = phase.steps.length;
+      const header = document.createElement('div');
+      header.className = 'phase-header' + (pi > 0 ? ' phase-separator' : '');
+      header.style.background = phase.color;
+      header.style.gridRow = `${row}`;
+      header.style.gridColumn = `${col} / span ${span}`;
+      if (pi === 0) header.style.borderRadius = '8px 0 0 0';
+      if (pi === journeyData.phases.length - 1) header.style.borderRadius = '0 8px 0 0';
+      header.innerHTML = `<span class="phase-icon">${pi + 1}</span> ${phase.label}`;
+      grid.appendChild(header);
+      col += span;
+    });
+    row++;
+
+    // Step headers
+    const stepCorner = document.createElement('div');
+    stepCorner.className = 'row-label';
+    stepCorner.textContent = 'Steps';
+    stepCorner.style.gridRow = `${row}`;
+    stepCorner.style.gridColumn = '1';
+    grid.appendChild(stepCorner);
+
+    col = 2;
+    journeyData.phases.forEach((phase, pi) => {
+      phase.steps.forEach((step, si) => {
+        const el = document.createElement('div');
+        el.className = 'step-header' + (si === 0 && pi > 0 ? ' phase-separator' : '');
+        el.style.gridRow = `${row}`;
+        el.style.gridColumn = `${col}`;
+        el.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;
+        el.textContent = step.label;
+        grid.appendChild(el);
+        col++;
+      });
+    });
+    row++;
+
+    // Emotion row
+    const emotionLabel = document.createElement('div');
+    emotionLabel.className = 'row-label';
+    emotionLabel.textContent = 'Emotion / CX';
+    emotionLabel.style.gridRow = `${row}`;
+    emotionLabel.style.gridColumn = '1';
+    emotionLabel.style.minHeight = '120px';
+    grid.appendChild(emotionLabel);
+
+    const emotionContainer = document.createElement('div');
+    emotionContainer.style.gridRow = `${row}`;
+    emotionContainer.style.gridColumn = `2 / span ${totalSteps}`;
+    emotionContainer.style.position = 'relative';
+    emotionContainer.style.minHeight = '120px';
+    emotionContainer.style.borderBottom = '1px solid #E9ECEF';
+    grid.appendChild(emotionContainer);
+    row++;
+
+    // Pain Points row
+    const painLabel = document.createElement('div');
+    painLabel.className = 'row-label';
+    painLabel.textContent = 'Pain Points';
+    painLabel.style.gridRow = `${row}`;
+    painLabel.style.gridColumn = '1';
+    grid.appendChild(painLabel);
+
+    col = 2;
+    journeyData.phases.forEach((phase, pi) => {
+      phase.steps.forEach((step, si) => {
+        const cell = document.createElement('div');
+        cell.className = 'cell' + (si === 0 && pi > 0 ? ' phase-separator' : '');
+        cell.style.gridRow = `${row}`;
+        cell.style.gridColumn = `${col}`;
+        cell.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;
+        if (step.painPoints && step.painPoints.length > 0) {
+          cell.innerHTML = step.painPoints.map(p => `<span class="pain-text">⚠️ ${p}</span>`).join('');
+        } else {
+          cell.innerHTML = '<span class="empty-cell">—</span>';
+        }
+        grid.appendChild(cell);
+        col++;
+      });
+    });
+    row++;
+
+    // Opportunities row
+    const oppLabel = document.createElement('div');
+    oppLabel.className = 'row-label';
+    oppLabel.textContent = 'Opportunities';
+    oppLabel.style.gridRow = `${row}`;
+    oppLabel.style.gridColumn = '1';
+    grid.appendChild(oppLabel);
+
+    col = 2;
+    journeyData.phases.forEach((phase, pi) => {
+      phase.steps.forEach((step, si) => {
+        const cell = document.createElement('div');
+        cell.className = 'cell' + (si === 0 && pi > 0 ? ' phase-separator' : '');
+        cell.style.gridRow = `${row}`;
+        cell.style.gridColumn = `${col}`;
+        cell.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;
+        if (step.opportunities && step.opportunities.length > 0) {
+          cell.innerHTML = step.opportunities.map(o => `<span class="opp-text">💡 ${o}</span>`).join('');
+        } else {
+          cell.innerHTML = '<span class="empty-cell">—</span>';
+        }
+        grid.appendChild(cell);
+        col++;
+      });
+    });
+
+    // D3 Emotion Curve
+    const emotionWidth = totalSteps * colWidth;
+    const emotionHeight = 110;
+    const tooltip = document.getElementById('tooltip');
+
+    const svg = d3.select(emotionContainer)
+      .append('svg')
+      .attr('width', emotionWidth)
+      .attr('height', emotionHeight);
+
+    svg.append('rect').attr('x', 0).attr('y', 0).attr('width', emotionWidth).attr('height', emotionHeight / 3).attr('fill', 'rgba(72, 187, 120, 0.05)');
+    svg.append('rect').attr('x', 0).attr('y', emotionHeight / 3).attr('width', emotionWidth).attr('height', emotionHeight / 3).attr('fill', 'rgba(91, 141, 239, 0.05)');
+    svg.append('rect').attr('x', 0).attr('y', 2 * emotionHeight / 3).attr('width', emotionWidth).attr('height', emotionHeight / 3).attr('fill', 'rgba(229, 62, 62, 0.05)');
+
+    const xScale = d3.scaleLinear().domain([0, allSteps.length - 1]).range([colWidth / 2, emotionWidth - colWidth / 2]);
+    const yScale = d3.scaleLinear().domain([0, 1]).range([emotionHeight - 15, 15]);
+
+    const line = d3.line().x((d, i) => xScale(i)).y(d => yScale(d.emotion.score)).curve(d3.curveMonotoneX);
+
+    svg.append('path').datum(allSteps).attr('d', line).attr('fill', 'none').attr('stroke', '#5B8DEF').attr('stroke-width', 2.5);
+
+    svg.selectAll('.dot').data(allSteps).join('circle')
+      .attr('cx', (d, i) => xScale(i)).attr('cy', d => yScale(d.emotion.score)).attr('r', 6)
+      .attr('fill', d => d.emotion.score > 0.6 ? '#48BB78' : d.emotion.score > 0.3 ? '#5B8DEF' : '#E53E3E')
+      .attr('stroke', '#fff').attr('stroke-width', 2).style('cursor', 'pointer')
+      .on('mouseover', function(event, d) {
+        d3.select(this).attr('r', 10);
+        tooltip.innerHTML = `<strong>${d.label}</strong><br>${d.emotion.label} (${d.emotion.score})<br><em>${d.emotion.annotation}</em>`;
+        tooltip.classList.add('visible');
+      })
+      .on('mousemove', function(event) {
+        tooltip.style.left = (event.clientX + 12) + 'px';
+        tooltip.style.top = (event.clientY - 10) + 'px';
+      })
+      .on('mouseout', function() {
+        d3.select(this).attr('r', 6);
+        tooltip.classList.remove('visible');
+      });
+
+    svg.selectAll('.emoji').data(allSteps).join('text')
+      .attr('x', (d, i) => xScale(i)).attr('y', d => yScale(d.emotion.score) - 14)
+      .attr('text-anchor', 'middle').attr('font-size', '14px')
+      .text(d => d.emotion.score > 0.6 ? '😊' : d.emotion.score > 0.3 ? '😐' : '😞');
+  </script>
+</body>
+</html>

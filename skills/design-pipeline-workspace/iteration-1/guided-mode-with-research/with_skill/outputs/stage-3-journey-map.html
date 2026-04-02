@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Access Request Portal — Journey Map</title>
+<style>
+  :root {
+    --sds-font-sans: 'Proxima Nova', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --sds-color-warm-gray-025: #FAF8F5;
+    --sds-color-warm-gray-050: #F4F1EB;
+    --sds-color-warm-gray-100: #EBE6DD;
+    --sds-color-warm-gray-150: #E0DCD3;
+    --sds-color-warm-gray-200: #D0CBC3;
+    --sds-color-warm-gray-300: #B0ABA2;
+    --sds-color-warm-gray-400: #948E85;
+    --sds-color-warm-gray-550: #6B6760;
+    --sds-color-warm-gray-650: #54514D;
+    --sds-color-warm-gray-700: #47443F;
+    --sds-color-warm-gray-900: #1C1A17;
+    --sds-color-blue-050: #EBF4F5;
+    --sds-color-blue-100: #D9EBED;
+    --sds-color-blue-450: #4F8AA0;
+    --sds-color-blue-700: #0C4A69;
+    --sds-color-blue-750: #013D5B;
+    --sds-color-red-050: #FFEEEB;
+    --sds-color-red-500: #BF5547;
+    --sds-color-green-025: #F4FAEB;
+    --sds-color-green-400: #7A9A01;
+    --sds-color-green-500: #62800B;
+    --sds-color-yellow-025: #FCF9D9;
+    --sds-color-yellow-200: #EBCE2D;
+    --sds-color-yellow-500: #8A7515;
+    --sds-color-purple-550: #805AA1;
+    --sds-color-white: #FFFFFF;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sds-font-sans);
+    background: var(--sds-color-warm-gray-025);
+    color: var(--sds-color-warm-gray-900);
+    line-height: 1.5;
+    font-size: 14px;
+    padding: 32px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page-header {
+    margin-bottom: 32px;
+  }
+  .page-header h1 {
+    font-size: 28px; font-weight: 600; letter-spacing: -0.01em;
+    margin-bottom: 4px;
+  }
+  .page-header p {
+    font-size: 14px; color: var(--sds-color-warm-gray-550);
+  }
+
+  /* Persona tabs */
+  .persona-tabs {
+    display: flex; gap: 8px; margin-bottom: 24px;
+  }
+  .persona-tab {
+    padding: 8px 16px; border-radius: 8px; border: 1px solid var(--sds-color-warm-gray-150);
+    background: var(--sds-color-white); cursor: pointer; font-size: 13px; font-weight: 500;
+    color: var(--sds-color-warm-gray-700); transition: all 0.15s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .persona-tab:hover { border-color: var(--sds-color-warm-gray-300); }
+  .persona-tab.active { background: var(--sds-color-blue-100); border-color: var(--sds-color-blue-450); color: var(--sds-color-blue-750); font-weight: 600; }
+  .persona-tab .dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+
+  /* Journey container */
+  .journey-container {
+    background: var(--sds-color-white);
+    border: 1px solid var(--sds-color-warm-gray-150);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .journey-grid {
+    display: grid;
+    grid-template-columns: 140px repeat(5, 1fr);
+    min-width: 900px;
+  }
+
+  /* Phase headers */
+  .phase-header {
+    padding: 12px 16px;
+    font-size: 12px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.4px; text-align: center;
+    border-bottom: 2px solid var(--sds-color-warm-gray-150);
+    background: var(--sds-color-warm-gray-025);
+    color: var(--sds-color-warm-gray-550);
+  }
+  .phase-header:first-child {
+    text-align: left; color: var(--sds-color-warm-gray-400);
+    border-right: 1px solid var(--sds-color-warm-gray-100);
+  }
+
+  /* Row labels */
+  .row-label {
+    padding: 16px 16px;
+    font-size: 12px; font-weight: 600;
+    color: var(--sds-color-warm-gray-550);
+    text-transform: uppercase; letter-spacing: 0.3px;
+    border-right: 1px solid var(--sds-color-warm-gray-100);
+    border-bottom: 1px solid var(--sds-color-warm-gray-100);
+    background: var(--sds-color-warm-gray-025);
+    display: flex; align-items: flex-start;
+  }
+
+  /* Cells */
+  .cell {
+    padding: 12px 14px;
+    font-size: 13px; color: var(--sds-color-warm-gray-700);
+    border-bottom: 1px solid var(--sds-color-warm-gray-100);
+    border-right: 1px solid var(--sds-color-warm-gray-050);
+    line-height: 1.5;
+  }
+  .cell:last-child { border-right: none; }
+  .cell ul { padding-left: 14px; margin: 0; }
+  .cell li { margin-bottom: 4px; font-size: 12px; }
+
+  /* Emotion row */
+  .emotion-cell {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 16px 14px;
+  }
+  .emotion-emoji { font-size: 24px; line-height: 1; }
+  .emotion-label { font-size: 11px; color: var(--sds-color-warm-gray-550); text-align: center; }
+
+  /* Emotion line */
+  .emotion-viz {
+    grid-column: 2 / -1;
+    padding: 20px 16px;
+    border-bottom: 1px solid var(--sds-color-warm-gray-100);
+    position: relative;
+  }
+
+  /* Pain point chips */
+  .pain-chip {
+    display: inline-block;
+    padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;
+    margin: 2px 0;
+  }
+  .pain-chip--high { background: var(--sds-color-red-050); color: var(--sds-color-red-500); }
+  .pain-chip--med { background: var(--sds-color-yellow-025); color: var(--sds-color-yellow-500); }
+  .pain-chip--low { background: var(--sds-color-blue-050); color: var(--sds-color-blue-700); }
+
+  /* Opportunity chips */
+  .opp-chip {
+    display: inline-block;
+    padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;
+    background: var(--sds-color-green-025); color: var(--sds-color-green-500);
+    margin: 2px 0;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex; gap: 24px; padding: 12px 16px;
+    background: var(--sds-color-warm-gray-025);
+    border-top: 1px solid var(--sds-color-warm-gray-100);
+    font-size: 11px; color: var(--sds-color-warm-gray-550);
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* Scroll wrapper */
+  .scroll-wrapper { overflow-x: auto; }
+
+  /* Journey panel visibility */
+  .journey-panel { display: none; }
+  .journey-panel.active { display: block; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Access Request Portal &mdash; Journey Map</h1>
+  <p>Current-state journey across all three personas &middot; Based on user interview findings</p>
+</div>
+
+<!-- Persona tabs -->
+<div class="persona-tabs">
+  <div class="persona-tab active" onclick="showPersona('engineer')">
+    <span class="dot" style="background: var(--sds-color-blue-750);"></span>
+    Data Engineer (Requestor)
+  </div>
+  <div class="persona-tab" onclick="showPersona('owner')">
+    <span class="dot" style="background: var(--sds-color-green-500);"></span>
+    Data Owner (Approver)
+  </div>
+  <div class="persona-tab" onclick="showPersona('admin')">
+    <span class="dot" style="background: var(--sds-color-purple-550);"></span>
+    Security Admin (Auditor)
+  </div>
+</div>
+
+<!-- DATA ENGINEER JOURNEY -->
+<div class="journey-panel active" id="journey-engineer">
+  <div class="journey-container">
+    <div class="scroll-wrapper">
+      <div class="journey-grid">
+        <!-- Phase headers -->
+        <div class="phase-header">Dimension</div>
+        <div class="phase-header">Identify Need</div>
+        <div class="phase-header">Submit Request</div>
+        <div class="phase-header">Wait &amp; Follow Up</div>
+        <div class="phase-header">Receive Decision</div>
+        <div class="phase-header">Access Data</div>
+
+        <!-- Steps -->
+        <div class="row-label">Steps</div>
+        <div class="cell">Discover dataset needed for pipeline work. Determine who owns it.</div>
+        <div class="cell">Compose email to data owner or fill out ad-hoc form. Describe business justification.</div>
+        <div class="cell">Wait 1&ndash;2 days. Ping approver on Slack. If no response, re-submit or escalate.</div>
+        <div class="cell">Receive approval via email (if it arrives). May need to chase provisioning separately.</div>
+        <div class="cell">Credentials or access granted. Begin pipeline development.</div>
+
+        <!-- Emotions -->
+        <div class="row-label">Emotions</div>
+        <div class="emotion-cell"><span class="emotion-emoji">&#128528;</span><span class="emotion-label">Neutral / Uncertain</span></div>
+        <div class="emotion-cell"><span class="emotion-emoji">&#128533;</span><span class="emotion-label">Frustrated</span></div>
+        <div class="emotion-cell"><span class="emotion-emoji">&#128545;</span><span class="emotion-label">Angry / Blocked</span></div>
+        <div class="emotion-cell"><span class="emotion-emoji">&#128524;</span><span class="emotion-label">Relieved</span></div>
+        <div class="emotion-cell"><span class="emotion-emoji">&#128578;</span><span class="emotion-label">Productive</span></div>
+
+        <!-- Pain Points -->
+        <div class="row-label">Pain Points</div>
+        <div class="cell"><span class="pain-chip pain-chip--med">No data catalog to browse</span></div>
+        <div class="cell"><span class="pain-chip pain-chip--med">No standard form or process</span></div>
+        <div class="cell">
+          <span class="pain-chip pain-chip--high">No status visibility</span><br>
+          <span class="pain-chip pain-chip--high">Duplicate requests created</span><br>
+          <span class="pain-chip pain-chip--high">Approvals get lost</span>
+        </div>
+        <div class="cell"><span class="pain-chip pain-chip--med">Provisioning is separate step</span></div>
+        <div class="cell"><span class="pain-chip pain-chip--low">Access may be too broad or narrow</span></div>
+
+        <!-- Needs -->
+        <div class="row-label">Needs</div>
+        <div class="cell"><span class="opp-chip">Discoverable data catalog</span></div>
+        <div class="cell"><span class="opp-chip">Structured request form</span></div>
+        <div class="cell">
+          <span class="opp-chip">Real-time status tracker</span><br>
+          <span class="opp-chip">Duplicate detection</span>
+        </div>
+        <div class="cell"><span class="opp-chip">Auto-provisioning</span></div>
+        <div class="cell"><span class="opp-chip">Right-sized access grants</span></div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background: var(--sds-color-red-500);"></div>High severity pain</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--sds-color-yellow-200);"></div>Medium severity pain</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--sds-color-blue-450);"></div>Low severity pain</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--sds-color-green-400);"></div>Design opportunity</div>
+    </div>
+  </div>
+</div>
+
+<!-- DATA OWNER JOURNEY -->
+<div class="journey-panel" id="journey-owner">
+  <div class="journey-container">
+    <div class="scroll-wrapper">
+      <div class="journey-grid">
+        <div class="phase-header">Dimension</div>
+        <div class="phase-header">Receive Request</div>
+        <div class="phase-header">Gather Context</div>
+        <div class="phase-header">Make Decision</div>
+        <div class="phase-header">Communicate</div>
+        <div class="phase-header">Track Access</div>
+
+        <div class="row-label">Steps</div>
+        <div class="cell">Email notification arrives (among many others). Identify if it is new or duplicate.</div>
+        <div class="cell">Look up requestor, dataset sensitivity, existing access. Check with security if needed.</div>
+        <div class="cell">Approve or deny based on available context. Often batch-approve under pressure.</div>
+        <div class="cell">Reply to email thread. May need to cc provisioning team separately.</div>
+        <div class="cell">Attempt to track who has access to what. No centralized view available.</div>
+
+        <div class="row-label">Emotions</div>
+        <div class="emotion-cell"><span class="emotion-emoji">&#128553;</span><span class="emotion-label">Overwhelmed</span></div>
+        <div class="emotion-cell"><span class="emotion-emoji">&#128533;</span><span class="emotion-label">Frustrated</span></div>
+        <div class="emotion-cell"><span class="emotion-emoji">&#128528;</span><span class="emotion-label">Uncertain</span></div>
+        <div class="emotion-cell"><span class="emotion-emoji">&#128528;</span><span class="emotion-label">Neutral</span></div>
+        <div class="emotion-cell"><span class="emotion-emoji">&#128553;</span><span class="emotion-label">Anxious</span></div>
+
+        <div class="row-label">Pain Points</div>
+        <div class="cell">
+          <span class="pain-chip pain-chip--high">Cannot distinguish duplicates</span><br>
+          <span class="pain-chip pain-chip--med">Requests lack context</span>
+        </div>
+        <div class="cell"><span class="pain-chip pain-chip--med">No single view of all requests</span></div>
+        <div class="cell"><span class="pain-chip pain-chip--high">Batch-approving under pressure</span></div>
+        <div class="cell"><span class="pain-chip pain-chip--med">Manual forwarding to provisioning</span></div>
+        <div class="cell"><span class="pain-chip pain-chip--high">No access inventory</span></div>
+
+        <div class="row-label">Needs</div>
+        <div class="cell"><span class="opp-chip">Deduplication engine</span></div>
+        <div class="cell"><span class="opp-chip">Approver dashboard</span></div>
+        <div class="cell"><span class="opp-chip">Risk-based review guidance</span></div>
+        <div class="cell"><span class="opp-chip">Auto-routing to provisioning</span></div>
+        <div class="cell"><span class="opp-chip">Access inventory view</span></div>
+      </div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background: var(--sds-color-red-500);"></div>High severity pain</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--sds-color-yellow-200);"></div>Medium severity pain</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--sds-color-green-400);"></div>Design opportunity</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECURITY ADMIN JOURNEY -->
+<div class="journey-panel" id="journey-admin">
+  <div class="journey-container">
+    <div class="scroll-wrapper">
+      <div class="journey-grid">
+        <div class="phase-header">Dimension</div>
+        <div class="phase-header">Define Policies</div>
+        <div class="phase-header">Monitor Compliance</div>
+        <div class="phase-header">Conduct Audit</div>
+        <div class="phase-header">Report Findings</div>
+        <div class="phase-header">Remediate</div>
+
+        <div class="row-label">Steps</div>
+        <div class="cell">Write access policies in documents or spreadsheets. Distribute to data owners.</div>
+        <div class="cell">Periodically check if access grants match policy. No automated monitoring.</div>
+        <div class="cell">Reconstruct approval chains from email and Slack. Cross-reference with actual access.</div>
+        <div class="cell">Compile findings for compliance team. Flag gaps and violations.</div>
+        <div class="cell">Work with data owners to revoke inappropriate access. Update policies.</div>
+
+        <div class="row-label">Emotions</div>
+        <div class="emotion-cell"><span class="emotion-emoji">&#128528;</span><span class="emotion-label">Neutral</span></div>
+        <div class="emotion-cell"><span class="emotion-emoji">&#128553;</span><span class="emotion-label">Anxious</span></div>
+        <div class="emotion-cell"><span class="emotion-emoji">&#128545;</span><span class="emotion-label">Frustrated</span></div>
+        <div class="emotion-cell"><span class="emotion-emoji">&#128553;</span><span class="emotion-label">Stressed</span></div>
+        <div class="emotion-cell"><span class="emotion-emoji">&#128528;</span><span class="emotion-label">Resigned</span></div>
+
+        <div class="row-label">Pain Points</div>
+        <div class="cell"><span class="pain-chip pain-chip--med">Policies in unstructured docs</span></div>
+        <div class="cell"><span class="pain-chip pain-chip--high">No automated monitoring</span></div>
+        <div class="cell">
+          <span class="pain-chip pain-chip--high">No audit trail</span><br>
+          <span class="pain-chip pain-chip--high">Manual email archaeology</span>
+        </div>
+        <div class="cell"><span class="pain-chip pain-chip--med">Incomplete records</span></div>
+        <div class="cell"><span class="pain-chip pain-chip--med">Slow revocation process</span></div>
+
+        <div class="row-label">Needs</div>
+        <div class="cell"><span class="opp-chip">Policy engine</span></div>
+        <div class="cell"><span class="opp-chip">Compliance dashboard</span></div>
+        <div class="cell"><span class="opp-chip">Immutable audit log</span></div>
+        <div class="cell"><span class="opp-chip">Automated reporting</span></div>
+        <div class="cell"><span class="opp-chip">One-click revocation</span></div>
+      </div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background: var(--sds-color-red-500);"></div>High severity pain</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--sds-color-yellow-200);"></div>Medium severity pain</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--sds-color-green-400);"></div>Design opportunity</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showPersona(persona) {
+  document.querySelectorAll('.journey-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.persona-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('journey-' + persona).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+</script>
+
+</body>
+</html>

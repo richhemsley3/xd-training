@@ -1,0 +1,75 @@
+{
+  "eval_id": 2,
+  "eval_name": "mermaid-conversion",
+  "variant": "without_skill",
+  "pass_rate": 0.85,
+  "passed": 11,
+  "total": 13,
+  "expectations": [
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": false,
+      "evidence": "Not found in flow-diagram.html"
+    },
+    {
+      "text": "Single standalone HTML file",
+      "passed": true,
+      "evidence": "Found: ...<!DOCTYPE html> <html lang=\"e..."
+    },
+    {
+      "text": "Nodes are clickable (click handlers)",
+      "passed": true,
+      "evidence": "Found: ...button id=\"btnPrev\" onclick=\"navigateNode(-1)\">..."
+    },
+    {
+      "text": "Multiple zoom levels (at least 2 distinct views)",
+      "passed": true,
+      "evidence": "Found in flow-diagram.html"
+    },
+    {
+      "text": "Breadcrumb or back navigation",
+      "passed": true,
+      "evidence": "Found: ...=\"navigateNode(-1)\">Previous</button>     <butto..."
+    },
+    {
+      "text": "Custom styled nodes (not default SVG)",
+      "passed": true,
+      "evidence": "Found: ...height: 12px;     border-radius: 3px;   }    .canvas-wra..."
+    },
+    {
+      "text": "Smooth transitions between states",
+      "passed": true,
+      "evidence": "Found: ...ursor: pointer;     transition: filter 0.2s ease;   }    .node:hover..."
+    },
+    {
+      "text": "Dark theme styling (#0F0F0F or similar dark background)",
+      "passed": true,
+      "evidence": "Found: ...to, sans-serif;     background: #0f1117;     color: #e1e4e8..."
+    },
+    {
+      "text": "Orthogonal connectors (right-angle paths)",
+      "passed": false,
+      "evidence": "Not found in flow-diagram.html"
+    },
+    {
+      "text": "Action pills on connectors",
+      "passed": true,
+      "evidence": "Found in flow-diagram.html"
+    },
+    {
+      "text": "All 10 Mermaid nodes preserved",
+      "passed": true,
+      "evidence": "Found: ...und:#2ea043\"></div> Start / End</div>     <di..."
+    },
+    {
+      "text": "Start/end nodes use pill or stadium shapes",
+      "passed": true,
+      "evidence": "Found: ...->   <!-- A: Start (stadium/rounded) -->   <g c..."
+    },
+    {
+      "text": "Decision nodes use diamond shapes",
+      "passed": true,
+      "evidence": "Found in flow-diagram.html"
+    }
+  ]
+}

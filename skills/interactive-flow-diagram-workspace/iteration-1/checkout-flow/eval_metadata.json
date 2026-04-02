@@ -1,0 +1,6 @@
+{
+  "eval_id": 1,
+  "eval_name": "checkout-flow",
+  "prompt": "Build me an interactive user flow for an e-commerce checkout: Browse → Cart → Shipping → Payment → Confirmation, with error handling for payment failure and address validation. Include decision diamonds for the validation steps and highlight the happy path.",
+  "assertions": []
+}

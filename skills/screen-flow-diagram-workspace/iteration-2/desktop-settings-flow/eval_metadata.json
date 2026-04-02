@@ -1,0 +1,56 @@
+{
+  "prompt": "Create a screen flow for a desktop web application's settings flow: Settings Overview (list of categories) \u2192 Profile Settings (form) \u2192 Notification Preferences (toggles) \u2192 Security Settings (form with password fields). Also show a modal dialog for 'Delete Account' that appears from Security Settings. Use desktop screen proportions.",
+  "expected_output": "A standalone HTML file using desktop-proportioned screen mockups (wider than tall) with settings-type wireframe content (toggle rows, form fields). The delete account modal should appear as a smaller overlaid screen. All connected by green action pills with appropriate labels.",
+  "assertions": [
+    {
+      "type": "file_exists",
+      "name": "HTML file exists",
+      "pattern": "*.html"
+    },
+    {
+      "type": "contains",
+      "name": "Uses D3.js from CDN",
+      "text": "d3@7"
+    },
+    {
+      "type": "contains",
+      "name": "Settings overview screen",
+      "text": "Settings Overview"
+    },
+    {
+      "type": "contains",
+      "name": "Profile settings screen",
+      "text": "Profile"
+    },
+    {
+      "type": "contains",
+      "name": "Notification prefs screen",
+      "text": "Notification"
+    },
+    {
+      "type": "contains",
+      "name": "Security settings screen",
+      "text": "Security"
+    },
+    {
+      "type": "contains",
+      "name": "Delete account modal",
+      "text": "Delete Account"
+    },
+    {
+      "type": "contains",
+      "name": "Desktop proportions used",
+      "text": "desktop"
+    },
+    {
+      "type": "contains",
+      "name": "SDS interactive-primary color",
+      "text": "#013D5B"
+    },
+    {
+      "type": "contains",
+      "name": "SVG rendering",
+      "text": "<svg"
+    }
+  ]
+}

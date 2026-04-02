@@ -1,0 +1,57 @@
+{
+  "eval_name": "saas-onboarding",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "HTML file exists",
+      "passed": true,
+      "evidence": "journey-map.html exists in outputs directory"
+    },
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": false,
+      "evidence": "File uses cdn.jsdelivr.net/npm/d3@7 instead of d3js.org"
+    },
+    {
+      "text": "Standalone (no external CSS)",
+      "passed": true,
+      "evidence": "<style> tag found at line 7 with all CSS inline"
+    },
+    {
+      "text": "Has 4 phases",
+      "passed": true,
+      "evidence": "Contains 'Awareness', 'Sign Up', 'Onboarding', and 'Adoption' in phase definitions"
+    },
+    {
+      "text": "Emotion curve present",
+      "passed": true,
+      "evidence": "d3.curveMonotoneX used in the emotion line generator at line 447"
+    },
+    {
+      "text": "Grid/table layout",
+      "passed": true,
+      "evidence": "CSS grid layout used via 'display: grid' on .journey-grid class"
+    },
+    {
+      "text": "Pain points section",
+      "passed": true,
+      "evidence": "'Pain Points' label and 'pain-point' CSS class found throughout"
+    },
+    {
+      "text": "Opportunities section",
+      "passed": true,
+      "evidence": "'Opportunities' label and 'opportunity' CSS class found throughout"
+    },
+    {
+      "text": "SVG element for chart",
+      "passed": true,
+      "evidence": "SVG appended via D3 at line 424: d3.select(emotionContainer).append('svg')"
+    },
+    {
+      "text": "Interactive behavior",
+      "passed": false,
+      "evidence": "Uses D3 .on('mouseover'/etc.) instead of addEventListener; 'addEventListener' string not found"
+    }
+  ],
+  "pass_rate": 0.8
+}

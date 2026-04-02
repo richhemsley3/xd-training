@@ -1,0 +1,57 @@
+{
+  "eval_name": "checkout-flow",
+  "configuration": "without_skill",
+  "expectations": [
+    {
+      "text": "HTML file exists",
+      "passed": true,
+      "evidence": "Found: checkout-flow.html exists in outputs directory"
+    },
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": false,
+      "evidence": "Missing: 'd3@7' not found in output"
+    },
+    {
+      "text": "Checkout phases present",
+      "passed": true,
+      "evidence": "Found: 'Cart' in output"
+    },
+    {
+      "text": "Decision diamonds",
+      "passed": true,
+      "evidence": "Found: 'diamond' in output"
+    },
+    {
+      "text": "Error handling",
+      "passed": true,
+      "evidence": "Found: 'error' in output"
+    },
+    {
+      "text": "Happy path styling",
+      "passed": true,
+      "evidence": "Found: 'happy' in output"
+    },
+    {
+      "text": "SDS warm canvas",
+      "passed": false,
+      "evidence": "Missing: '#FAF8F5' not found in output"
+    },
+    {
+      "text": "SDS error color",
+      "passed": false,
+      "evidence": "Missing: '#CF6253' not found in output"
+    },
+    {
+      "text": "Breadcrumb navigation",
+      "passed": false,
+      "evidence": "Missing: 'breadcrumb' not found in output"
+    },
+    {
+      "text": "SVG rendering",
+      "passed": true,
+      "evidence": "Found: '<svg' in output"
+    }
+  ],
+  "pass_rate": 0.6
+}

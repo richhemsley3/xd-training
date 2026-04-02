@@ -1,0 +1,54 @@
+{
+  "eval_name": "mermaid-conversion",
+  "variant": "without_skill",
+  "pass_rate": 0.78,
+  "passed": 7,
+  "total": 9,
+  "expectations": [
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": false,
+      "evidence": "Not found in flow-diagram.html"
+    },
+    {
+      "text": "Single standalone HTML file",
+      "passed": true,
+      "evidence": "Found in flow-diagram.html"
+    },
+    {
+      "text": "Nodes are clickable (click handlers)",
+      "passed": true,
+      "evidence": "Found in flow-diagram.html"
+    },
+    {
+      "text": "Multiple zoom levels (at least 2 distinct views)",
+      "passed": true,
+      "evidence": "Found in flow-diagram.html"
+    },
+    {
+      "text": "Breadcrumb or back navigation",
+      "passed": false,
+      "evidence": "Not found in flow-diagram.html"
+    },
+    {
+      "text": "Custom styled nodes (not default SVG)",
+      "passed": true,
+      "evidence": "Found in flow-diagram.html"
+    },
+    {
+      "text": "Smooth transitions between states",
+      "passed": true,
+      "evidence": "Found in flow-diagram.html"
+    },
+    {
+      "text": "All 10 Mermaid nodes preserved",
+      "passed": true,
+      "evidence": "Found in flow-diagram.html"
+    },
+    {
+      "text": "Start/end nodes use pill or stadium shapes",
+      "passed": true,
+      "evidence": "Found in flow-diagram.html"
+    }
+  ]
+}

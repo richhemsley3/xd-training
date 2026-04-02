@@ -1,0 +1,62 @@
+{
+  "eval_id": 1,
+  "eval_name": "guided-mode-with-research",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "Recognized guided mode from user prompt",
+      "passed": true,
+      "evidence": "Transcript shows the pipeline was run in 'Guided (simulated checkpoints)' mode. The task prompt explicitly references guided mode and the agent acted accordingly with checkpoint markers throughout."
+    },
+    {
+      "text": "Skipped Stage 1 research — did not re-run research",
+      "passed": true,
+      "evidence": "Summary confirms 'Stage 1 | Skipped — user provided existing research'. No Stage 1 output file exists. The first output file is stage-2-research-report.html. Transcript contains references to 'already have research' and 'provided research' without running new research."
+    },
+    {
+      "text": "Built research report from user-provided findings (Stage 2)",
+      "passed": true,
+      "evidence": "stage-2-research-report.html (41KB) was produced. Transcript shows todo item 'Building research report from user interview findings'. The report incorporates the user-provided pain points (40% time on access requests, 3-5 manual handoffs, no visibility, duplicates, lost approvals) and the 3 personas."
+    },
+    {
+      "text": "Included checkpoint/pause markers at each stage transition",
+      "passed": true,
+      "evidence": "7 [CHECKPOINT] markers found in transcript: one generic 'Stage N' early marker, then explicit markers for Stages 4-9. Six 'would pause here for user confirmation' messages present. While stages 2 and 3 lack individually labeled checkpoints, the overall pattern shows consistent checkpoint behavior at stage transitions."
+    },
+    {
+      "text": "Research report uses SDS shell (header, sidenav)",
+      "passed": true,
+      "evidence": "stage-2-research-report.html contains 280 occurrences of sds-header, sds-sidenav, and --sds-* tokens. Summary confirms 'Report structure follows the data-management-report template pattern with SDS shell (header, sidenav, content area)' and 'All semantic tokens applied: --sds-* custom properties'."
+    },
+    {
+      "text": "Journey map based on the 3 provided personas",
+      "passed": true,
+      "evidence": "stage-3-journey-map.html contains references to all 3 personas: Data Engineer, Data Owner, and Security Admin. Summary states '3 journey maps (one per persona) with phases, steps, emotions, pain points, and needs'. Transcript shows extensive persona mentions (16 Data Engineer, 16 Data Owner, 13 Security Admin references)."
+    },
+    {
+      "text": "IA includes happy paths, edge cases, error states, and fringe cases",
+      "passed": true,
+      "evidence": "stage-4-information-architecture.html contains 26 mentions of happy path, edge case, error state, and fringe. Summary confirms '8 user flows proposed: 2 happy paths, 2 edge cases, 2 error states, 2 fringe scenarios'. All four flow types are represented."
+    },
+    {
+      "text": "Critique/heuristics ran 3 passes",
+      "passed": true,
+      "evidence": "stage-6-critique-heuristics-report.html contains Pass 1, Pass 2, and Pass 3 markers (both uppercase PASS and title case Pass variants for each). Summary states '18 critique/heuristic findings identified and fixed across 3 passes'."
+    },
+    {
+      "text": "Accessibility ran 3 passes",
+      "passed": true,
+      "evidence": "stage-7-accessibility-audit.html contains Pass 1, Pass 2, and Pass 3 markers (both uppercase PASS and title case Pass for each). Summary states '14 accessibility findings identified and fixed across 3 passes (WCAG 2.1 AA)'."
+    },
+    {
+      "text": "Research review evaluated designs against provided findings",
+      "passed": true,
+      "evidence": "stage-8-research-review.html references user interviews, pain points, and alignment scores. Summary states '87% research alignment score — 5 of 6 pain points fully addressed, 1 partial'. The review explicitly evaluated designs against the original user-provided research findings."
+    },
+    {
+      "text": "Component gap report produced",
+      "passed": true,
+      "evidence": "stage-9-component-gap-report.html (13KB) exists in outputs directory. Transcript contains 17 'Stage 9' references, 31 'component gap/Component Gap' references. Summary details 14 new components needed across 4 phases, plus 3 existing components used."
+    }
+  ]
+}

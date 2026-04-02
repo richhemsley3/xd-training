@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Onboarding Flow — Interactive Flow</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    :root {
+      --sds-interactive-primary: #013D5B;
+      --sds-text-primary: #1C1A17;
+      --sds-text-secondary: #6B6560;
+      --sds-border-default: #E0DCD3;
+      --sds-bg-surface: #FFFFFF;
+      --sds-bg-page: #F7F5F0;
+      --sds-status-success-bg: #E8F5E9;
+      --sds-status-success-border: #4CAF50;
+      --sds-status-success-text: #2E7D32;
+      --sds-status-error-bg: #FFEBEE;
+      --sds-status-error-border: #E53935;
+      --sds-status-info-bg: #E3F2FD;
+      --sds-status-info-border: #1E88E5;
+      --sds-status-warning-bg: #FFF8E1;
+      --sds-status-warning-border: #FFA000;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--sds-bg-page);
+      color: var(--sds-text-primary);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    #breadcrumb {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: var(--sds-bg-surface);
+      border-bottom: 1px solid var(--sds-border-default);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      height: 48px;
+    }
+
+    #breadcrumb .crumb {
+      color: var(--sds-interactive-primary);
+      cursor: pointer;
+      font-weight: 500;
+      transition: opacity 0.15s;
+    }
+    #breadcrumb .crumb:hover { opacity: 0.7; }
+    #breadcrumb .sep { color: var(--sds-text-secondary); }
+    #breadcrumb .current { color: var(--sds-text-primary); font-weight: 600; cursor: default; }
+
+    #title-bar {
+      position: fixed;
+      top: 48px;
+      left: 0;
+      right: 0;
+      z-index: 99;
+      background: var(--sds-bg-surface);
+      border-bottom: 1px solid var(--sds-border-default);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 56px;
+    }
+    #title-bar h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--sds-text-primary);
+    }
+    #title-bar .subtitle {
+      font-size: 13px;
+      color: var(--sds-text-secondary);
+    }
+
+    #canvas-container {
+      position: fixed;
+      top: 104px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Detail Sidebar */
+    #detail-sidebar {
+      position: fixed;
+      top: 104px;
+      right: -420px;
+      width: 400px;
+      bottom: 0;
+      background: var(--sds-bg-surface);
+      border-left: 1px solid var(--sds-border-default);
+      box-shadow: -4px 0 24px rgba(0,0,0,0.08);
+      z-index: 200;
+      transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-y: auto;
+      padding: 24px;
+    }
+    #detail-sidebar.open { right: 0; }
+
+    #detail-sidebar .close-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--sds-border-default);
+      border-radius: 6px;
+      background: var(--sds-bg-surface);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    #detail-sidebar .close-btn:hover { background: var(--sds-bg-page); }
+
+    #detail-sidebar .detail-type {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+    #detail-sidebar .detail-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--sds-text-primary);
+      margin-bottom: 20px;
+    }
+    #detail-sidebar .detail-section {
+      margin-bottom: 20px;
+    }
+    #detail-sidebar .detail-section h3 {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--sds-text-secondary);
+      margin-bottom: 8px;
+    }
+    #detail-sidebar .detail-section p {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--sds-text-primary);
+    }
+    #detail-sidebar .detail-section ul {
+      list-style: none;
+      padding: 0;
+    }
+    #detail-sidebar .detail-section li {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--sds-text-primary);
+      padding: 6px 0 6px 16px;
+      position: relative;
+      border-bottom: 1px solid var(--sds-border-default);
+    }
+    #detail-sidebar .detail-section li:last-child { border-bottom: none; }
+    #detail-sidebar .detail-section li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--sds-text-secondary);
+    }
+
+    .exit-tag {
+      display: inline-block;
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: #EBF4F5;
+      color: var(--sds-interactive-primary);
+      font-weight: 500;
+      margin-right: 6px;
+    }
+
+    /* Overlay for sidebar */
+    #overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.15);
+      z-index: 150;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    #overlay.open { opacity: 1; pointer-events: all; }
+
+    /* Tooltip */
+    .tooltip {
+      position: fixed;
+      padding: 8px 12px;
+      background: var(--sds-text-primary);
+      color: white;
+      border-radius: 6px;
+      font-size: 12px;
+      pointer-events: none;
+      z-index: 300;
+      opacity: 0;
+      transition: opacity 0.15s;
+      max-width: 200px;
+    }
+    .tooltip.visible { opacity: 1; }
+
+    /* Phase badge in Level 2 */
+    .phase-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<div id="breadcrumb">
+  <span class="current" id="bc-overview">Overview</span>
+</div>
+
+<div id="title-bar">
+  <h1>User Onboarding Flow</h1>
+  <span class="subtitle">Click a phase to explore its steps</span>
+</div>
+
+<div id="canvas-container">
+  <svg id="flow-svg"></svg>
+</div>
+
+<div id="overlay" onclick="closeSidebar()"></div>
+
+<div id="detail-sidebar">
+  <button class="close-btn" onclick="closeSidebar()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <div id="detail-content"></div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const flowData = {
+  title: "User Onboarding Flow",
+  phases: [
+    {
+      id: "welcome",
+      label: "Welcome",
+      description: "Greet the user and introduce the product",
+      icon: "hand-wave",
+      color: "#EBF4F5",
+      borderColor: "#0C4A69",
+      nodes: [
+        {
+          id: "welcome-splash",
+          type: "start",
+          label: "Welcome Screen",
+          screenType: "splash",
+          userAction: "View welcome message and click 'Get Started'",
+          description: "A branded splash screen welcoming the user to the platform. Shows the product logo, a brief value proposition, and a prominent 'Get Started' call-to-action button.",
+          edgeCases: [
+            "Returning user: If user has already completed onboarding, redirect to Dashboard instead",
+            "Mobile viewport: Layout adjusts to single-column with stacked content"
+          ],
+          exits: [
+            { to: "feature-highlights", label: "Get Started" }
+          ]
+        },
+        {
+          id: "feature-highlights",
+          type: "screen",
+          label: "Feature Highlights",
+          screenType: "carousel",
+          userAction: "Swipe or click through feature cards, then proceed",
+          description: "A short carousel (3-4 slides) highlighting key product features and benefits. Each slide has an illustration, headline, and brief description. Users can skip or navigate through slides.",
+          edgeCases: [
+            "Skip option: User can skip directly to Profile Setup",
+            "Auto-advance: Slides auto-advance after 5 seconds if no interaction"
+          ],
+          exits: [
+            { to: "welcome/done", label: "Continue" },
+            { to: "welcome/done", label: "Skip" }
+          ]
+        },
+        {
+          id: "done",
+          type: "end",
+          label: "Proceed to Setup",
+          screenType: "transition",
+          userAction: "Automatically transitions to next phase",
+          description: "Brief animated transition indicating the user is moving to account setup.",
+          edgeCases: [],
+          exits: [
+            { to: "profile-setup/basic-info", label: "Auto-advance" }
+          ]
+        }
+      ],
+      edges: [
+        { from: "welcome-splash", to: "feature-highlights", label: "Get Started", isHappyPath: true },
+        { from: "feature-highlights", to: "done", label: "Continue", isHappyPath: true }
+      ]
+    },
+    {
+      id: "profile-setup",
+      label: "Profile Setup",
+      description: "Collect user profile and preferences",
+      icon: "user",
+      color: "#F4FAEB",
+      borderColor: "#4A7C0F",
+      nodes: [
+        {
+          id: "basic-info",
+          type: "screen",
+          label: "Basic Info Form",
+          screenType: "form",
+          userAction: "Enter name, role, and organization",
+          description: "A clean form collecting essential profile information: full name, job title, organization name, and team size. Fields have inline validation and helpful placeholder text.",
+          edgeCases: [
+            "SSO users: Name and email may be pre-populated from identity provider",
+            "Validation error: Inline error messages appear below invalid fields",
+            "Required fields: Name and organization are required; role is optional"
+          ],
+          exits: [
+            { to: "preferences", label: "Next" },
+            { to: "basic-info", label: "Fix validation errors" }
+          ]
+        },
+        {
+          id: "preferences",
+          type: "screen",
+          label: "Preferences",
+          screenType: "form",
+          userAction: "Select notification preferences and timezone",
+          description: "Configuration screen for user preferences including notification channels (email, in-app, Slack), timezone selection, and preferred language. Sensible defaults are pre-selected.",
+          edgeCases: [
+            "Timezone detection: Browser timezone is auto-detected and pre-selected",
+            "Slack integration: If Slack is not connected, show a note that it can be configured later"
+          ],
+          exits: [
+            { to: "avatar-upload", label: "Next" },
+            { to: "avatar-upload", label: "Skip" }
+          ]
+        },
+        {
+          id: "avatar-upload",
+          type: "screen",
+          label: "Avatar Upload",
+          screenType: "form",
+          userAction: "Upload a profile photo or select an avatar",
+          description: "Optional step to personalize the profile with a photo. Users can upload an image, choose from default avatars, or use their initials as a fallback.",
+          edgeCases: [
+            "File too large: Show error if image exceeds 5MB limit",
+            "Invalid format: Accept only JPG, PNG, and WebP",
+            "Gravatar: Offer option to use Gravatar if email matches"
+          ],
+          exits: [
+            { to: "profile-setup/done", label: "Save & Continue" },
+            { to: "profile-setup/done", label: "Skip for now" }
+          ]
+        },
+        {
+          id: "done",
+          type: "end",
+          label: "Profile Complete",
+          screenType: "transition",
+          userAction: "Profile saved, proceed to next phase",
+          description: "Brief success confirmation showing the completed profile summary before transitioning to account connection.",
+          edgeCases: [],
+          exits: [
+            { to: "connect-account/select-platform", label: "Auto-advance" }
+          ]
+        }
+      ],
+      edges: [
+        { from: "basic-info", to: "preferences", label: "Next", isHappyPath: true },
+        { from: "preferences", to: "avatar-upload", label: "Next", isHappyPath: true },
+        { from: "avatar-upload", to: "done", label: "Save", isHappyPath: true }
+      ]
+    },
+    {
+      id: "connect-account",
+      label: "Connect Account",
+      description: "Link external accounts and data sources",
+      icon: "link",
+      color: "#FCF9D9",
+      borderColor: "#8B7A00",
+      nodes: [
+        {
+          id: "select-platform",
+          type: "screen",
+          label: "Select Platform",
+          screenType: "list",
+          userAction: "Choose a data source platform to connect",
+          description: "A grid of available integration platforms (e.g., AWS, Azure, GCP, Snowflake, databases) with their logos and status. Each card shows the platform name, a brief description, and whether it is already connected.",
+          edgeCases: [
+            "No platforms available: Show message that integrations are being added",
+            "Enterprise-only: Some platforms may be locked behind an upgrade"
+          ],
+          exits: [
+            { to: "auth-flow", label: "Select platform" },
+            { to: "connect-account/done", label: "Skip for now" }
+          ]
+        },
+        {
+          id: "auth-flow",
+          type: "decision",
+          label: "Authentication",
+          screenType: "form",
+          userAction: "Enter credentials or authorize via OAuth",
+          description: "Authentication step varies by platform. OAuth platforms redirect to their auth page. Credential-based platforms show a form for API keys or connection strings.",
+          edgeCases: [
+            "OAuth failure: Show error and retry option",
+            "Invalid credentials: Inline validation with specific error message",
+            "MFA required: Prompt for additional verification step",
+            "Timeout: Connection attempt times out after 30 seconds"
+          ],
+          exits: [
+            { to: "connection-test", label: "Authorize / Submit" },
+            { to: "select-platform", label: "Cancel" }
+          ]
+        },
+        {
+          id: "connection-test",
+          type: "decision",
+          label: "Test Connection",
+          screenType: "detail",
+          userAction: "Wait for connection validation, review results",
+          description: "Automated connection test runs a series of checks: network connectivity, authentication validity, permission scope, and sample data retrieval. Shows a live progress indicator.",
+          edgeCases: [
+            "Test failure: Show specific error (auth, network, permissions) with remediation steps",
+            "Partial success: Some checks pass, others fail — show detailed breakdown",
+            "Slow connection: Show progress bar and allow cancel"
+          ],
+          exits: [
+            { to: "connect-account/done", label: "Success" },
+            { to: "auth-flow", label: "Retry" }
+          ]
+        },
+        {
+          id: "done",
+          type: "end",
+          label: "Account Connected",
+          screenType: "transition",
+          userAction: "Connection confirmed, proceed to tutorial",
+          description: "Success screen showing the connected account with a green checkmark. Provides option to connect additional accounts or proceed.",
+          edgeCases: [
+            "Multiple accounts: User can choose to add another connection before proceeding"
+          ],
+          exits: [
+            { to: "tutorial/intro", label: "Continue to Tutorial" },
+            { to: "select-platform", label: "Add Another" }
+          ]
+        }
+      ],
+      edges: [
+        { from: "select-platform", to: "auth-flow", label: "Select", isHappyPath: true },
+        { from: "auth-flow", to: "connection-test", label: "Submit", isHappyPath: true },
+        { from: "connection-test", to: "done", label: "Success", isHappyPath: true },
+        { from: "connection-test", to: "auth-flow", label: "Retry", isHappyPath: false },
+        { from: "auth-flow", to: "select-platform", label: "Cancel", isHappyPath: false }
+      ]
+    },
+    {
+      id: "tutorial",
+      label: "Tutorial",
+      description: "Guide users through key workflows",
+      icon: "book-open",
+      color: "#F7EEFF",
+      borderColor: "#6B21A8",
+      nodes: [
+        {
+          id: "intro",
+          type: "start",
+          label: "Tutorial Intro",
+          screenType: "splash",
+          userAction: "Choose tutorial mode: guided tour or self-paced",
+          description: "Introduction screen offering two tutorial modes: a guided interactive tour with tooltips highlighting key UI elements, or a self-paced video walkthrough. Users can also skip the tutorial entirely.",
+          edgeCases: [
+            "Skip option: User can skip directly to Dashboard",
+            "Resume later: Tutorial progress is saved if interrupted"
+          ],
+          exits: [
+            { to: "guided-tour", label: "Start Guided Tour" },
+            { to: "video-walkthrough", label: "Watch Video" },
+            { to: "tutorial/done", label: "Skip Tutorial" }
+          ]
+        },
+        {
+          id: "guided-tour",
+          type: "screen",
+          label: "Guided Tour",
+          screenType: "overlay",
+          userAction: "Follow tooltip prompts through the main interface",
+          description: "An interactive overlay tour that highlights key areas of the application: navigation sidebar, data overview panel, search functionality, and settings. Each step has a tooltip with description and a 'Next' button.",
+          edgeCases: [
+            "Tour interrupted: If user clicks outside the tour, offer to resume or exit",
+            "Small screen: Tour adapts tooltip positioning for viewport",
+            "Step failure: If a UI element is not visible, skip step gracefully"
+          ],
+          exits: [
+            { to: "practice-task", label: "Complete Tour" }
+          ]
+        },
+        {
+          id: "video-walkthrough",
+          type: "screen",
+          label: "Video Walkthrough",
+          screenType: "media",
+          userAction: "Watch a 2-minute product overview video",
+          description: "An embedded video player showing a concise product walkthrough. Includes chapters for quick navigation, playback speed controls, and closed captions.",
+          edgeCases: [
+            "Video load failure: Show fallback text guide with screenshots",
+            "Bandwidth issues: Offer to download video or switch to text guide"
+          ],
+          exits: [
+            { to: "practice-task", label: "Done Watching" }
+          ]
+        },
+        {
+          id: "practice-task",
+          type: "screen",
+          label: "Practice Task",
+          screenType: "interactive",
+          userAction: "Complete a simple guided task to reinforce learning",
+          description: "A sandbox practice environment where users complete a simple task: running a basic data scan on the connected account. Step-by-step instructions appear in a sidebar while the user interacts with the actual interface.",
+          edgeCases: [
+            "No connected account: Use sample/demo data for the practice task",
+            "Task stuck: Offer hints after 30 seconds of inactivity",
+            "Skip: User can skip the practice and proceed"
+          ],
+          exits: [
+            { to: "tutorial/done", label: "Complete" },
+            { to: "tutorial/done", label: "Skip" }
+          ]
+        },
+        {
+          id: "done",
+          type: "end",
+          label: "Tutorial Complete",
+          screenType: "transition",
+          userAction: "Tutorial finished, proceed to Dashboard",
+          description: "Congratulations screen with a summary of what was learned. Shows a checklist of completed onboarding steps and a CTA to go to the Dashboard.",
+          edgeCases: [],
+          exits: [
+            { to: "dashboard/main-dashboard", label: "Go to Dashboard" }
+          ]
+        }
+      ],
+      edges: [
+        { from: "intro", to: "guided-tour", label: "Guided Tour", isHappyPath: true },
+        { from: "intro", to: "video-walkthrough", label: "Video", isHappyPath: false },
+        { from: "guided-tour", to: "practice-task", label: "Complete", isHappyPath: true },
+        { from: "video-walkthrough", to: "practice-task", label: "Done", isHappyPath: false },
+        { from: "practice-task", to: "done", label: "Complete", isHappyPath: true },
+        { from: "intro", to: "done", label: "Skip", isHappyPath: false }
+      ]
+    },
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      description: "The user's main workspace after onboarding",
+      icon: "layout-dashboard",
+      color: "#E8F5E9",
+      borderColor: "#2E7D32",
+      nodes: [
+        {
+          id: "main-dashboard",
+          type: "screen",
+          label: "Main Dashboard",
+          screenType: "dashboard",
+          userAction: "View overview metrics and recent activity",
+          description: "The primary workspace showing key metrics: connected data sources, recent scans, security posture score, and recommended actions. Includes quick-start cards for common workflows and a getting-started checklist showing onboarding progress.",
+          edgeCases: [
+            "Empty state: If no scans have run yet, show a prominent CTA to run the first scan",
+            "Onboarding incomplete: Show a progress bar indicating remaining setup steps",
+            "Multiple accounts: Dashboard aggregates data across all connected sources"
+          ],
+          exits: [
+            { to: "onboarding-checklist", label: "View Checklist" },
+            { to: "quick-actions", label: "Take Action" }
+          ]
+        },
+        {
+          id: "onboarding-checklist",
+          type: "screen",
+          label: "Onboarding Checklist",
+          screenType: "list",
+          userAction: "Review and complete remaining setup tasks",
+          description: "A persistent checklist widget showing all onboarding steps with completion status. Incomplete items are clickable and link directly to the relevant setup screen. The checklist dismisses automatically when all items are complete.",
+          edgeCases: [
+            "All complete: Show celebration animation and dismiss option",
+            "Steps skipped: Skipped steps show as 'optional' with reduced priority"
+          ],
+          exits: [
+            { to: "main-dashboard", label: "Back to Dashboard" }
+          ]
+        },
+        {
+          id: "quick-actions",
+          type: "end",
+          label: "Ready to Work",
+          screenType: "dashboard",
+          userAction: "Begin using the product for real tasks",
+          description: "The user has completed onboarding and is now actively using the product. Quick action cards provide shortcuts to key workflows: run a scan, view reports, invite team members, or configure alerts.",
+          edgeCases: [
+            "First-time actions: Show contextual tips on first use of each feature",
+            "Help access: Persistent help button links back to tutorial resources"
+          ],
+          exits: []
+        }
+      ],
+      edges: [
+        { from: "main-dashboard", to: "onboarding-checklist", label: "View Checklist", isHappyPath: false },
+        { from: "main-dashboard", to: "quick-actions", label: "Take Action", isHappyPath: true },
+        { from: "onboarding-checklist", to: "main-dashboard", label: "Back", isHappyPath: false }
+      ]
+    }
+  ],
+  crossPhaseEdges: [
+    { from: "welcome/done", to: "profile-setup/basic-info", label: "Continue", style: "dashed" },
+    { from: "profile-setup/done", to: "connect-account/select-platform", label: "Continue", style: "dashed" },
+    { from: "connect-account/done", to: "tutorial/intro", label: "Continue", style: "dashed" },
+    { from: "tutorial/done", to: "dashboard/main-dashboard", label: "Go to Dashboard", style: "dashed" }
+  ]
+};
+
+// ==================== State ====================
+let currentLevel = 1;
+let currentPhase = null;
+let currentNode = null;
+
+const svg = d3.select('#flow-svg');
+const container = svg.append('g').attr('class', 'container');
+
+// ==================== Icons (inline SVG paths) ====================
+const icons = {
+  'hand-wave': 'M7 11.5V14m0-2.5v-3a1.5 1.5 0 1 1 3 0m-3 3a1.5 1.5 0 0 0-3 0v2a7.5 7.5 0 0 0 15 0v-5a1.5 1.5 0 0 0-3 0m-6-1v-1a1.5 1.5 0 0 1 3 0v1.5m0-.5v-2a1.5 1.5 0 0 1 3 0v2.5m0-1.5v-1a1.5 1.5 0 0 1 3 0v4.5',
+  'user': 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z',
+  'link': 'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71',
+  'book-open': 'M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z',
+  'layout-dashboard': 'M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z',
+  'arrow-right': 'M5 12h14M12 5l7 7-7 7',
+  'check': 'M20 6L9 17l-5-5',
+  'chevron-right': 'M9 18l6-6-6-6'
+};
+
+function getIconPath(name) {
+  return icons[name] || icons['arrow-right'];
+}
+
+// ==================== Arrow marker ====================
+const defs = svg.append('defs');
+
+function addMarker(id, color) {
+  defs.append('marker')
+    .attr('id', id)
+    .attr('viewBox', '0 0 10 10')
+    .attr('refX', 10)
+    .attr('refY', 5)
+    .attr('markerWidth', 8)
+    .attr('markerHeight', 8)
+    .attr('orient', 'auto-start-reverse')
+    .append('path')
+    .attr('d', 'M 0 0 L 10 5 L 0 10 z')
+    .attr('fill', color);
+}
+
+addMarker('arrow-primary', '#013D5B');
+addMarker('arrow-default', '#B0ADA6');
+addMarker('arrow-happy', '#013D5B');
+addMarker('arrow-secondary', '#B0ADA6');
+
+// ==================== Zoom ====================
+const zoom = d3.zoom()
+  .scaleExtent([0.3, 3])
+  .on('zoom', (event) => {
+    container.attr('transform', event.transform);
+  });
+
+svg.call(zoom);
+
+// ==================== Tooltip ====================
+const tooltip = d3.select('#tooltip');
+
+function showTooltip(event, text) {
+  tooltip.classed('visible', true)
+    .style('left', (event.clientX + 12) + 'px')
+    .style('top', (event.clientY - 8) + 'px')
+    .text(text);
+}
+
+function hideTooltip() {
+  tooltip.classed('visible', false);
+}
+
+// ==================== Breadcrumb ====================
+function updateBreadcrumb() {
+  const bc = d3.select('#breadcrumb');
+  bc.html('');
+
+  if (currentLevel === 1) {
+    bc.append('span').attr('class', 'current').text('Overview');
+    d3.select('#title-bar .subtitle').text('Click a phase to explore its steps');
+  } else if (currentLevel === 2 && currentPhase) {
+    bc.append('span').attr('class', 'crumb').text('Overview').on('click', () => goToLevel1());
+    bc.append('span').attr('class', 'sep').text(' / ');
+    bc.append('span').attr('class', 'current').text(currentPhase.label);
+    d3.select('#title-bar .subtitle').text('Click a step to see details');
+  }
+}
+
+// ==================== Level 1: Overview ====================
+function renderLevel1(animate = true) {
+  currentLevel = 1;
+  currentPhase = null;
+  currentNode = null;
+  updateBreadcrumb();
+  closeSidebar();
+
+  container.selectAll('*').remove();
+
+  const phases = flowData.phases;
+  const nodeWidth = 200;
+  const nodeHeight = 120;
+  const gap = 80;
+  const totalWidth = phases.length * nodeWidth + (phases.length - 1) * gap;
+  const startX = -totalWidth / 2 + nodeWidth / 2;
+  const centerY = 0;
+
+  // Reset zoom
+  svg.transition().duration(animate ? 400 : 0)
+    .call(zoom.transform, d3.zoomIdentity.translate(
+      svg.node().getBoundingClientRect().width / 2,
+      svg.node().getBoundingClientRect().height / 2
+    ).scale(1));
+
+  // Draw edges between phases
+  for (let i = 0; i < phases.length - 1; i++) {
+    const x1 = startX + i * (nodeWidth + gap) + nodeWidth / 2;
+    const x2 = startX + (i + 1) * (nodeWidth + gap) - nodeWidth / 2;
+
+    const edgeGroup = container.append('g').attr('class', 'phase-edge');
+
+    edgeGroup.append('line')
+      .attr('x1', x1).attr('y1', centerY)
+      .attr('x2', x2).attr('y2', centerY)
+      .attr('stroke', '#013D5B')
+      .attr('stroke-width', 2.5)
+      .attr('marker-end', 'url(#arrow-primary)')
+      .attr('opacity', animate ? 0 : 1)
+      .transition().duration(animate ? 500 : 0).delay(animate ? 200 : 0)
+      .attr('opacity', 1);
+  }
+
+  // Draw phase nodes
+  phases.forEach((phase, i) => {
+    const x = startX + i * (nodeWidth + gap);
+    const y = centerY - nodeHeight / 2;
+
+    const group = container.append('g')
+      .attr('class', 'phase-node')
+      .attr('cursor', 'pointer')
+      .attr('transform', `translate(${x}, ${y})`)
+      .on('click', () => goToLevel2(phase))
+      .on('mouseenter', function(event) {
+        d3.select(this).select('rect')
+          .transition().duration(150)
+          .attr('transform', 'scale(1.03)')
+          .attr('filter', 'drop-shadow(0 4px 12px rgba(0,0,0,0.12))');
+        showTooltip(event, `Explore ${phase.label}`);
+      })
+      .on('mousemove', function(event) {
+        showTooltip(event, `Explore ${phase.label}`);
+      })
+      .on('mouseleave', function() {
+        d3.select(this).select('rect')
+          .transition().duration(150)
+          .attr('transform', 'scale(1)')
+          .attr('filter', 'drop-shadow(0 2px 4px rgba(0,0,0,0.06))');
+        hideTooltip();
+      });
+
+    // Background rect
+    group.append('rect')
+      .attr('width', nodeWidth)
+      .attr('height', nodeHeight)
+      .attr('rx', 12)
+      .attr('fill', phase.color)
+      .attr('stroke', phase.borderColor)
+      .attr('stroke-width', 2)
+      .attr('filter', 'drop-shadow(0 2px 4px rgba(0,0,0,0.06))')
+      .attr('transform-origin', `${nodeWidth/2} ${nodeHeight/2}`)
+      .attr('opacity', animate ? 0 : 1)
+      .transition().duration(animate ? 400 : 0).delay(animate ? i * 80 : 0)
+      .attr('opacity', 1);
+
+    // Step number badge
+    group.append('circle')
+      .attr('cx', 24)
+      .attr('cy', 24)
+      .attr('r', 14)
+      .attr('fill', phase.borderColor)
+      .attr('opacity', animate ? 0 : 1)
+      .transition().duration(animate ? 400 : 0).delay(animate ? i * 80 : 0)
+      .attr('opacity', 1);
+
+    group.append('text')
+      .attr('x', 24)
+      .attr('y', 28)
+      .attr('text-anchor', 'middle')
+      .attr('fill', 'white')
+      .attr('font-size', 12)
+      .attr('font-weight', 700)
+      .text(i + 1)
+      .attr('opacity', animate ? 0 : 1)
+      .transition().duration(animate ? 400 : 0).delay(animate ? i * 80 : 0)
+      .attr('opacity', 1);
+
+    // Icon
+    group.append('path')
+      .attr('d', getIconPath(phase.icon))
+      .attr('transform', `translate(${nodeWidth - 36}, 12) scale(0.85)`)
+      .attr('fill', 'none')
+      .attr('stroke', phase.borderColor)
+      .attr('stroke-width', 1.5)
+      .attr('stroke-linecap', 'round')
+      .attr('stroke-linejoin', 'round')
+      .attr('opacity', animate ? 0 : 0.5)
+      .transition().duration(animate ? 400 : 0).delay(animate ? i * 80 : 0)
+      .attr('opacity', 0.5);
+
+    // Label
+    group.append('text')
+      .attr('x', nodeWidth / 2)
+      .attr('y', 62)
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#1C1A17')
+      .attr('font-size', 16)
+      .attr('font-weight', 700)
+      .text(phase.label)
+      .attr('opacity', animate ? 0 : 1)
+      .transition().duration(animate ? 400 : 0).delay(animate ? i * 80 : 0)
+      .attr('opacity', 1);
+
+    // Description
+    group.append('text')
+      .attr('x', nodeWidth / 2)
+      .attr('y', 82)
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#6B6560')
+      .attr('font-size', 11)
+      .text(phase.description.length > 35 ? phase.description.substring(0, 35) + '...' : phase.description)
+      .attr('opacity', animate ? 0 : 1)
+      .transition().duration(animate ? 400 : 0).delay(animate ? i * 80 : 0)
+      .attr('opacity', 1);
+
+    // Node count badge
+    group.append('text')
+      .attr('x', nodeWidth / 2)
+      .attr('y', 104)
+      .attr('text-anchor', 'middle')
+      .attr('fill', phase.borderColor)
+      .attr('font-size', 10)
+      .attr('font-weight', 600)
+      .text(`${phase.nodes.length} steps`)
+      .attr('opacity', animate ? 0 : 0.7)
+      .transition().duration(animate ? 400 : 0).delay(animate ? i * 80 : 0)
+      .attr('opacity', 0.7);
+  });
+}
+
+// ==================== Level 2: Phase Detail ====================
+function goToLevel2(phase) {
+  currentLevel = 2;
+  currentPhase = phase;
+  updateBreadcrumb();
+
+  container.selectAll('*')
+    .transition().duration(200)
+    .attr('opacity', 0)
+    .remove();
+
+  setTimeout(() => renderLevel2(phase), 250);
+}
+
+function renderLevel2(phase) {
+  container.selectAll('*').remove();
+
+  const nodes = phase.nodes;
+  const edges = phase.edges;
+
+  const nodeWidth = 180;
+  const nodeHeight = 70;
+  const hGap = 100;
+  const vGap = 100;
+
+  // Layout: arrange nodes in a horizontal flow
+  // For decision nodes with branches, we may have vertical offsets
+  const positions = {};
+  let col = 0;
+
+  // Simple layout: left to right
+  nodes.forEach((node, i) => {
+    positions[node.id] = {
+      x: col * (nodeWidth + hGap),
+      y: 0
+    };
+    col++;
+  });
+
+  // Adjust for branches: if a decision has a "retry" or "cancel" edge, offset target
+  edges.forEach(edge => {
+    if (!edge.isHappyPath && positions[edge.to] && positions[edge.from]) {
+      // If backward edge, don't reposition
+      const fromX = positions[edge.from].x;
+      const toX = positions[edge.to].x;
+      if (toX <= fromX) return; // backward edge
+
+      // Move non-happy-path targets down slightly if they share column
+      if (positions[edge.to].y === 0 && edge.label && !edge.isHappyPath) {
+        // Keep in place; edges will curve
+      }
+    }
+  });
+
+  // Center the layout
+  const totalW = (col - 1) * (nodeWidth + hGap) + nodeWidth;
+  const offsetX = -totalW / 2;
+  const offsetY = -nodeHeight / 2;
+
+  // Reset zoom to fit
+  const svgRect = svg.node().getBoundingClientRect();
+  const scale = Math.min(
+    svgRect.width / (totalW + 200),
+    svgRect.height / 400,
+    1.2
+  );
+
+  svg.transition().duration(400)
+    .call(zoom.transform, d3.zoomIdentity
+      .translate(svgRect.width / 2, svgRect.height / 2)
+      .scale(scale));
+
+  // Phase header
+  const header = container.append('g')
+    .attr('transform', `translate(${offsetX}, ${offsetY - 80})`);
+
+  header.append('rect')
+    .attr('width', totalW)
+    .attr('height', 40)
+    .attr('rx', 20)
+    .attr('fill', phase.color)
+    .attr('stroke', phase.borderColor)
+    .attr('stroke-width', 1)
+    .attr('opacity', 0)
+    .transition().duration(300)
+    .attr('opacity', 1);
+
+  header.append('text')
+    .attr('x', totalW / 2)
+    .attr('y', 25)
+    .attr('text-anchor', 'middle')
+    .attr('fill', phase.borderColor)
+    .attr('font-size', 14)
+    .attr('font-weight', 700)
+    .text(phase.label + ' Phase')
+    .attr('opacity', 0)
+    .transition().duration(300)
+    .attr('opacity', 1);
+
+  // Draw edges first (behind nodes)
+  edges.forEach((edge, i) => {
+    const from = positions[edge.from];
+    const to = positions[edge.to];
+    if (!from || !to) return;
+
+    const x1 = offsetX + from.x + nodeWidth;
+    const y1 = offsetY + from.y + nodeHeight / 2;
+    const x2 = offsetX + to.x;
+    const y2 = offsetY + to.y + nodeHeight / 2;
+
+    let path;
+    if (to.x <= from.x) {
+      // Backward edge — curve below
+      const midY = Math.max(y1, y2) + 80;
+      path = `M ${x1} ${y1} C ${x1 + 40} ${midY}, ${x2 - 40} ${midY}, ${x2} ${y2}`;
+    } else {
+      // Forward edge
+      const midX = (x1 + x2) / 2;
+      path = `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
+    }
+
+    const edgePath = container.append('path')
+      .attr('d', path)
+      .attr('fill', 'none')
+      .attr('stroke', edge.isHappyPath ? '#013D5B' : '#B0ADA6')
+      .attr('stroke-width', edge.isHappyPath ? 2.5 : 1.5)
+      .attr('stroke-dasharray', edge.isHappyPath ? 'none' : '6,4')
+      .attr('marker-end', edge.isHappyPath ? 'url(#arrow-happy)' : 'url(#arrow-secondary)')
+      .attr('opacity', 0)
+      .transition().duration(400).delay(i * 60)
+      .attr('opacity', 1);
+
+    // Edge label
+    if (edge.label) {
+      const labelX = (offsetX + from.x + nodeWidth + offsetX + to.x) / 2;
+      let labelY;
+      if (to.x <= from.x) {
+        labelY = Math.max(y1, y2) + 80 + 4;
+      } else {
+        labelY = (y1 + y2) / 2 - 10;
+      }
+
+      container.append('rect')
+        .attr('x', labelX - 24)
+        .attr('y', labelY - 10)
+        .attr('width', 48)
+        .attr('height', 18)
+        .attr('rx', 4)
+        .attr('fill', 'white')
+        .attr('stroke', edge.isHappyPath ? '#013D5B' : '#B0ADA6')
+        .attr('stroke-width', 0.5)
+        .attr('opacity', 0)
+        .transition().duration(400).delay(i * 60)
+        .attr('opacity', 1);
+
+      container.append('text')
+        .attr('x', labelX)
+        .attr('y', labelY + 3)
+        .attr('text-anchor', 'middle')
+        .attr('fill', edge.isHappyPath ? '#013D5B' : '#6B6560')
+        .attr('font-size', 9)
+        .attr('font-weight', 600)
+        .text(edge.label)
+        .attr('opacity', 0)
+        .transition().duration(400).delay(i * 60)
+        .attr('opacity', 1);
+    }
+  });
+
+  // Draw nodes
+  nodes.forEach((node, i) => {
+    const pos = positions[node.id];
+    const x = offsetX + pos.x;
+    const y = offsetY + pos.y;
+
+    const group = container.append('g')
+      .attr('class', 'flow-node')
+      .attr('cursor', 'pointer')
+      .attr('transform', `translate(${x}, ${y})`)
+      .on('click', () => showNodeDetail(node, phase))
+      .on('mouseenter', function(event) {
+        d3.select(this).select('.node-bg')
+          .transition().duration(150)
+          .attr('filter', 'drop-shadow(0 4px 12px rgba(0,0,0,0.15))');
+        showTooltip(event, node.userAction || 'Click for details');
+      })
+      .on('mousemove', function(event) {
+        showTooltip(event, node.userAction || 'Click for details');
+      })
+      .on('mouseleave', function() {
+        d3.select(this).select('.node-bg')
+          .transition().duration(150)
+          .attr('filter', 'drop-shadow(0 2px 4px rgba(0,0,0,0.06))');
+        hideTooltip();
+      });
+
+    // Node shape varies by type
+    if (node.type === 'decision') {
+      // Diamond
+      const s = nodeHeight * 0.5;
+      group.append('rect')
+        .attr('class', 'node-bg')
+        .attr('x', (nodeWidth - nodeHeight) / 2)
+        .attr('y', 0)
+        .attr('width', nodeHeight)
+        .attr('height', nodeHeight)
+        .attr('rx', 6)
+        .attr('transform', `rotate(45, ${nodeWidth/2}, ${nodeHeight/2})`)
+        .attr('fill', '#FFF8E1')
+        .attr('stroke', phase.borderColor)
+        .attr('stroke-width', 1.5)
+        .attr('filter', 'drop-shadow(0 2px 4px rgba(0,0,0,0.06))')
+        .attr('opacity', 0)
+        .transition().duration(300).delay(i * 80)
+        .attr('opacity', 1);
+
+      // Background rect behind text for readability
+      group.append('rect')
+        .attr('x', 10)
+        .attr('y', nodeHeight / 2 - 12)
+        .attr('width', nodeWidth - 20)
+        .attr('height', 24)
+        .attr('rx', 4)
+        .attr('fill', 'rgba(255,248,225,0.9)')
+        .attr('opacity', 0)
+        .transition().duration(300).delay(i * 80)
+        .attr('opacity', 1);
+
+    } else if (node.type === 'start' || node.type === 'end') {
+      // Stadium / pill shape
+      group.append('rect')
+        .attr('class', 'node-bg')
+        .attr('width', nodeWidth)
+        .attr('height', nodeHeight)
+        .attr('rx', nodeHeight / 2)
+        .attr('fill', node.type === 'end' ? '#E8F5E9' : '#EBF4F5')
+        .attr('stroke', node.type === 'end' ? '#4CAF50' : '#0C4A69')
+        .attr('stroke-width', 2)
+        .attr('filter', 'drop-shadow(0 2px 4px rgba(0,0,0,0.06))')
+        .attr('opacity', 0)
+        .transition().duration(300).delay(i * 80)
+        .attr('opacity', 1);
+
+    } else if (node.type === 'error') {
+      // Rectangle with red accent
+      group.append('rect')
+        .attr('class', 'node-bg')
+        .attr('width', nodeWidth)
+        .attr('height', nodeHeight)
+        .attr('rx', 8)
+        .attr('fill', 'white')
+        .attr('stroke', '#E53935')
+        .attr('stroke-width', 1.5)
+        .attr('filter', 'drop-shadow(0 2px 4px rgba(0,0,0,0.06))')
+        .attr('opacity', 0)
+        .transition().duration(300).delay(i * 80)
+        .attr('opacity', 1);
+
+      group.append('rect')
+        .attr('width', 4)
+        .attr('height', nodeHeight)
+        .attr('rx', 2)
+        .attr('fill', '#E53935')
+        .attr('opacity', 0)
+        .transition().duration(300).delay(i * 80)
+        .attr('opacity', 1);
+
+    } else if (node.type === 'external') {
+      // Dashed border
+      group.append('rect')
+        .attr('class', 'node-bg')
+        .attr('width', nodeWidth)
+        .attr('height', nodeHeight)
+        .attr('rx', 8)
+        .attr('fill', '#F5F5F5')
+        .attr('stroke', '#B0ADA6')
+        .attr('stroke-width', 1.5)
+        .attr('stroke-dasharray', '6,3')
+        .attr('filter', 'drop-shadow(0 2px 4px rgba(0,0,0,0.06))')
+        .attr('opacity', 0)
+        .transition().duration(300).delay(i * 80)
+        .attr('opacity', 1);
+
+    } else {
+      // Default screen node
+      group.append('rect')
+        .attr('class', 'node-bg')
+        .attr('width', nodeWidth)
+        .attr('height', nodeHeight)
+        .attr('rx', 8)
+        .attr('fill', 'white')
+        .attr('stroke', '#E0DCD3')
+        .attr('stroke-width', 1.5)
+        .attr('filter', 'drop-shadow(0 2px 4px rgba(0,0,0,0.06))')
+        .attr('opacity', 0)
+        .transition().duration(300).delay(i * 80)
+        .attr('opacity', 1);
+    }
+
+    // Type badge
+    const typeColors = {
+      screen: { bg: '#E3F2FD', text: '#1565C0' },
+      decision: { bg: '#FFF8E1', text: '#F57F17' },
+      start: { bg: '#E8F5E9', text: '#2E7D32' },
+      end: { bg: '#E8F5E9', text: '#2E7D32' },
+      error: { bg: '#FFEBEE', text: '#C62828' },
+      external: { bg: '#F5F5F5', text: '#616161' }
+    };
+
+    const tc = typeColors[node.type] || typeColors.screen;
+
+    group.append('rect')
+      .attr('x', 8)
+      .attr('y', 8)
+      .attr('width', node.type.length * 6.5 + 12)
+      .attr('height', 16)
+      .attr('rx', 3)
+      .attr('fill', tc.bg)
+      .attr('opacity', 0)
+      .transition().duration(300).delay(i * 80)
+      .attr('opacity', 1);
+
+    group.append('text')
+      .attr('x', 14)
+      .attr('y', 19)
+      .attr('fill', tc.text)
+      .attr('font-size', 9)
+      .attr('font-weight', 600)
+      .text(node.type.toUpperCase())
+      .attr('opacity', 0)
+      .transition().duration(300).delay(i * 80)
+      .attr('opacity', 1);
+
+    // Check icon for end nodes
+    if (node.type === 'end') {
+      group.append('path')
+        .attr('d', 'M20 6L9 17l-5-5')
+        .attr('transform', `translate(${nodeWidth - 32}, 8) scale(0.7)`)
+        .attr('fill', 'none')
+        .attr('stroke', '#4CAF50')
+        .attr('stroke-width', 2)
+        .attr('stroke-linecap', 'round')
+        .attr('stroke-linejoin', 'round')
+        .attr('opacity', 0)
+        .transition().duration(300).delay(i * 80)
+        .attr('opacity', 1);
+    }
+
+    // Label
+    group.append('text')
+      .attr('x', nodeWidth / 2)
+      .attr('y', 44)
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#1C1A17')
+      .attr('font-size', 13)
+      .attr('font-weight', 600)
+      .text(node.label)
+      .attr('opacity', 0)
+      .transition().duration(300).delay(i * 80)
+      .attr('opacity', 1);
+
+    // Screen type
+    if (node.screenType) {
+      group.append('text')
+        .attr('x', nodeWidth / 2)
+        .attr('y', 58)
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#6B6560')
+        .attr('font-size', 10)
+        .text(node.screenType)
+        .attr('opacity', 0)
+        .transition().duration(300).delay(i * 80)
+        .attr('opacity', 0.7);
+    }
+  });
+}
+
+// ==================== Level 3: Node Detail Sidebar ====================
+function showNodeDetail(node, phase) {
+  hideTooltip();
+  currentNode = node;
+
+  const content = d3.select('#detail-content');
+  content.html('');
+
+  // Type badge
+  const typeColors = {
+    screen: { bg: '#E3F2FD', text: '#1565C0', label: 'Screen' },
+    decision: { bg: '#FFF8E1', text: '#F57F17', label: 'Decision Point' },
+    start: { bg: '#E8F5E9', text: '#2E7D32', label: 'Start' },
+    end: { bg: '#E8F5E9', text: '#2E7D32', label: 'End / Success' },
+    error: { bg: '#FFEBEE', text: '#C62828', label: 'Error State' },
+    external: { bg: '#F5F5F5', text: '#616161', label: 'External System' }
+  };
+
+  const tc = typeColors[node.type] || typeColors.screen;
+
+  content.append('div')
+    .attr('class', 'detail-type')
+    .style('background', tc.bg)
+    .style('color', tc.text)
+    .text(tc.label);
+
+  content.append('div')
+    .attr('class', 'detail-title')
+    .text(node.label);
+
+  // Phase indicator
+  if (phase) {
+    const phaseDiv = content.append('div').attr('class', 'detail-section');
+    phaseDiv.append('h3').text('Phase');
+    const badge = phaseDiv.append('div')
+      .attr('class', 'phase-badge')
+      .style('background', phase.color)
+      .style('color', phase.borderColor)
+      .style('border', `1px solid ${phase.borderColor}`);
+    badge.text(phase.label);
+  }
+
+  // Screen type
+  if (node.screenType) {
+    const stDiv = content.append('div').attr('class', 'detail-section');
+    stDiv.append('h3').text('Screen Type');
+    stDiv.append('p').text(node.screenType.charAt(0).toUpperCase() + node.screenType.slice(1));
+  }
+
+  // User Action
+  if (node.userAction) {
+    const uaDiv = content.append('div').attr('class', 'detail-section');
+    uaDiv.append('h3').text('User Action');
+    uaDiv.append('p').text(node.userAction);
+  }
+
+  // Description
+  if (node.description) {
+    const descDiv = content.append('div').attr('class', 'detail-section');
+    descDiv.append('h3').text('Description');
+    descDiv.append('p').text(node.description);
+  }
+
+  // Edge Cases
+  if (node.edgeCases && node.edgeCases.length > 0) {
+    const ecDiv = content.append('div').attr('class', 'detail-section');
+    ecDiv.append('h3').text('Edge Cases');
+    const ul = ecDiv.append('ul');
+    node.edgeCases.forEach(ec => {
+      ul.append('li').text(ec);
+    });
+  }
+
+  // Exits
+  if (node.exits && node.exits.length > 0) {
+    const exDiv = content.append('div').attr('class', 'detail-section');
+    exDiv.append('h3').text('Exits');
+    const ul = exDiv.append('ul');
+    node.exits.forEach(ex => {
+      const li = ul.append('li');
+      li.append('span')
+        .attr('class', 'exit-tag')
+        .text(ex.label);
+      li.append('span')
+        .style('color', '#6B6560')
+        .style('font-size', '12px')
+        .text(' → ' + ex.to);
+    });
+  }
+
+  d3.select('#detail-sidebar').classed('open', true);
+  d3.select('#overlay').classed('open', true);
+}
+
+function closeSidebar() {
+  d3.select('#detail-sidebar').classed('open', false);
+  d3.select('#overlay').classed('open', false);
+  currentNode = null;
+}
+
+// ==================== Navigation ====================
+function goToLevel1() {
+  container.selectAll('*')
+    .transition().duration(200)
+    .attr('opacity', 0)
+    .remove();
+  closeSidebar();
+  setTimeout(() => renderLevel1(true), 250);
+}
+
+// ==================== Initialize ====================
+renderLevel1(true);
+
+// Handle window resize
+window.addEventListener('resize', () => {
+  if (currentLevel === 1) {
+    renderLevel1(false);
+  }
+});
+</script>
+</body>
+</html>

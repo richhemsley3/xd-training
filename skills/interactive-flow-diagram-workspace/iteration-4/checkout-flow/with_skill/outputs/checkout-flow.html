@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>E-Commerce Checkout Flow — Interactive Flow</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #FAF8F5;
+      color: #1C1A17;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+    }
+
+    /* Breadcrumb */
+    #breadcrumb {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 48px;
+      background: #FFFFFF;
+      border-bottom: 1px solid #E0DCD3;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 100;
+      font-size: 13px;
+      color: #54514D;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    #breadcrumb span { cursor: default; }
+    #breadcrumb .bc-link { cursor: pointer; color: #013D5B; font-weight: 500; }
+    #breadcrumb .bc-link:hover { text-decoration: underline; }
+    #breadcrumb .bc-sep { margin: 0 8px; color: #B0ABA2; }
+    #breadcrumb .bc-current { color: #1C1A17; font-weight: 600; }
+
+    /* Title */
+    #diagram-title {
+      position: fixed;
+      top: 48px;
+      left: 0;
+      right: 0;
+      height: 44px;
+      background: #FAF8F5;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 99;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1C1A17;
+      border-bottom: 1px solid #EBE6DD;
+    }
+
+    /* SVG canvas */
+    #flow-svg {
+      position: fixed;
+      top: 92px;
+      left: 0;
+    }
+
+    /* Detail sidebar */
+    #detail-panel {
+      position: fixed;
+      top: 0;
+      right: -420px;
+      width: 420px;
+      height: 100vh;
+      background: #FFFFFF;
+      border-left: 1px solid #E0DCD3;
+      box-shadow: -4px 0 12px rgba(0,0,0,0.08);
+      z-index: 200;
+      transition: right 0.3s ease-out;
+      overflow-y: auto;
+      padding: 24px;
+    }
+    #detail-panel.open { right: 0; }
+    #detail-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.15);
+      z-index: 199;
+      display: none;
+    }
+    #detail-overlay.open { display: block; }
+    .detail-close {
+      position: absolute; top: 16px; right: 16px;
+      width: 32px; height: 32px;
+      border: 1px solid #E0DCD3; border-radius: 8px;
+      background: #FAF8F5; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: #54514D; font-size: 18px;
+    }
+    .detail-close:hover { background: #F4F1EB; border-color: #D0CBC3; }
+    .detail-type { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #54514D; margin-bottom: 4px; font-weight: 600; }
+    .detail-title { font-size: 20px; font-weight: 700; color: #1C1A17; margin-bottom: 16px; }
+    .detail-section { margin-bottom: 16px; }
+    .detail-section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #B0ABA2; font-weight: 600; margin-bottom: 6px; }
+    .detail-section p { font-size: 13px; color: #54514D; line-height: 1.5; }
+    .detail-section ul { list-style: none; padding: 0; }
+    .detail-section ul li { font-size: 12px; color: #6B6760; padding: 4px 0; padding-left: 14px; position: relative; line-height: 1.4; }
+    .detail-section ul li::before { content: '\2022'; position: absolute; left: 0; color: #D0CBC3; }
+    .detail-exit { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #FAF8F5; border: 1px solid #EBE6DD; border-radius: 8px; margin-bottom: 6px; font-size: 12px; color: #1C1A17; }
+    .detail-exit .exit-label { font-weight: 500; }
+    .detail-exit .exit-target { color: #013D5B; font-weight: 600; }
+    .detail-exit-arrow { color: #B0ABA2; }
+
+    /* Minimap */
+    #minimap {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 180px;
+      height: 120px;
+      background: rgba(255,255,255,0.95);
+      border: 1px solid #E0DCD3;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      z-index: 150;
+      display: none;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <div id="breadcrumb">
+    <span class="bc-current" id="bc-level1">E-Commerce Checkout</span>
+  </div>
+  <div id="diagram-title">E-Commerce Checkout Flow</div>
+  <svg id="flow-svg"></svg>
+  <div id="detail-overlay" onclick="closeDetail()"></div>
+  <div id="detail-panel">
+    <div class="detail-close" onclick="closeDetail()">&#x2715;</div>
+    <div id="detail-content"></div>
+  </div>
+  <div id="minimap"><svg id="minimap-svg" width="180" height="120"></svg></div>
+
+  <script>
+    // ─── Flow Data ───
+    const flowData = {
+      title: "E-Commerce Checkout Flow",
+      phases: [
+        {
+          id: "browse",
+          label: "Browse",
+          description: "Discover and explore products",
+          icon: "search",
+          color: "rgba(1, 61, 91, 0.04)",
+          borderColor: "#0C4A69",
+          nodes: [
+            { id: "homepage", type: "start", label: "Start", screenType: "dashboard", userAction: "User lands on homepage", description: "Entry point to the shopping experience. User arrives via direct link, search engine, or marketing campaign.", edgeCases: ["First-time visitor: show welcome banner", "Returning user: show recently viewed items"], exits: [{ to: "product-listing", label: "Browse categories" }] },
+            { id: "product-listing", type: "screen", label: "Product Listing", subtitle: "Browse available products", screenType: "list", priority: "green", userAction: "Browse, filter, and sort products", description: "Displays products in a grid or list view with filtering options (category, price range, rating) and sorting controls.", edgeCases: ["Empty state: No products match filters", "Slow load: Show skeleton cards"], exits: [{ to: "product-detail", label: "Click product" }], sections: ["Product Grid", "Filter Sidebar", "Sort Controls"] },
+            { id: "product-detail", type: "screen", label: "Product Detail", subtitle: "View product information", screenType: "detail", priority: "green", userAction: "Review product details and select options", description: "Full product page with images, description, pricing, variant selection (size, color), and add-to-cart button.", edgeCases: ["Out of stock: Disable Add to Cart, show Notify Me", "Limited stock: Show urgency indicator"], exits: [{ to: "cart", label: "Add to Cart" }, { to: "product-listing", label: "Back to listing" }], sections: ["Image Gallery", "Product Info", "Variant Selector", "Reviews"] }
+          ],
+          edges: [
+            { from: "homepage", to: "product-listing", label: "Browse", isHappyPath: true, actionPill: "Browse Products" },
+            { from: "product-listing", to: "product-detail", label: "Select", isHappyPath: true, actionPill: "View Details" }
+          ]
+        },
+        {
+          id: "cart",
+          label: "Cart",
+          description: "Review and manage selected items",
+          icon: "shopping-cart",
+          color: "rgba(1, 61, 91, 0.04)",
+          borderColor: "#0C4A69",
+          nodes: [
+            { id: "cart-page", type: "screen", label: "Shopping Cart", subtitle: "Review selected items", screenType: "list", priority: "green", userAction: "Review items, update quantities, apply coupons", description: "Shows all items added to cart with quantities, individual prices, subtotal, and estimated shipping. Users can modify quantities, remove items, or apply promo codes.", edgeCases: ["Empty cart: Show CTA to continue shopping", "Expired item: Show warning that item is no longer available", "Price change: Notify user of price updates since adding"], exits: [{ to: "shipping", label: "Proceed to Checkout" }, { to: "product-listing", label: "Continue Shopping" }], sections: ["Cart Items List", "Quantity Controls", "Promo Code Input", "Order Summary"] },
+            { id: "cart-empty", type: "error", label: "Empty Cart", subtitle: "No items in cart", screenType: "empty", userAction: "User navigated to cart without adding items", description: "Empty state showing a friendly message encouraging the user to browse products.", edgeCases: [], exits: [{ to: "product-listing", label: "Start Shopping" }] }
+          ],
+          edges: [
+            { from: "cart-page", to: "shipping", label: "Checkout", isHappyPath: true, actionPill: "Checkout" },
+            { from: "cart-page", to: "cart-empty", label: "Remove all", isHappyPath: false }
+          ]
+        },
+        {
+          id: "shipping",
+          label: "Shipping",
+          description: "Enter and validate shipping details",
+          icon: "truck",
+          color: "rgba(1, 61, 91, 0.04)",
+          borderColor: "#0C4A69",
+          nodes: [
+            { id: "shipping-form", type: "screen", label: "Shipping Form", subtitle: "Enter delivery address", screenType: "form", priority: "green", userAction: "Enter or select shipping address and method", description: "Form for entering shipping address with fields for name, street, city, state, zip, country. Includes shipping method selection (standard, express, overnight).", edgeCases: ["Saved addresses: Show address picker for returning users", "International shipping: Show additional customs fields"], exits: [{ to: "address-validation", label: "Continue" }], sections: ["Address Fields", "Saved Addresses", "Shipping Method"] },
+            { id: "address-validation", type: "decision", label: "Address\nValid?", userAction: "System validates the entered address", description: "System checks the address against postal service API for completeness and deliverability.", edgeCases: [], exits: [{ to: "payment", label: "Yes" }, { to: "address-error", label: "No" }] },
+            { id: "address-error", type: "error", label: "Address Error", subtitle: "Invalid address entered", screenType: "form", userAction: "User corrects address fields", description: "Shows inline validation errors on the shipping form highlighting which fields need correction. May suggest corrected address from postal API.", edgeCases: ["Unrecognized address: Offer suggested correction", "PO Box restrictions: Show alternative address prompt"], exits: [{ to: "address-validation", label: "Re-validate" }] }
+          ],
+          edges: [
+            { from: "shipping-form", to: "address-validation", label: "Submit", isHappyPath: true, actionPill: "Validate Address" },
+            { from: "address-validation", to: "payment", label: "Valid", isHappyPath: true },
+            { from: "address-validation", to: "address-error", label: "Invalid", isHappyPath: false, isError: true },
+            { from: "address-error", to: "address-validation", label: "Retry", isHappyPath: false, isError: true }
+          ]
+        },
+        {
+          id: "payment",
+          label: "Payment",
+          description: "Process payment securely",
+          icon: "credit-card",
+          color: "rgba(1, 61, 91, 0.04)",
+          borderColor: "#0C4A69",
+          nodes: [
+            { id: "payment-form", type: "screen", label: "Payment Form", subtitle: "Enter payment details", screenType: "form", priority: "green", userAction: "Enter payment method and billing information", description: "Secure payment form with credit card fields (number, expiry, CVV), billing address option (same as shipping or different), and saved payment methods for returning users.", edgeCases: ["Saved cards: Show card picker", "PayPal/Apple Pay: Show alternative payment buttons"], exits: [{ to: "payment-validation", label: "Place Order" }], sections: ["Card Details", "Billing Address", "Saved Methods", "Order Review"] },
+            { id: "payment-validation", type: "decision", label: "Payment\nApproved?", userAction: "System processes payment with payment gateway", description: "Payment processor validates card details, checks funds, and attempts to authorize the transaction amount.", edgeCases: [], exits: [{ to: "confirmation", label: "Yes" }, { to: "payment-error", label: "No" }] },
+            { id: "payment-error", type: "error", label: "Payment Failed", subtitle: "Transaction declined", screenType: "form", userAction: "User reviews error and tries again", description: "Shows payment failure reason (insufficient funds, expired card, network error) and prompts user to try a different payment method or correct card details.", edgeCases: ["Card declined: Suggest trying another card", "Network timeout: Offer retry button", "Fraud detection: Show verification step"], exits: [{ to: "payment-validation", label: "Retry Payment" }] }
+          ],
+          edges: [
+            { from: "payment-form", to: "payment-validation", label: "Submit", isHappyPath: true, actionPill: "Place Order" },
+            { from: "payment-validation", to: "confirmation", label: "Approved", isHappyPath: true },
+            { from: "payment-validation", to: "payment-error", label: "Declined", isHappyPath: false, isError: true },
+            { from: "payment-error", to: "payment-validation", label: "Retry", isHappyPath: false, isError: true }
+          ]
+        },
+        {
+          id: "confirmation",
+          label: "Confirmation",
+          description: "Order confirmed and tracking",
+          icon: "check-circle",
+          color: "rgba(122, 154, 1, 0.04)",
+          borderColor: "#7A9A01",
+          nodes: [
+            { id: "order-confirmation", type: "screen", label: "Order Confirmation", subtitle: "Order placed successfully", screenType: "detail", priority: "green", userAction: "Review order confirmation and tracking details", description: "Shows order number, summary of items purchased, shipping address, estimated delivery date, and tracking information. Sends confirmation email.", edgeCases: ["Email delivery failure: Show order number prominently on page", "Split shipment: Show multiple tracking numbers"], exits: [{ to: "order-complete", label: "Done" }], sections: ["Order Number", "Items Summary", "Shipping Details", "Estimated Delivery"] },
+            { id: "order-complete", type: "end", label: "Order Complete", userAction: "User journey complete", description: "Terminal state. User can return to homepage or view order history.", edgeCases: [], exits: [] }
+          ],
+          edges: [
+            { from: "order-confirmation", to: "order-complete", label: "Complete", isHappyPath: true }
+          ]
+        }
+      ],
+      crossPhaseEdges: [
+        { from: "browse/product-detail", to: "cart/cart-page", label: "Add to Cart", style: "solid" },
+        { from: "cart/cart-page", to: "shipping/shipping-form", label: "Proceed to Checkout", style: "solid" },
+        { from: "shipping/address-validation", to: "payment/payment-form", label: "Address Confirmed", style: "solid" },
+        { from: "payment/payment-validation", to: "confirmation/order-confirmation", label: "Payment Approved", style: "solid" }
+      ]
+    };
+
+    // ─── State ───
+    let currentLevel = 1;
+    let currentPhase = null;
+    let width = window.innerWidth;
+    let height = window.innerHeight - 92;
+
+    // ─── SVG Setup ───
+    const svg = d3.select('#flow-svg')
+      .attr('width', width)
+      .attr('height', height);
+
+    const defs = svg.append('defs');
+
+    // Arrowhead markers
+    function addMarker(id, color) {
+      defs.append('marker')
+        .attr('id', id)
+        .attr('viewBox', '0 0 8 6')
+        .attr('refX', 8)
+        .attr('refY', 3)
+        .attr('markerWidth', 8)
+        .attr('markerHeight', 6)
+        .attr('orient', 'auto')
+        .append('path')
+        .attr('d', 'M0,0 L8,3 L0,6 Z')
+        .attr('fill', color);
+    }
+    addMarker('arrow-default', '#013D5B');
+    addMarker('arrow-happy', '#7A9A01');
+    addMarker('arrow-error', '#CF6253');
+
+    const container = svg.append('g').attr('class', 'container');
+
+    const zoomBehavior = d3.zoom()
+      .scaleExtent([0.1, 4])
+      .on('zoom', (event) => {
+        container.attr('transform', event.transform);
+      });
+    svg.call(zoomBehavior);
+
+    // ─── Icons (inline SVG paths) ───
+    const icons = {
+      search: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
+      'shopping-cart': 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z',
+      truck: 'M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10m10 0H3m10 0h2m0 0a2 2 0 104 0m-4 0h4m0 0a1 1 0 001-1v-4l-3-5h-4',
+      'credit-card': 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z',
+      'check-circle': 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+      zap: 'M13 2L3 14h9l-1 10 10-12h-9l1-10z',
+      check: 'M5 13l4 4L19 7'
+    };
+
+    function drawIcon(g, name, x, y, size, color) {
+      const s = size / 24;
+      g.append('path')
+        .attr('d', icons[name] || icons.search)
+        .attr('transform', `translate(${x},${y}) scale(${s})`)
+        .attr('fill', 'none')
+        .attr('stroke', color)
+        .attr('stroke-width', 2)
+        .attr('stroke-linecap', 'round')
+        .attr('stroke-linejoin', 'round');
+    }
+
+    // ─── Fit to Content ───
+    function fitToContent(duration) {
+      const dur = duration || 500;
+      const bounds = container.node().getBBox();
+      if (bounds.width === 0) return;
+      const padding = 80;
+      const fw = bounds.width + padding * 2;
+      const fh = bounds.height + padding * 2;
+      const scale = Math.min(width / fw, height / fh, 1.2);
+      const tx = (width - bounds.width * scale) / 2 - bounds.x * scale;
+      const ty = (height - bounds.height * scale) / 2 - bounds.y * scale;
+      svg.transition().duration(dur)
+        .call(zoomBehavior.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+    }
+
+    // ─── Breadcrumb ───
+    function updateBreadcrumb() {
+      const bc = d3.select('#breadcrumb');
+      bc.html('');
+      if (currentLevel === 1) {
+        bc.append('span').attr('class', 'bc-current').text('E-Commerce Checkout');
+      } else if (currentLevel === 2 && currentPhase) {
+        bc.append('span').attr('class', 'bc-link').text('E-Commerce Checkout').on('click', () => goToLevel1());
+        bc.append('span').attr('class', 'bc-sep').text('>');
+        bc.append('span').attr('class', 'bc-current').text(currentPhase.label);
+      }
+    }
+
+    // ─── Level 1: Overview ───
+    function renderLevel1() {
+      currentLevel = 1;
+      currentPhase = null;
+      container.selectAll('*').remove();
+      updateBreadcrumb();
+      d3.select('#minimap').style('display', 'none');
+      d3.select('#diagram-title').text('E-Commerce Checkout Flow');
+
+      const phaseSpacing = 280;
+      const startX = 120;
+      const centerY = height / 2;
+
+      flowData.phases.forEach((p, i) => {
+        p.x = startX + i * phaseSpacing;
+        p.y = centerY;
+      });
+
+      // Draw edges between phases
+      for (let i = 0; i < flowData.phases.length - 1; i++) {
+        const p1 = flowData.phases[i];
+        const p2 = flowData.phases[i + 1];
+        const x1 = p1.x + 100;
+        const x2 = p2.x - 100;
+        const y = p1.y;
+
+        // Connector line
+        container.append('line')
+          .attr('x1', x1).attr('y1', y)
+          .attr('x2', x2).attr('y2', y)
+          .attr('stroke', '#7A9A01')
+          .attr('stroke-width', 2.5)
+          .attr('marker-end', 'url(#arrow-happy)');
+
+        // Connection ports
+        [{ cx: x1, cy: y }, { cx: x2, cy: y }].forEach(pt => {
+          container.append('circle')
+            .attr('cx', pt.cx).attr('cy', pt.cy)
+            .attr('r', 5).attr('fill', '#013D5B').attr('stroke', '#FFFFFF').attr('stroke-width', 2);
+          container.append('circle')
+            .attr('cx', pt.cx).attr('cy', pt.cy)
+            .attr('r', 2).attr('fill', '#FFFFFF');
+        });
+      }
+
+      // Draw phase nodes
+      flowData.phases.forEach((phase, i) => {
+        const g = container.append('g')
+          .attr('class', 'phase-node')
+          .attr('transform', `translate(${phase.x}, ${phase.y})`)
+          .style('cursor', 'pointer')
+          .on('click', () => {
+            g.transition().duration(150).style('opacity', 0.7)
+              .transition().duration(150).style('opacity', 1)
+              .on('end', () => goToLevel2(phase));
+          })
+          .on('mouseenter', function() {
+            d3.select(this).select('rect')
+              .attr('stroke', '#D0CBC3')
+              .attr('fill', '#FAF8F5');
+            d3.select(this).attr('transform', `translate(${phase.x}, ${phase.y}) scale(1.02)`);
+          })
+          .on('mouseleave', function() {
+            d3.select(this).select('rect')
+              .attr('stroke', '#E0DCD3')
+              .attr('fill', '#FFFFFF');
+            d3.select(this).attr('transform', `translate(${phase.x}, ${phase.y}) scale(1)`);
+          });
+
+        g.append('rect')
+          .attr('x', -100).attr('y', -55)
+          .attr('width', 200).attr('height', 110)
+          .attr('rx', 12).attr('ry', 12)
+          .attr('fill', '#FFFFFF')
+          .attr('stroke', '#E0DCD3')
+          .attr('stroke-width', 1)
+          .style('filter', 'drop-shadow(0 1px 3px rgba(0,0,0,0.06))');
+
+        drawIcon(g, phase.icon, -14, -35, 28, phase.borderColor || '#013D5B');
+
+        g.append('text')
+          .attr('y', 8)
+          .attr('text-anchor', 'middle')
+          .attr('fill', '#1C1A17')
+          .attr('font-size', '14px')
+          .attr('font-weight', 600)
+          .text(phase.label);
+
+        g.append('text')
+          .attr('y', 26)
+          .attr('text-anchor', 'middle')
+          .attr('fill', '#54514D')
+          .attr('font-size', '11px')
+          .text(phase.description);
+
+        // Phase number badge
+        g.append('circle')
+          .attr('cx', -80).attr('cy', -35)
+          .attr('r', 12)
+          .attr('fill', phase.borderColor || '#013D5B')
+          .attr('opacity', 0.1);
+        g.append('text')
+          .attr('x', -80).attr('y', -31)
+          .attr('text-anchor', 'middle')
+          .attr('fill', phase.borderColor || '#013D5B')
+          .attr('font-size', '11px')
+          .attr('font-weight', 600)
+          .text(i + 1);
+
+        // Opacity animation on load
+        g.style('opacity', 0)
+          .transition().duration(400).delay(i * 80)
+          .style('opacity', 1);
+      });
+
+      setTimeout(() => fitToContent(600), 50);
+    }
+
+    // ─── Level 2: Flow ───
+    function goToLevel2(phase) {
+      currentLevel = 2;
+      currentPhase = phase;
+      container.selectAll('*').remove();
+      updateBreadcrumb();
+      d3.select('#diagram-title').text(phase.label + ' Phase');
+
+      const nodes = phase.nodes;
+      const edges = phase.edges;
+
+      // Position nodes
+      // Separate main flow (happy path) and branches
+      const nodeMap = {};
+      nodes.forEach(n => { nodeMap[n.id] = n; });
+
+      // Compute layout: main row and error branches below
+      const colSpacing = 350;
+      const rowSpacing = 220;
+      const startX = 100;
+      const mainY = 200;
+
+      // Identify main path nodes (in order of edges happy path)
+      const mainIds = [];
+      const errorIds = [];
+      nodes.forEach(n => {
+        if (n.type === 'error') {
+          errorIds.push(n.id);
+        } else {
+          mainIds.push(n.id);
+        }
+      });
+
+      mainIds.forEach((id, i) => {
+        const n = nodeMap[id];
+        n.x = startX + i * colSpacing;
+        n.y = mainY;
+      });
+
+      // Position error nodes below their related decision
+      errorIds.forEach(id => {
+        const n = nodeMap[id];
+        // Find which edge leads to this error
+        const inEdge = edges.find(e => e.to === id);
+        if (inEdge && nodeMap[inEdge.from]) {
+          n.x = nodeMap[inEdge.from].x;
+          n.y = mainY + rowSpacing;
+        } else {
+          n.x = startX;
+          n.y = mainY + rowSpacing;
+        }
+      });
+
+      // Draw edges first (under nodes)
+      const edgesG = container.append('g').attr('class', 'edges');
+
+      edges.forEach(edge => {
+        const fromNode = nodeMap[edge.from];
+        const toNode = nodeMap[edge.to];
+        if (!fromNode || !toNode) return;
+
+        const isHappy = edge.isHappyPath;
+        const isErr = edge.isError;
+
+        // Compute exit/entry points based on relative position
+        let x1, y1, x2, y2;
+        const fw = fromNode.type === 'decision' ? 45 : 110;
+        const fh = fromNode.type === 'decision' ? 45 : (fromNode.type === 'start' || fromNode.type === 'end' ? 20 : 50);
+        const tw = toNode.type === 'decision' ? 45 : 110;
+        const th = toNode.type === 'decision' ? 45 : (toNode.type === 'start' || toNode.type === 'end' ? 20 : 50);
+
+        if (Math.abs(toNode.y - fromNode.y) < 50) {
+          // Horizontal flow
+          x1 = fromNode.x + fw;
+          y1 = fromNode.y;
+          x2 = toNode.x - tw;
+          y2 = toNode.y;
+        } else if (toNode.y > fromNode.y) {
+          // Downward branch
+          x1 = fromNode.x;
+          y1 = fromNode.y + fh;
+          x2 = toNode.x;
+          y2 = toNode.y - th;
+        } else {
+          // Upward branch (return from error)
+          x1 = fromNode.x;
+          y1 = fromNode.y - th;
+          x2 = toNode.x;
+          y2 = toNode.y + fh;
+        }
+
+        // Check for return edges (error back to decision)
+        const isReturn = edge.from && edge.to && nodeMap[edge.from] && nodeMap[edge.to] &&
+                         nodeMap[edge.from].type === 'error';
+
+        let pathD;
+        if (isReturn) {
+          // Route return path to the side
+          const midX = Math.min(x1, x2) - 60;
+          pathD = `M${x1},${y1} H${midX} V${y2} H${x2}`;
+        } else if (Math.abs(toNode.y - fromNode.y) < 50) {
+          // Straight horizontal with possible action pill
+          if (edge.actionPill) {
+            // Line will be split by action pill, drawn separately
+            pathD = null;
+          } else {
+            pathD = `M${x1},${y1} H${x2}`;
+          }
+        } else {
+          // Orthogonal L-shaped
+          pathD = `M${x1},${y1} V${y2} H${x2}`;
+        }
+
+        const strokeColor = isErr ? '#CF6253' : (isHappy ? '#7A9A01' : '#013D5B');
+        const strokeW = isHappy ? 2.5 : (isErr ? 1.5 : 2);
+        const dashArray = isErr ? '6,4' : 'none';
+        const markerRef = isErr ? 'url(#arrow-error)' : (isHappy ? 'url(#arrow-happy)' : 'url(#arrow-default)');
+
+        if (edge.actionPill && Math.abs(toNode.y - fromNode.y) < 50) {
+          // Draw line segments around pill
+          const pillW = Math.max(edge.actionPill.length * 7 + 36, 120);
+          const midX = (x1 + x2) / 2;
+          const pillLeft = midX - pillW / 2;
+          const pillRight = midX + pillW / 2;
+
+          // Left segment
+          edgesG.append('path')
+            .attr('d', `M${x1},${y1} H${pillLeft}`)
+            .attr('stroke', strokeColor).attr('stroke-width', strokeW)
+            .attr('fill', 'none').attr('stroke-dasharray', dashArray);
+
+          // Right segment
+          edgesG.append('path')
+            .attr('d', `M${pillRight},${y1} H${x2}`)
+            .attr('stroke', strokeColor).attr('stroke-width', strokeW)
+            .attr('fill', 'none').attr('marker-end', markerRef)
+            .attr('stroke-dasharray', dashArray);
+
+          // Connection ports
+          [{ cx: x1, cy: y1 }, { cx: x2, cy: y2 }].forEach(pt => {
+            edgesG.append('circle')
+              .attr('cx', pt.cx).attr('cy', pt.cy)
+              .attr('r', 5).attr('fill', '#013D5B').attr('stroke', '#FFFFFF').attr('stroke-width', 2);
+            edgesG.append('circle')
+              .attr('cx', pt.cx).attr('cy', pt.cy)
+              .attr('r', 2).attr('fill', '#FFFFFF');
+          });
+
+          // Action pill
+          const pillG = edgesG.append('g')
+            .attr('transform', `translate(${midX}, ${y1})`);
+          pillG.append('rect')
+            .attr('x', -pillW / 2).attr('y', -12)
+            .attr('width', pillW).attr('height', 24)
+            .attr('rx', 20).attr('ry', 20)
+            .attr('fill', '#013D5B');
+          // Zap icon
+          pillG.append('path')
+            .attr('d', 'M13 2L3 14h9l-1 10 10-12h-9l1-10z')
+            .attr('transform', `translate(${-pillW / 2 + 8},-6) scale(0.5)`)
+            .attr('fill', 'none').attr('stroke', '#FFFFFF').attr('stroke-width', 2)
+            .attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
+          pillG.append('text')
+            .attr('x', 4).attr('y', 4)
+            .attr('text-anchor', 'middle')
+            .attr('fill', '#FFFFFF')
+            .attr('font-size', '11px')
+            .attr('font-weight', 500)
+            .text(edge.actionPill);
+
+        } else if (pathD) {
+          edgesG.append('path')
+            .attr('d', pathD)
+            .attr('stroke', strokeColor).attr('stroke-width', strokeW)
+            .attr('fill', 'none').attr('marker-end', markerRef)
+            .attr('stroke-dasharray', dashArray);
+
+          // Connection ports
+          [{ cx: x1, cy: y1 }, { cx: x2, cy: y2 }].forEach(pt => {
+            edgesG.append('circle')
+              .attr('cx', pt.cx).attr('cy', pt.cy)
+              .attr('r', 5).attr('fill', '#013D5B').attr('stroke', '#FFFFFF').attr('stroke-width', 2);
+            edgesG.append('circle')
+              .attr('cx', pt.cx).attr('cy', pt.cy)
+              .attr('r', 2).attr('fill', '#FFFFFF');
+          });
+
+          // Edge label
+          if (edge.label && !edge.actionPill) {
+            let lx, ly;
+            if (Math.abs(toNode.y - fromNode.y) < 50) {
+              lx = (x1 + x2) / 2;
+              ly = y1 - 12;
+            } else {
+              lx = x1 + 14;
+              ly = (y1 + y2) / 2;
+            }
+            edgesG.append('text')
+              .attr('x', lx).attr('y', ly)
+              .attr('text-anchor', 'middle')
+              .attr('fill', '#54514D')
+              .attr('font-size', '10px')
+              .text(edge.label);
+          }
+        }
+      });
+
+      // Draw nodes
+      const nodesG = container.append('g').attr('class', 'nodes');
+
+      nodes.forEach((node, idx) => {
+        const g = nodesG.append('g')
+          .attr('transform', `translate(${node.x}, ${node.y})`)
+          .style('cursor', 'pointer')
+          .on('click', () => {
+            g.transition().duration(150).style('opacity', 0.7)
+              .transition().duration(150).style('opacity', 1)
+              .on('end', () => showDetail(node));
+          })
+          .on('mouseenter', function() {
+            if (node.type === 'screen' || node.type === 'error') {
+              d3.select(this).select('.node-bg')
+                .attr('stroke', '#D0CBC3');
+              d3.select(this).attr('transform', `translate(${node.x}, ${node.y}) scale(1.02)`);
+            }
+          })
+          .on('mouseleave', function() {
+            if (node.type === 'screen' || node.type === 'error') {
+              d3.select(this).select('.node-bg')
+                .attr('stroke', node.type === 'error' ? '#E0DCD3' : '#E0DCD3');
+              d3.select(this).attr('transform', `translate(${node.x}, ${node.y}) scale(1)`);
+            }
+          });
+
+        if (node.type === 'start') {
+          // Stadium pill
+          g.append('rect')
+            .attr('class', 'node-bg')
+            .attr('x', -70).attr('y', -20)
+            .attr('width', 140).attr('height', 40)
+            .attr('rx', 20).attr('ry', 20)
+            .attr('fill', '#F4FAEB')
+            .attr('stroke', '#7A9A01')
+            .attr('stroke-width', 2);
+          g.append('text')
+            .attr('text-anchor', 'middle').attr('y', 5)
+            .attr('fill', '#1C1A17').attr('font-size', '13px').attr('font-weight', 600)
+            .text(node.label);
+
+        } else if (node.type === 'end') {
+          g.append('rect')
+            .attr('class', 'node-bg')
+            .attr('x', -80).attr('y', -20)
+            .attr('width', 160).attr('height', 40)
+            .attr('rx', 20).attr('ry', 20)
+            .attr('fill', '#7A9A01')
+            .attr('stroke', '#7A9A01')
+            .attr('stroke-width', 2);
+          drawIcon(g, 'check', -30, -10, 20, '#FFFFFF');
+          g.append('text')
+            .attr('x', 8).attr('text-anchor', 'middle').attr('y', 5)
+            .attr('fill', '#FFFFFF').attr('font-size', '13px').attr('font-weight', 600)
+            .text(node.label);
+
+        } else if (node.type === 'decision') {
+          const dSize = 60;
+          const half = dSize / 2;
+          g.append('polygon')
+            .attr('class', 'node-bg')
+            .attr('points', `0,${-half} ${half},0 0,${half} ${-half},0`)
+            .attr('fill', '#EBCE2D')
+            .attr('stroke', '#EBCE2D')
+            .attr('stroke-width', 1);
+          // Multi-line text
+          const lines = node.label.split('\n');
+          lines.forEach((line, li) => {
+            g.append('text')
+              .attr('text-anchor', 'middle')
+              .attr('y', -4 + li * 14)
+              .attr('fill', '#1C1A17')
+              .attr('font-size', '12px')
+              .attr('font-weight', 600)
+              .text(line);
+          });
+
+        } else if (node.type === 'error') {
+          const cardW = 220;
+          const cardH = node.sections ? 100 + (node.sections || []).length * 14 : 80;
+          g.append('rect')
+            .attr('class', 'node-bg')
+            .attr('x', -cardW / 2).attr('y', -cardH / 2)
+            .attr('width', cardW).attr('height', cardH)
+            .attr('rx', 8).attr('ry', 8)
+            .attr('fill', '#FFFFFF')
+            .attr('stroke', '#E0DCD3')
+            .attr('stroke-width', 1)
+            .style('filter', 'drop-shadow(0 1px 3px rgba(0,0,0,0.06))');
+          // Red left accent bar
+          g.append('rect')
+            .attr('x', -cardW / 2).attr('y', -cardH / 2)
+            .attr('width', 3).attr('height', cardH)
+            .attr('rx', 1.5)
+            .attr('fill', '#CF6253');
+          // Error tint
+          g.append('rect')
+            .attr('x', -cardW / 2 + 3).attr('y', -cardH / 2)
+            .attr('width', cardW - 3).attr('height', cardH)
+            .attr('rx', 8).attr('ry', 8)
+            .attr('fill', '#FFEEEB')
+            .attr('opacity', 0.3);
+          // Red status circle
+          g.append('circle')
+            .attr('cx', cardW / 2 - 15).attr('cy', -cardH / 2 + 15)
+            .attr('r', 5).attr('fill', '#CF6253');
+          // Window dots
+          [-12, -6, 0].forEach(dx => {
+            g.append('circle')
+              .attr('cx', -cardW / 2 + 16 + dx * 1.5).attr('cy', -cardH / 2 + 14)
+              .attr('r', 2).attr('fill', '#D0CBC3');
+          });
+          // Title
+          g.append('text')
+            .attr('x', -cardW / 2 + 16).attr('y', -cardH / 2 + 36)
+            .attr('fill', '#BF5547').attr('font-size', '14px').attr('font-weight', 600)
+            .text(node.label);
+          // Subtitle
+          if (node.subtitle) {
+            g.append('text')
+              .attr('x', -cardW / 2 + 16).attr('y', -cardH / 2 + 52)
+              .attr('fill', '#54514D').attr('font-size', '11px')
+              .text(node.subtitle);
+          }
+
+        } else {
+          // Screen node
+          const cardW = 220;
+          const sectionCount = (node.sections || []).length;
+          const cardH = 80 + sectionCount * 14;
+          g.append('rect')
+            .attr('class', 'node-bg')
+            .attr('x', -cardW / 2).attr('y', -cardH / 2)
+            .attr('width', cardW).attr('height', cardH)
+            .attr('rx', 8).attr('ry', 8)
+            .attr('fill', '#FFFFFF')
+            .attr('stroke', '#E0DCD3')
+            .attr('stroke-width', 1)
+            .style('filter', 'drop-shadow(0 1px 3px rgba(0,0,0,0.06))');
+
+          // Window dots
+          [-12, -6, 0].forEach(dx => {
+            g.append('circle')
+              .attr('cx', -cardW / 2 + 16 + dx * 1.5).attr('cy', -cardH / 2 + 14)
+              .attr('r', 2).attr('fill', '#D0CBC3');
+          });
+
+          // MoSCoW tag
+          const priorityColor = node.priority === 'green' ? '#7A9A01' : (node.priority === 'blue' ? '#0C4A69' : '#EBCE2D');
+          const priorityLetter = node.priority === 'green' ? 'M' : (node.priority === 'blue' ? 'S' : 'C');
+          g.append('circle')
+            .attr('cx', cardW / 2 - 10).attr('cy', -cardH / 2 + 10)
+            .attr('r', 10).attr('fill', '#FFFFFF').attr('stroke', priorityColor).attr('stroke-width', 2);
+          g.append('text')
+            .attr('x', cardW / 2 - 10).attr('y', -cardH / 2 + 14)
+            .attr('text-anchor', 'middle').attr('fill', '#1C1A17')
+            .attr('font-size', '10px').attr('font-weight', 600)
+            .text(priorityLetter);
+
+          // Title
+          g.append('text')
+            .attr('x', -cardW / 2 + 16).attr('y', -cardH / 2 + 36)
+            .attr('fill', '#1C1A17').attr('font-size', '14px').attr('font-weight', 600)
+            .text(node.label);
+
+          // Subtitle
+          if (node.subtitle) {
+            g.append('text')
+              .attr('x', -cardW / 2 + 16).attr('y', -cardH / 2 + 52)
+              .attr('fill', '#54514D').attr('font-size', '11px')
+              .text(node.subtitle);
+          }
+
+          // Sections separator and items
+          if (node.sections && node.sections.length > 0) {
+            const sepY = -cardH / 2 + 62;
+            g.append('line')
+              .attr('x1', -cardW / 2 + 10).attr('y1', sepY)
+              .attr('x2', cardW / 2 - 10).attr('y2', sepY)
+              .attr('stroke', '#EBE6DD').attr('stroke-width', 1);
+
+            node.sections.forEach((sec, si) => {
+              g.append('text')
+                .attr('x', -cardW / 2 + 20).attr('y', sepY + 16 + si * 14)
+                .attr('fill', '#6B6760').attr('font-size', '10px')
+                .text('\u2022 ' + sec);
+            });
+          }
+        }
+
+        // Animate in
+        g.style('opacity', 0)
+          .transition().duration(300).delay(idx * 60)
+          .style('opacity', 1);
+      });
+
+      // Show minimap if > 8 nodes
+      if (nodes.length > 8) {
+        renderMinimap(nodes);
+      } else {
+        d3.select('#minimap').style('display', 'none');
+      }
+
+      setTimeout(() => fitToContent(500), 50);
+    }
+
+    // ─── Level 1 transition ───
+    function goToLevel1() {
+      container.selectAll('*')
+        .transition().duration(200).style('opacity', 0)
+        .on('end', function() { renderLevel1(); });
+    }
+
+    // ─── Detail Panel (Level 3) ───
+    function showDetail(node) {
+      const panel = d3.select('#detail-panel');
+      const overlay = d3.select('#detail-overlay');
+      const content = d3.select('#detail-content');
+      content.html('');
+
+      content.append('div').attr('class', 'detail-type').text(node.screenType || node.type);
+      content.append('div').attr('class', 'detail-title').text(node.label);
+
+      if (node.userAction) {
+        const sec = content.append('div').attr('class', 'detail-section');
+        sec.append('div').attr('class', 'detail-section-title').text('User Action');
+        sec.append('p').text(node.userAction);
+      }
+
+      if (node.description) {
+        const sec = content.append('div').attr('class', 'detail-section');
+        sec.append('div').attr('class', 'detail-section-title').text('Description');
+        sec.append('p').text(node.description);
+      }
+
+      if (node.edgeCases && node.edgeCases.length > 0) {
+        const sec = content.append('div').attr('class', 'detail-section');
+        sec.append('div').attr('class', 'detail-section-title').text('Edge Cases');
+        const ul = sec.append('ul');
+        node.edgeCases.forEach(ec => ul.append('li').text(ec));
+      }
+
+      if (node.exits && node.exits.length > 0) {
+        const sec = content.append('div').attr('class', 'detail-section');
+        sec.append('div').attr('class', 'detail-section-title').text('Exits');
+        node.exits.forEach(exit => {
+          const div = sec.append('div').attr('class', 'detail-exit');
+          div.append('span').attr('class', 'exit-label').text(exit.label);
+          div.append('span').attr('class', 'detail-exit-arrow').html('&rarr;');
+          div.append('span').attr('class', 'exit-target').text(exit.to);
+        });
+      }
+
+      panel.classed('open', true);
+      overlay.classed('open', true);
+    }
+
+    function closeDetail() {
+      d3.select('#detail-panel').classed('open', false);
+      d3.select('#detail-overlay').classed('open', false);
+    }
+
+    // ─── Minimap ───
+    function renderMinimap(nodes) {
+      const mm = d3.select('#minimap').style('display', 'block');
+      const mmSvg = d3.select('#minimap-svg');
+      mmSvg.selectAll('*').remove();
+
+      if (nodes.length === 0) return;
+
+      const xs = nodes.map(n => n.x);
+      const ys = nodes.map(n => n.y);
+      const minX = Math.min(...xs) - 60;
+      const maxX = Math.max(...xs) + 60;
+      const minY = Math.min(...ys) - 60;
+      const maxY = Math.max(...ys) + 60;
+      const rangeX = maxX - minX || 1;
+      const rangeY = maxY - minY || 1;
+      const scaleX = 160 / rangeX;
+      const scaleY = 100 / rangeY;
+      const s = Math.min(scaleX, scaleY);
+
+      nodes.forEach(n => {
+        const mx = 10 + (n.x - minX) * s;
+        const my = 10 + (n.y - minY) * s;
+
+        if (n.type === 'decision') {
+          mmSvg.append('rect')
+            .attr('x', mx - 4).attr('y', my - 4)
+            .attr('width', 8).attr('height', 8)
+            .attr('transform', `rotate(45,${mx},${my})`)
+            .attr('fill', '#EBCE2D');
+        } else if (n.type === 'error') {
+          mmSvg.append('rect')
+            .attr('x', mx - 8).attr('y', my - 4)
+            .attr('width', 16).attr('height', 8)
+            .attr('rx', 2).attr('fill', '#CF6253');
+        } else {
+          mmSvg.append('rect')
+            .attr('x', mx - 8).attr('y', my - 4)
+            .attr('width', 16).attr('height', 8)
+            .attr('rx', 2).attr('fill', '#013D5B').attr('opacity', 0.5);
+        }
+      });
+
+      // Viewport indicator
+      mmSvg.append('rect')
+        .attr('x', 20).attr('y', 20)
+        .attr('width', 60).attr('height', 40)
+        .attr('fill', 'none')
+        .attr('stroke', '#013D5B')
+        .attr('stroke-width', 1.5)
+        .attr('rx', 2);
+    }
+
+    // ─── Window resize ───
+    window.addEventListener('resize', () => {
+      width = window.innerWidth;
+      height = window.innerHeight - 92;
+      svg.attr('width', width).attr('height', height);
+      fitToContent(300);
+    });
+
+    // ─── Initialize ───
+    renderLevel1();
+  </script>
+</body>
+</html>

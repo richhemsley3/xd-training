@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Access Request Portal — Product Design Prototype</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap">
+<style>
+  :root {
+    --sds-font-sans: 'Proxima Nova', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --sds-font-mono: 'SF Mono', SFMono-Regular, Consolas, monospace;
+    --sds-type-display: 28px;
+    --sds-type-heading: 22px;
+    --sds-type-subheading: 16px;
+    --sds-type-title: 15px;
+    --sds-type-body: 14px;
+    --sds-type-label: 13px;
+    --sds-type-caption: 12px;
+    --sds-type-overline: 11px;
+    --sds-weight-regular: 400;
+    --sds-weight-medium: 500;
+    --sds-weight-semibold: 600;
+    --sds-weight-bold: 700;
+    --sds-leading-tight: 1.2;
+    --sds-leading-normal: 1.5;
+    --sds-space-050: 2px; --sds-space-100: 4px; --sds-space-150: 6px;
+    --sds-space-200: 8px; --sds-space-250: 10px; --sds-space-300: 12px;
+    --sds-space-400: 16px; --sds-space-500: 20px; --sds-space-600: 24px;
+    --sds-space-800: 32px; --sds-space-1000: 40px; --sds-space-1200: 48px;
+    --sds-color-warm-gray-025: #FAF8F5; --sds-color-warm-gray-050: #F4F1EB;
+    --sds-color-warm-gray-100: #EBE6DD; --sds-color-warm-gray-150: #E0DCD3;
+    --sds-color-warm-gray-200: #D0CBC3; --sds-color-warm-gray-300: #B0ABA2;
+    --sds-color-warm-gray-400: #948E85; --sds-color-warm-gray-550: #6B6760;
+    --sds-color-warm-gray-650: #54514D; --sds-color-warm-gray-700: #47443F;
+    --sds-color-warm-gray-900: #1C1A17;
+    --sds-color-blue-050: #EBF4F5; --sds-color-blue-100: #D9EBED;
+    --sds-color-blue-150: #C1DDE3; --sds-color-blue-200: #A6CBD6;
+    --sds-color-blue-450: #4F8AA0; --sds-color-blue-700: #0C4A69;
+    --sds-color-blue-750: #013D5B; --sds-color-blue-800: #05314D;
+    --sds-color-red-050: #FFEEEB; --sds-color-red-500: #BF5547;
+    --sds-color-green-025: #F4FAEB; --sds-color-green-400: #7A9A01;
+    --sds-color-green-500: #62800B;
+    --sds-color-yellow-025: #FCF9D9; --sds-color-yellow-200: #EBCE2D;
+    --sds-color-yellow-500: #8A7515;
+    --sds-color-purple-550: #805AA1;
+    --sds-color-white: #FFFFFF;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sds-font-sans);
+    background: var(--sds-color-warm-gray-050);
+    color: var(--sds-color-warm-gray-900);
+    line-height: var(--sds-leading-normal);
+    font-size: var(--sds-type-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== SCREEN SELECTOR ===== */
+  .screen-nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--sds-color-white);
+    border-bottom: 1px solid var(--sds-color-warm-gray-150);
+    padding: 12px 24px;
+    display: flex; align-items: center; gap: 8px;
+    overflow-x: auto;
+  }
+  .screen-nav-label {
+    font-size: 11px; font-weight: 600; color: var(--sds-color-warm-gray-400);
+    text-transform: uppercase; letter-spacing: 0.4px; margin-right: 8px;
+    white-space: nowrap;
+  }
+  .screen-btn {
+    padding: 6px 14px; border-radius: 6px; border: 1px solid var(--sds-color-warm-gray-150);
+    background: var(--sds-color-white); font-size: 12px; font-weight: 500;
+    color: var(--sds-color-warm-gray-700); cursor: pointer; white-space: nowrap;
+    transition: all 0.12s;
+  }
+  .screen-btn:hover { border-color: var(--sds-color-warm-gray-300); }
+  .screen-btn.active { background: var(--sds-color-blue-100); border-color: var(--sds-color-blue-450); color: var(--sds-color-blue-750); font-weight: 600; }
+
+  /* ===== APP SHELL ===== */
+  .app-shell {
+    max-width: 1200px;
+    margin: 24px auto;
+    background: var(--sds-color-white);
+    border: 1px solid var(--sds-color-warm-gray-150);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    min-height: 700px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .app-header {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px; padding: 0 20px;
+    border-bottom: 1px solid var(--sds-color-warm-gray-100);
+    flex-shrink: 0;
+  }
+  .app-header-logo { display: flex; align-items: center; gap: 10px; }
+  .logo-mark {
+    width: 28px; height: 28px; border-radius: 6px; background: var(--sds-color-blue-750);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-mark svg { width: 16px; height: 16px; fill: white; }
+  .logo-text { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; }
+  .app-header-actions { display: flex; align-items: center; gap: 8px; }
+  .header-icon-btn {
+    width: 32px; height: 32px; border-radius: 50%; border: none;
+    background: transparent; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--sds-color-warm-gray-550);
+  }
+  .header-icon-btn:hover { background: var(--sds-color-warm-gray-050); }
+  .header-icon-btn .material-symbols-outlined { font-size: 20px; font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20; }
+  .header-avatar {
+    width: 28px; height: 28px; border-radius: 50%; background: var(--sds-color-blue-750);
+    color: white; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600;
+  }
+  .header-divider { width: 1px; height: 20px; background: var(--sds-color-warm-gray-150); margin: 0 4px; }
+
+  /* Body layout */
+  .app-body { display: flex; flex: 1; }
+
+  /* Sidenav */
+  .sidenav {
+    width: 220px; min-width: 220px; background: var(--sds-color-warm-gray-025);
+    border-right: 1px solid var(--sds-color-warm-gray-150);
+    padding: 16px 12px; display: flex; flex-direction: column;
+  }
+  .nav-group-label {
+    font-size: 11px; font-weight: 600; color: var(--sds-color-warm-gray-400);
+    text-transform: uppercase; letter-spacing: 0.4px; padding: 20px 12px 6px;
+  }
+  .nav-group-label:first-child { padding-top: 8px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px; border-radius: 8px; font-size: 14px;
+    color: var(--sds-color-warm-gray-700); cursor: pointer; text-decoration: none;
+    margin: 1px 0; transition: background 0.12s, color 0.12s;
+  }
+  .nav-item:hover { background: var(--sds-color-warm-gray-050); color: var(--sds-color-warm-gray-900); }
+  .nav-item.active { background: var(--sds-color-blue-100); color: var(--sds-color-blue-750); font-weight: 500; }
+  .nav-item .material-symbols-outlined { font-size: 20px; font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20; }
+  .nav-item.active .material-symbols-outlined { color: var(--sds-color-blue-750); }
+  .nav-badge {
+    margin-left: auto; background: var(--sds-color-blue-100); color: var(--sds-color-blue-750);
+    font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 10px;
+  }
+  .nav-spacer { flex: 1; }
+
+  /* Main content */
+  .main { flex: 1; padding: 24px 32px; overflow-y: auto; background: var(--sds-color-white); }
+
+  /* Page title bar */
+  .page-title-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+  .page-title { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  .page-subtitle { font-size: 13px; color: var(--sds-color-warm-gray-550); margin-top: 2px; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    cursor: pointer; border: none; font-family: inherit; transition: all 0.12s;
+  }
+  .btn .material-symbols-outlined { font-size: 18px; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20; }
+  .btn-primary { background: var(--sds-color-blue-750); color: white; }
+  .btn-primary:hover { background: var(--sds-color-blue-800); }
+  .btn-secondary { background: var(--sds-color-white); color: var(--sds-color-warm-gray-700); border: 1px solid var(--sds-color-warm-gray-200); }
+  .btn-secondary:hover { border-color: var(--sds-color-warm-gray-300); background: var(--sds-color-warm-gray-025); }
+  .btn-success { background: var(--sds-color-green-400); color: white; }
+  .btn-success:hover { background: var(--sds-color-green-500); }
+  .btn-danger { background: var(--sds-color-red-500); color: white; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+  /* Status tags */
+  .status-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;
+  }
+  .status-tag--pending { background: var(--sds-color-yellow-025); color: var(--sds-color-yellow-500); }
+  .status-tag--approved { background: var(--sds-color-green-025); color: var(--sds-color-green-500); }
+  .status-tag--denied { background: var(--sds-color-red-050); color: var(--sds-color-red-500); }
+  .status-tag--in-review { background: var(--sds-color-blue-050); color: var(--sds-color-blue-700); }
+  .status-tag--provisioned { background: #F7EEFF; color: var(--sds-color-purple-550); }
+
+  /* Table */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table th {
+    text-align: left; padding: 10px 12px; font-size: 12px; font-weight: 600;
+    color: var(--sds-color-warm-gray-550); border-bottom: 2px solid var(--sds-color-warm-gray-150);
+    white-space: nowrap;
+  }
+  .data-table td {
+    padding: 12px; border-bottom: 1px solid var(--sds-color-warm-gray-100);
+    color: var(--sds-color-warm-gray-700); vertical-align: middle;
+  }
+  .data-table tr:hover { background: var(--sds-color-warm-gray-025); }
+  .data-table td:first-child { font-weight: 500; color: var(--sds-color-warm-gray-900); }
+  .data-table .link { color: var(--sds-color-blue-750); cursor: pointer; text-decoration: none; }
+  .data-table .link:hover { text-decoration: underline; }
+
+  /* Cards */
+  .card {
+    background: var(--sds-color-white); border: 1px solid var(--sds-color-warm-gray-150);
+    border-radius: 8px; padding: 20px; margin-bottom: 12px;
+  }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .card-title { font-size: 14px; font-weight: 600; }
+
+  /* Timeline */
+  .timeline { position: relative; padding-left: 24px; margin: 16px 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 7px; top: 4px; bottom: 4px;
+    width: 2px; background: var(--sds-color-warm-gray-100);
+  }
+  .timeline-item { position: relative; padding: 0 0 16px; }
+  .timeline-item:last-child { padding-bottom: 0; }
+  .timeline-dot {
+    position: absolute; left: -20px; top: 4px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--sds-color-warm-gray-300);
+  }
+  .timeline-dot--active { background: var(--sds-color-blue-750); }
+  .timeline-dot--success { background: var(--sds-color-green-400); }
+  .timeline-dot--error { background: var(--sds-color-red-500); }
+  .timeline-label { font-size: 13px; font-weight: 500; color: var(--sds-color-warm-gray-900); }
+  .timeline-meta { font-size: 12px; color: var(--sds-color-warm-gray-400); margin-top: 2px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--sds-color-warm-gray-150); margin-bottom: 20px; }
+  .tab {
+    padding: 10px 16px; font-size: 13px; color: var(--sds-color-warm-gray-550);
+    border-bottom: 2px solid transparent; cursor: pointer;
+  }
+  .tab.active { color: var(--sds-color-blue-750); border-bottom-color: var(--sds-color-blue-750); font-weight: 500; }
+
+  /* Form elements */
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--sds-color-warm-gray-650); margin-bottom: 6px; }
+  .form-input, .form-select, .form-textarea {
+    width: 100%; padding: 8px 12px; border: 1px solid var(--sds-color-warm-gray-200);
+    border-radius: 6px; font-size: 14px; font-family: inherit;
+    color: var(--sds-color-warm-gray-900); background: var(--sds-color-white);
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none; border-color: var(--sds-color-blue-750);
+    box-shadow: 0 0 0 3px rgba(1,61,91,0.1);
+  }
+  .form-textarea { min-height: 80px; resize: vertical; }
+  .form-hint { font-size: 12px; color: var(--sds-color-warm-gray-400); margin-top: 4px; }
+
+  /* Stat row */
+  .stat-row { display: flex; gap: 12px; margin-bottom: 24px; }
+  .stat-card {
+    flex: 1; text-align: center; padding: 16px;
+    background: var(--sds-color-white); border: 1px solid var(--sds-color-warm-gray-150);
+    border-radius: 8px;
+  }
+  .stat-value { font-size: 24px; font-weight: 600; color: var(--sds-color-blue-750); }
+  .stat-label { font-size: 11px; font-weight: 600; color: var(--sds-color-warm-gray-400); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 4px; }
+
+  /* Callout banner */
+  .callout-banner {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; border-radius: 8px; margin-bottom: 20px;
+    font-size: 13px;
+  }
+  .callout-banner--warning {
+    background: var(--sds-color-yellow-025);
+    border: 1px solid var(--sds-color-yellow-200);
+    color: var(--sds-color-yellow-500);
+  }
+  .callout-banner--info {
+    background: var(--sds-color-blue-050);
+    border: 1px solid var(--sds-color-blue-200);
+    color: var(--sds-color-blue-700);
+  }
+  .callout-banner .material-symbols-outlined { font-size: 20px; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20; }
+
+  /* Sensitivity badge */
+  .sensitivity { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+  .sensitivity--low { background: var(--sds-color-green-025); color: var(--sds-color-green-500); }
+  .sensitivity--medium { background: var(--sds-color-yellow-025); color: var(--sds-color-yellow-500); }
+  .sensitivity--high { background: var(--sds-color-red-050); color: var(--sds-color-red-500); }
+
+  /* Empty state */
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--sds-color-warm-gray-400); }
+  .empty-state .material-symbols-outlined { font-size: 48px; margin-bottom: 12px; font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 48; }
+  .empty-state p { font-size: 14px; max-width: 320px; margin: 0 auto 16px; }
+
+  /* Checkbox */
+  .checkbox-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; }
+  .checkbox { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--sds-color-warm-gray-300); appearance: none; cursor: pointer; }
+  .checkbox:checked { background: var(--sds-color-blue-750); border-color: var(--sds-color-blue-750); }
+
+  /* Screen panels */
+  .screen { display: none; }
+  .screen.active { display: flex; flex-direction: column; }
+  .screen .app-body { flex: 1; }
+
+  /* Filter bar */
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+  .filter-chip {
+    padding: 5px 12px; border-radius: 6px; border: 1px solid var(--sds-color-warm-gray-150);
+    background: var(--sds-color-white); font-size: 12px; color: var(--sds-color-warm-gray-550);
+    cursor: pointer;
+  }
+  .filter-chip.active { background: var(--sds-color-blue-050); border-color: var(--sds-color-blue-450); color: var(--sds-color-blue-750); font-weight: 500; }
+  .search-input {
+    padding: 6px 12px 6px 32px; border: 1px solid var(--sds-color-warm-gray-200);
+    border-radius: 6px; font-size: 13px; width: 240px; background: var(--sds-color-white);
+    font-family: inherit;
+  }
+
+  /* Risk meter */
+  .risk-meter { display: flex; gap: 2px; align-items: center; }
+  .risk-bar { width: 24px; height: 6px; border-radius: 3px; background: var(--sds-color-warm-gray-100); }
+  .risk-bar.filled-green { background: var(--sds-color-green-400); }
+  .risk-bar.filled-yellow { background: var(--sds-color-yellow-200); }
+  .risk-bar.filled-red { background: var(--sds-color-red-500); }
+
+  /* Design notes */
+  .design-note {
+    margin-top: 24px; padding: 12px 16px; border-radius: 8px;
+    background: var(--sds-color-warm-gray-025); border: 1px dashed var(--sds-color-warm-gray-200);
+    font-size: 12px; color: var(--sds-color-warm-gray-550);
+  }
+  .design-note strong { color: var(--sds-color-warm-gray-700); }
+</style>
+</head>
+<body>
+
+<!-- Screen navigation -->
+<nav class="screen-nav">
+  <span class="screen-nav-label">Screens</span>
+  <button class="screen-btn active" onclick="showScreen('my-requests')">My Requests</button>
+  <button class="screen-btn" onclick="showScreen('request-detail')">Request Detail</button>
+  <button class="screen-btn" onclick="showScreen('new-request')">New Request</button>
+  <button class="screen-btn" onclick="showScreen('duplicate-warning')">Duplicate Warning</button>
+  <button class="screen-btn" onclick="showScreen('approval-queue')">Approval Queue</button>
+  <button class="screen-btn" onclick="showScreen('review-request')">Review Request</button>
+  <button class="screen-btn" onclick="showScreen('audit-log')">Audit Log</button>
+  <button class="screen-btn" onclick="showScreen('denied')">Denied State</button>
+</nav>
+
+<!-- ===== SCREEN 1: MY REQUESTS ===== -->
+<div class="screen active" id="screen-my-requests">
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="app-header-logo">
+        <div class="logo-mark"><svg viewBox="0 0 16 16"><path d="M8 1L2 4.5v7L8 15l6-3.5v-7L8 1z"/></svg></div>
+        <span class="logo-text">Beacon</span>
+      </div>
+      <div class="app-header-actions">
+        <button class="header-icon-btn" aria-label="Notifications"><span class="material-symbols-outlined">notifications</span></button>
+        <button class="header-icon-btn" aria-label="Help"><span class="material-symbols-outlined">help</span></button>
+        <div class="header-divider"></div>
+        <div class="header-avatar">JC</div>
+      </div>
+    </header>
+    <div class="app-body">
+      <nav class="sidenav" aria-label="Main navigation">
+        <div class="nav-group-label">Access</div>
+        <a class="nav-item active" href="#">
+          <span class="material-symbols-outlined">list_alt</span> My Requests
+          <span class="nav-badge">4</span>
+        </a>
+        <a class="nav-item" href="#">
+          <span class="material-symbols-outlined">search</span> Data Catalog
+        </a>
+        <div class="nav-group-label">Management</div>
+        <a class="nav-item" href="#">
+          <span class="material-symbols-outlined">task_alt</span> Approvals
+        </a>
+        <a class="nav-item" href="#">
+          <span class="material-symbols-outlined">shield</span> Audit Log
+        </a>
+        <a class="nav-item" href="#">
+          <span class="material-symbols-outlined">policy</span> Policies
+        </a>
+        <div class="nav-spacer"></div>
+        <a class="nav-item" href="#">
+          <span class="material-symbols-outlined">settings</span> Settings
+        </a>
+      </nav>
+      <main class="main">
+        <div class="page-title-bar">
+          <div>
+            <div class="page-title">My Requests</div>
+            <div class="page-subtitle">Track and manage your data access requests</div>
+          </div>
+          <button class="btn btn-primary" onclick="showScreen('new-request')">
+            <span class="material-symbols-outlined">add</span> New Request
+          </button>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-card"><div class="stat-value">4</div><div class="stat-label">Active</div></div>
+          <div class="stat-card"><div class="stat-value">12</div><div class="stat-label">Approved</div></div>
+          <div class="stat-card"><div class="stat-value">1</div><div class="stat-label">Denied</div></div>
+          <div class="stat-card"><div class="stat-value">2h</div><div class="stat-label">Avg. Resolution</div></div>
+        </div>
+
+        <div class="filter-bar">
+          <div class="filter-chip active">All</div>
+          <div class="filter-chip">Pending</div>
+          <div class="filter-chip">In Review</div>
+          <div class="filter-chip">Approved</div>
+          <div class="filter-chip">Denied</div>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr><th>Request</th><th>Dataset</th><th>Status</th><th>Submitted</th><th>Approver</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a class="link" onclick="showScreen('request-detail')">REQ-2847</a></td>
+              <td>customer_transactions</td>
+              <td><span class="status-tag status-tag--in-review">In Review</span></td>
+              <td>Mar 19, 2026</td>
+              <td>Sarah Kim</td>
+            </tr>
+            <tr>
+              <td><a class="link">REQ-2843</a></td>
+              <td>employee_records</td>
+              <td><span class="status-tag status-tag--pending">Pending</span></td>
+              <td>Mar 18, 2026</td>
+              <td>Awaiting routing</td>
+            </tr>
+            <tr>
+              <td><a class="link">REQ-2839</a></td>
+              <td>product_analytics</td>
+              <td><span class="status-tag status-tag--approved">Approved</span></td>
+              <td>Mar 17, 2026</td>
+              <td>Mike Torres</td>
+            </tr>
+            <tr>
+              <td><a class="link" onclick="showScreen('denied')">REQ-2831</a></td>
+              <td>payroll_data</td>
+              <td><span class="status-tag status-tag--denied">Denied</span></td>
+              <td>Mar 15, 2026</td>
+              <td>Lisa Park</td>
+            </tr>
+            <tr>
+              <td><a class="link">REQ-2825</a></td>
+              <td>marketing_campaigns</td>
+              <td><span class="status-tag status-tag--provisioned">Provisioned</span></td>
+              <td>Mar 14, 2026</td>
+              <td>Alex Rivera</td>
+            </tr>
+          </tbody>
+        </table>
+      </main>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCREEN 2: REQUEST DETAIL ===== -->
+<div class="screen" id="screen-request-detail">
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="app-header-logo"><div class="logo-mark"><svg viewBox="0 0 16 16"><path d="M8 1L2 4.5v7L8 15l6-3.5v-7L8 1z"/></svg></div><span class="logo-text">Beacon</span></div>
+      <div class="app-header-actions"><button class="header-icon-btn" aria-label="Notifications"><span class="material-symbols-outlined">notifications</span></button><div class="header-divider"></div><div class="header-avatar">JC</div></div>
+    </header>
+    <div class="app-body">
+      <nav class="sidenav" aria-label="Main navigation">
+        <div class="nav-group-label">Access</div>
+        <a class="nav-item active" href="#"><span class="material-symbols-outlined">list_alt</span> My Requests</a>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">search</span> Data Catalog</a>
+        <div class="nav-group-label">Management</div>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">task_alt</span> Approvals</a>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">shield</span> Audit Log</a>
+        <div class="nav-spacer"></div>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">settings</span> Settings</a>
+      </nav>
+      <main class="main">
+        <div style="font-size:13px;color:var(--sds-color-blue-750);margin-bottom:16px;cursor:pointer;" onclick="showScreen('my-requests')">&larr; Back to My Requests</div>
+
+        <div class="page-title-bar">
+          <div>
+            <div class="page-title">REQ-2847</div>
+            <div class="page-subtitle">Access to customer_transactions &middot; Read-only</div>
+          </div>
+          <span class="status-tag status-tag--in-review" style="font-size:13px;padding:4px 12px;">In Review</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 300px;gap:24px;">
+          <div>
+            <div class="card">
+              <div class="card-title" style="margin-bottom:12px;">Request Details</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;">
+                <div><span style="color:var(--sds-color-warm-gray-400);font-size:12px;">Dataset</span><br><strong>customer_transactions</strong></div>
+                <div><span style="color:var(--sds-color-warm-gray-400);font-size:12px;">Access Level</span><br><strong>Read-only</strong></div>
+                <div><span style="color:var(--sds-color-warm-gray-400);font-size:12px;">Sensitivity</span><br><span class="sensitivity sensitivity--high">High</span></div>
+                <div><span style="color:var(--sds-color-warm-gray-400);font-size:12px;">Owner</span><br><strong>Sarah Kim</strong></div>
+              </div>
+              <div style="margin-top:16px;">
+                <span style="color:var(--sds-color-warm-gray-400);font-size:12px;">Justification</span>
+                <p style="font-size:13px;color:var(--sds-color-warm-gray-700);margin-top:4px;">Need read access to customer_transactions for the Q1 revenue pipeline. Building a dashboard for the finance team that aggregates transaction volumes by region.</p>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title" style="margin-bottom:12px;">Comments</div>
+              <div style="font-size:13px;color:var(--sds-color-warm-gray-550);padding:12px 0;border-bottom:1px solid var(--sds-color-warm-gray-100);">
+                <strong style="color:var(--sds-color-warm-gray-700);">Sarah Kim</strong> <span style="font-size:12px;color:var(--sds-color-warm-gray-400);">2 hours ago</span>
+                <p style="margin-top:4px;">Can you confirm this is only for the aggregated view, not individual records?</p>
+              </div>
+              <div style="margin-top:12px;">
+                <textarea class="form-textarea" placeholder="Add a comment..." style="min-height:60px;"></textarea>
+                <button class="btn btn-secondary btn-sm" style="margin-top:8px;">Reply</button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card">
+              <div class="card-title" style="margin-bottom:16px;">Status Timeline</div>
+              <div class="timeline">
+                <div class="timeline-item">
+                  <div class="timeline-dot timeline-dot--active"></div>
+                  <div class="timeline-label">In Review</div>
+                  <div class="timeline-meta">Sarah Kim reviewing &middot; 2h ago</div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-dot timeline-dot--success"></div>
+                  <div class="timeline-label">Routed to Approver</div>
+                  <div class="timeline-meta">Auto-routed &middot; Mar 19, 10:02 AM</div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-dot timeline-dot--success"></div>
+                  <div class="timeline-label">Submitted</div>
+                  <div class="timeline-meta">Jordan Chen &middot; Mar 19, 10:00 AM</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title" style="margin-bottom:8px;">Dataset Info</div>
+              <div style="font-size:12px;color:var(--sds-color-warm-gray-550);">
+                <div style="padding:6px 0;border-bottom:1px solid var(--sds-color-warm-gray-100);display:flex;justify-content:space-between;">
+                  <span>Schema</span><strong style="color:var(--sds-color-warm-gray-700);">finance.transactions</strong>
+                </div>
+                <div style="padding:6px 0;border-bottom:1px solid var(--sds-color-warm-gray-100);display:flex;justify-content:space-between;">
+                  <span>Rows</span><strong style="color:var(--sds-color-warm-gray-700);">14.2M</strong>
+                </div>
+                <div style="padding:6px 0;display:flex;justify-content:space-between;">
+                  <span>Last updated</span><strong style="color:var(--sds-color-warm-gray-700);">2h ago</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCREEN 3: NEW REQUEST ===== -->
+<div class="screen" id="screen-new-request">
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="app-header-logo"><div class="logo-mark"><svg viewBox="0 0 16 16"><path d="M8 1L2 4.5v7L8 15l6-3.5v-7L8 1z"/></svg></div><span class="logo-text">Beacon</span></div>
+      <div class="app-header-actions"><div class="header-avatar">JC</div></div>
+    </header>
+    <div class="app-body">
+      <nav class="sidenav" aria-label="Main navigation">
+        <div class="nav-group-label">Access</div>
+        <a class="nav-item active" href="#"><span class="material-symbols-outlined">list_alt</span> My Requests</a>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">search</span> Data Catalog</a>
+        <div class="nav-group-label">Management</div>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">task_alt</span> Approvals</a>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">shield</span> Audit Log</a>
+        <div class="nav-spacer"></div>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">settings</span> Settings</a>
+      </nav>
+      <main class="main">
+        <div style="font-size:13px;color:var(--sds-color-blue-750);margin-bottom:16px;cursor:pointer;" onclick="showScreen('my-requests')">&larr; Back to My Requests</div>
+        <div class="page-title" style="margin-bottom:24px;">New Access Request</div>
+
+        <div style="max-width:560px;">
+          <div class="form-group">
+            <label class="form-label">Dataset</label>
+            <select class="form-select">
+              <option>Search or select a dataset...</option>
+              <option>customer_transactions</option>
+              <option>employee_records</option>
+              <option>product_analytics</option>
+              <option>marketing_campaigns</option>
+            </select>
+            <div class="form-hint">Start typing to search the data catalog</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Access Level</label>
+            <select class="form-select">
+              <option>Read-only</option>
+              <option>Read-write</option>
+              <option>Admin</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Duration</label>
+            <select class="form-select">
+              <option>30 days</option>
+              <option>90 days</option>
+              <option>1 year</option>
+              <option>Permanent (requires additional approval)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Business Justification</label>
+            <textarea class="form-textarea" placeholder="Describe why you need access and how you plan to use this data..."></textarea>
+            <div class="form-hint">A clear justification helps approvers make faster decisions</div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:24px;">
+            <button class="btn btn-primary">Submit Request</button>
+            <button class="btn btn-secondary" onclick="showScreen('my-requests')">Cancel</button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCREEN 4: DUPLICATE WARNING ===== -->
+<div class="screen" id="screen-duplicate-warning">
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="app-header-logo"><div class="logo-mark"><svg viewBox="0 0 16 16"><path d="M8 1L2 4.5v7L8 15l6-3.5v-7L8 1z"/></svg></div><span class="logo-text">Beacon</span></div>
+      <div class="app-header-actions"><div class="header-avatar">JC</div></div>
+    </header>
+    <div class="app-body">
+      <nav class="sidenav" aria-label="Main navigation">
+        <div class="nav-group-label">Access</div>
+        <a class="nav-item active" href="#"><span class="material-symbols-outlined">list_alt</span> My Requests</a>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">search</span> Data Catalog</a>
+        <div class="nav-spacer"></div>
+      </nav>
+      <main class="main">
+        <div style="font-size:13px;color:var(--sds-color-blue-750);margin-bottom:16px;cursor:pointer;" onclick="showScreen('new-request')">&larr; Back to New Request</div>
+        <div class="page-title" style="margin-bottom:24px;">New Access Request</div>
+
+        <div style="max-width:560px;">
+          <div class="callout-banner callout-banner--warning">
+            <span class="material-symbols-outlined">content_copy</span>
+            <div>
+              <strong>Existing request found</strong>
+              <p style="font-size:12px;margin-top:2px;color:var(--sds-color-warm-gray-650);">You already have a pending request for <strong>customer_transactions</strong> (REQ-2847). It is currently in review by Sarah Kim.</p>
+            </div>
+          </div>
+
+          <div class="card" style="border-color:var(--sds-color-yellow-200);">
+            <div class="card-header">
+              <div class="card-title">REQ-2847 &mdash; customer_transactions</div>
+              <span class="status-tag status-tag--in-review">In Review</span>
+            </div>
+            <div style="font-size:13px;color:var(--sds-color-warm-gray-550);">
+              <p>Submitted Mar 19, 2026 &middot; Read-only access &middot; Approver: Sarah Kim</p>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:16px;">
+              <button class="btn btn-primary btn-sm" onclick="showScreen('request-detail')">View Existing Request</button>
+              <button class="btn btn-secondary btn-sm">Submit Anyway</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCREEN 5: APPROVAL QUEUE ===== -->
+<div class="screen" id="screen-approval-queue">
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="app-header-logo"><div class="logo-mark"><svg viewBox="0 0 16 16"><path d="M8 1L2 4.5v7L8 15l6-3.5v-7L8 1z"/></svg></div><span class="logo-text">Beacon</span></div>
+      <div class="app-header-actions"><button class="header-icon-btn" aria-label="Notifications"><span class="material-symbols-outlined">notifications</span></button><div class="header-divider"></div><div class="header-avatar">SK</div></div>
+    </header>
+    <div class="app-body">
+      <nav class="sidenav" aria-label="Main navigation">
+        <div class="nav-group-label">Access</div>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">list_alt</span> My Requests</a>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">search</span> Data Catalog</a>
+        <div class="nav-group-label">Management</div>
+        <a class="nav-item active" href="#"><span class="material-symbols-outlined">task_alt</span> Approvals <span class="nav-badge">6</span></a>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">shield</span> Audit Log</a>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">policy</span> Policies</a>
+        <div class="nav-spacer"></div>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">settings</span> Settings</a>
+      </nav>
+      <main class="main">
+        <div class="page-title-bar">
+          <div>
+            <div class="page-title">Approval Queue</div>
+            <div class="page-subtitle">Review and action pending access requests</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary btn-sm"><span class="material-symbols-outlined">checklist</span> Batch Approve (Low Risk)</button>
+          </div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-card"><div class="stat-value">6</div><div class="stat-label">Pending</div></div>
+          <div class="stat-card"><div class="stat-value">2</div><div class="stat-label">High Risk</div></div>
+          <div class="stat-card"><div class="stat-value">23</div><div class="stat-label">Approved (30d)</div></div>
+          <div class="stat-card"><div class="stat-value">45m</div><div class="stat-label">Avg. Time to Approve</div></div>
+        </div>
+
+        <div class="tabs">
+          <div class="tab active">Pending (6)</div>
+          <div class="tab">Completed</div>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr><th></th><th>Request</th><th>Requestor</th><th>Dataset</th><th>Risk</th><th>Submitted</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" class="checkbox"></td>
+              <td><a class="link" onclick="showScreen('review-request')">REQ-2847</a></td>
+              <td>Jordan Chen</td>
+              <td>customer_transactions</td>
+              <td><div class="risk-meter"><div class="risk-bar filled-red"></div><div class="risk-bar filled-red"></div><div class="risk-bar filled-red"></div></div></td>
+              <td>Mar 19</td>
+              <td><button class="btn btn-primary btn-sm" onclick="showScreen('review-request')">Review</button></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="checkbox"></td>
+              <td><a class="link">REQ-2846</a></td>
+              <td>Alex Rivera</td>
+              <td>product_metrics</td>
+              <td><div class="risk-meter"><div class="risk-bar filled-green"></div><div class="risk-bar"></div><div class="risk-bar"></div></div></td>
+              <td>Mar 19</td>
+              <td><button class="btn btn-success btn-sm">Approve</button></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="checkbox"></td>
+              <td><a class="link">REQ-2845</a></td>
+              <td>Taylor Wright</td>
+              <td>user_activity_logs</td>
+              <td><div class="risk-meter"><div class="risk-bar filled-yellow"></div><div class="risk-bar filled-yellow"></div><div class="risk-bar"></div></div></td>
+              <td>Mar 18</td>
+              <td><button class="btn btn-primary btn-sm">Review</button></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="checkbox"></td>
+              <td><a class="link">REQ-2844</a></td>
+              <td>Morgan Lee</td>
+              <td>marketing_campaigns</td>
+              <td><div class="risk-meter"><div class="risk-bar filled-green"></div><div class="risk-bar"></div><div class="risk-bar"></div></div></td>
+              <td>Mar 18</td>
+              <td><button class="btn btn-success btn-sm">Approve</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </main>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCREEN 6: REVIEW REQUEST (Approver) ===== -->
+<div class="screen" id="screen-review-request">
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="app-header-logo"><div class="logo-mark"><svg viewBox="0 0 16 16"><path d="M8 1L2 4.5v7L8 15l6-3.5v-7L8 1z"/></svg></div><span class="logo-text">Beacon</span></div>
+      <div class="app-header-actions"><div class="header-avatar">SK</div></div>
+    </header>
+    <div class="app-body">
+      <nav class="sidenav" aria-label="Main navigation">
+        <div class="nav-group-label">Access</div>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">list_alt</span> My Requests</a>
+        <div class="nav-group-label">Management</div>
+        <a class="nav-item active" href="#"><span class="material-symbols-outlined">task_alt</span> Approvals</a>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">shield</span> Audit Log</a>
+        <div class="nav-spacer"></div>
+      </nav>
+      <main class="main">
+        <div style="font-size:13px;color:var(--sds-color-blue-750);margin-bottom:16px;cursor:pointer;" onclick="showScreen('approval-queue')">&larr; Back to Approval Queue</div>
+
+        <div class="page-title-bar">
+          <div>
+            <div class="page-title">Review REQ-2847</div>
+            <div class="page-subtitle">Jordan Chen requests read-only access to customer_transactions</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-success"><span class="material-symbols-outlined">check</span> Approve</button>
+            <button class="btn btn-danger"><span class="material-symbols-outlined">close</span> Deny</button>
+          </div>
+        </div>
+
+        <div class="callout-banner callout-banner--info">
+          <span class="material-symbols-outlined">info</span>
+          <div>This dataset is classified as <strong>High Sensitivity</strong>. It contains PII fields (customer_email, phone_number). Please ensure the requestor's justification warrants access to these fields.</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:12px;">Requestor Profile</div>
+            <div style="font-size:13px;">
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--sds-color-warm-gray-100);">
+                <span style="color:var(--sds-color-warm-gray-400);">Name</span><strong>Jordan Chen</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--sds-color-warm-gray-100);">
+                <span style="color:var(--sds-color-warm-gray-400);">Role</span><strong>Data Engineer</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--sds-color-warm-gray-100);">
+                <span style="color:var(--sds-color-warm-gray-400);">Team</span><strong>Data Platform</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;">
+                <span style="color:var(--sds-color-warm-gray-400);">Existing Access</span><strong>3 datasets</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title" style="margin-bottom:12px;">Dataset Details</div>
+            <div style="font-size:13px;">
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--sds-color-warm-gray-100);">
+                <span style="color:var(--sds-color-warm-gray-400);">Name</span><strong>customer_transactions</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--sds-color-warm-gray-100);">
+                <span style="color:var(--sds-color-warm-gray-400);">Sensitivity</span><span class="sensitivity sensitivity--high">High</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--sds-color-warm-gray-100);">
+                <span style="color:var(--sds-color-warm-gray-400);">Current Users</span><strong>8</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;">
+                <span style="color:var(--sds-color-warm-gray-400);">PII Fields</span><strong style="color:var(--sds-color-red-500);">4 fields</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px;">
+          <div class="card-title" style="margin-bottom:8px;">Business Justification</div>
+          <p style="font-size:13px;color:var(--sds-color-warm-gray-700);">Need read access to customer_transactions for the Q1 revenue pipeline. Building a dashboard for the finance team that aggregates transaction volumes by region.</p>
+        </div>
+
+        <div class="card" style="margin-top:12px;">
+          <div class="card-title" style="margin-bottom:8px;">Conditions (optional)</div>
+          <div class="form-group" style="margin-bottom:0;">
+            <textarea class="form-textarea" placeholder="Add conditions to this approval (e.g., mask PII fields, time-limited access)..." style="min-height:60px;"></textarea>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCREEN 7: AUDIT LOG ===== -->
+<div class="screen" id="screen-audit-log">
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="app-header-logo"><div class="logo-mark"><svg viewBox="0 0 16 16"><path d="M8 1L2 4.5v7L8 15l6-3.5v-7L8 1z"/></svg></div><span class="logo-text">Beacon</span></div>
+      <div class="app-header-actions"><div class="header-avatar">LP</div></div>
+    </header>
+    <div class="app-body">
+      <nav class="sidenav" aria-label="Main navigation">
+        <div class="nav-group-label">Access</div>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">list_alt</span> My Requests</a>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">search</span> Data Catalog</a>
+        <div class="nav-group-label">Management</div>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">task_alt</span> Approvals</a>
+        <a class="nav-item active" href="#"><span class="material-symbols-outlined">shield</span> Audit Log</a>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">policy</span> Policies</a>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">fact_check</span> Access Reviews</a>
+        <div class="nav-spacer"></div>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">settings</span> Settings</a>
+      </nav>
+      <main class="main">
+        <div class="page-title-bar">
+          <div>
+            <div class="page-title">Audit Log</div>
+            <div class="page-subtitle">Complete record of all access request actions</div>
+          </div>
+          <button class="btn btn-secondary"><span class="material-symbols-outlined">download</span> Export CSV</button>
+        </div>
+
+        <div class="filter-bar">
+          <input type="text" class="search-input" placeholder="Search events...">
+          <div class="filter-chip active">All Events</div>
+          <div class="filter-chip">Approvals</div>
+          <div class="filter-chip">Denials</div>
+          <div class="filter-chip">Provisioning</div>
+          <div class="filter-chip">Revocations</div>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr><th>Timestamp</th><th>Event</th><th>Request</th><th>Actor</th><th>Dataset</th><th>Details</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-size:12px;white-space:nowrap;">Mar 19, 2:15 PM</td>
+              <td><span class="status-tag status-tag--approved">Approved</span></td>
+              <td>REQ-2839</td>
+              <td>Mike Torres</td>
+              <td>product_analytics</td>
+              <td style="font-size:12px;color:var(--sds-color-warm-gray-400);">Read-only, 90 days</td>
+            </tr>
+            <tr>
+              <td style="font-size:12px;white-space:nowrap;">Mar 19, 2:15 PM</td>
+              <td><span class="status-tag status-tag--provisioned">Provisioned</span></td>
+              <td>REQ-2839</td>
+              <td>System</td>
+              <td>product_analytics</td>
+              <td style="font-size:12px;color:var(--sds-color-warm-gray-400);">Auto-provisioned</td>
+            </tr>
+            <tr>
+              <td style="font-size:12px;white-space:nowrap;">Mar 19, 10:02 AM</td>
+              <td><span class="status-tag status-tag--in-review">Routed</span></td>
+              <td>REQ-2847</td>
+              <td>System</td>
+              <td>customer_transactions</td>
+              <td style="font-size:12px;color:var(--sds-color-warm-gray-400);">Auto-routed to Sarah Kim</td>
+            </tr>
+            <tr>
+              <td style="font-size:12px;white-space:nowrap;">Mar 19, 10:00 AM</td>
+              <td><span class="status-tag status-tag--pending">Submitted</span></td>
+              <td>REQ-2847</td>
+              <td>Jordan Chen</td>
+              <td>customer_transactions</td>
+              <td style="font-size:12px;color:var(--sds-color-warm-gray-400);">Read-only access requested</td>
+            </tr>
+            <tr>
+              <td style="font-size:12px;white-space:nowrap;">Mar 15, 4:30 PM</td>
+              <td><span class="status-tag status-tag--denied">Denied</span></td>
+              <td>REQ-2831</td>
+              <td>Lisa Park</td>
+              <td>payroll_data</td>
+              <td style="font-size:12px;color:var(--sds-color-warm-gray-400);">Insufficient justification</td>
+            </tr>
+          </tbody>
+        </table>
+      </main>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCREEN 8: DENIED STATE ===== -->
+<div class="screen" id="screen-denied">
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="app-header-logo"><div class="logo-mark"><svg viewBox="0 0 16 16"><path d="M8 1L2 4.5v7L8 15l6-3.5v-7L8 1z"/></svg></div><span class="logo-text">Beacon</span></div>
+      <div class="app-header-actions"><div class="header-avatar">JC</div></div>
+    </header>
+    <div class="app-body">
+      <nav class="sidenav" aria-label="Main navigation">
+        <div class="nav-group-label">Access</div>
+        <a class="nav-item active" href="#"><span class="material-symbols-outlined">list_alt</span> My Requests</a>
+        <a class="nav-item" href="#"><span class="material-symbols-outlined">search</span> Data Catalog</a>
+        <div class="nav-spacer"></div>
+      </nav>
+      <main class="main">
+        <div style="font-size:13px;color:var(--sds-color-blue-750);margin-bottom:16px;cursor:pointer;" onclick="showScreen('my-requests')">&larr; Back to My Requests</div>
+
+        <div class="page-title-bar">
+          <div>
+            <div class="page-title">REQ-2831</div>
+            <div class="page-subtitle">Access to payroll_data &middot; Read-only</div>
+          </div>
+          <span class="status-tag status-tag--denied" style="font-size:13px;padding:4px 12px;">Denied</span>
+        </div>
+
+        <div class="callout-banner" style="background:var(--sds-color-red-050);border:1px solid var(--sds-color-red-500);color:var(--sds-color-red-500);">
+          <span class="material-symbols-outlined">block</span>
+          <div>
+            <strong>Request Denied by Lisa Park</strong>
+            <p style="font-size:12px;margin-top:2px;color:var(--sds-color-warm-gray-650);">Reason: Payroll data requires HR department approval and a completed security training certification. Please complete the Data Security Fundamentals course and resubmit with your HR manager's pre-approval.</p>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 300px;gap:24px;">
+          <div>
+            <div class="card">
+              <div class="card-title" style="margin-bottom:12px;">What You Can Do</div>
+              <div style="font-size:13px;color:var(--sds-color-warm-gray-700);">
+                <ol style="padding-left:18px;">
+                  <li style="margin-bottom:8px;">Complete the <strong>Data Security Fundamentals</strong> training course</li>
+                  <li style="margin-bottom:8px;">Get pre-approval from your HR manager</li>
+                  <li style="margin-bottom:8px;">Resubmit this request with the updated justification</li>
+                </ol>
+              </div>
+              <div style="margin-top:16px;">
+                <button class="btn btn-primary btn-sm"><span class="material-symbols-outlined">refresh</span> Amend &amp; Resubmit</button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card">
+              <div class="card-title" style="margin-bottom:16px;">Status Timeline</div>
+              <div class="timeline">
+                <div class="timeline-item">
+                  <div class="timeline-dot timeline-dot--error"></div>
+                  <div class="timeline-label">Denied</div>
+                  <div class="timeline-meta">Lisa Park &middot; Mar 15, 4:30 PM</div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-dot timeline-dot--success"></div>
+                  <div class="timeline-label">Routed to Approver</div>
+                  <div class="timeline-meta">Auto-routed &middot; Mar 15, 9:05 AM</div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-dot timeline-dot--success"></div>
+                  <div class="timeline-label">Submitted</div>
+                  <div class="timeline-meta">Jordan Chen &middot; Mar 15, 9:02 AM</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+<script>
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.screen-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  // Activate the matching button
+  document.querySelectorAll('.screen-btn').forEach(b => {
+    if (b.textContent.toLowerCase().replace(/\s+/g, '-') === id ||
+        b.onclick.toString().includes("'" + id + "'")) {
+      b.classList.add('active');
+    }
+  });
+  window.scrollTo(0, 0);
+}
+</script>
+
+<!-- Design self-challenge note -->
+<div style="max-width:1200px;margin:24px auto;padding:16px 20px;border-radius:8px;background:var(--sds-color-warm-gray-025);border:1px dashed var(--sds-color-warm-gray-200);font-size:12px;color:var(--sds-color-warm-gray-550);">
+  <strong style="color:var(--sds-color-warm-gray-700);">Self-Challenge Notes (Stage 5)</strong>
+  <ul style="padding-left:16px;margin-top:8px;">
+    <li><strong>Research alignment check:</strong> The #1 pain point was "no visibility into request status" — addressed with the status timeline component on every request detail and the real-time status tags on the list view.</li>
+    <li><strong>Duplicate detection:</strong> The ~30% duplicate rate is addressed with the dedicated duplicate warning screen that surfaces existing requests before creating new ones.</li>
+    <li><strong>Approver overwhelm:</strong> The batch approval pattern and risk meter help data owners triage efficiently instead of batch-approving everything blindly.</li>
+    <li><strong>Audit trail gap:</strong> The audit log screen provides the immutable, filterable, exportable log that security admins need for compliance.</li>
+    <li><strong>Iteration made:</strong> Initially designed the approval queue without risk indicators. Revised to add the risk meter after re-reading the journey map — the "batch approver" pattern showed owners approving without proper risk assessment. The visual risk indicator enables informed batch decisions.</li>
+  </ul>
+  <p style="margin-top:8px;">[CHECKPOINT] Stage 5 complete — would pause here for user confirmation before running critique.</p>
+</div>
+
+</body>
+</html>

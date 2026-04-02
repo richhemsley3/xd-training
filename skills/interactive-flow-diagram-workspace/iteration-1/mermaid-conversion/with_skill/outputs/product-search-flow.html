@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Search &amp; Purchase — Interactive Flow</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    :root {
+      --sds-interactive-primary: #013D5B;
+      --sds-text-primary: #1C1A17;
+      --sds-text-secondary: #6B6560;
+      --sds-border-default: #E0DCD3;
+      --sds-bg-surface: #FFFFFF;
+      --sds-bg-page: #F7F5F0;
+      --sds-status-success-bg: #E8F5E9;
+      --sds-status-success-border: #4CAF50;
+      --sds-status-success-text: #2E7D32;
+      --sds-status-warning-bg: #FFF8E1;
+      --sds-status-warning-border: #FFC107;
+      --sds-status-error-bg: #FFEBEE;
+      --sds-status-error-border: #F44336;
+      --sds-status-info-bg: #E3F2FD;
+      --sds-status-info-border: #2196F3;
+
+      --phase-search: #EBF4F5;
+      --phase-search-border: #0C4A69;
+      --phase-product: #F4FAEB;
+      --phase-product-border: #4A6B2F;
+      --phase-purchase: #FCF9D9;
+      --phase-purchase-border: #8B7D2A;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--sds-bg-page);
+      color: var(--sds-text-primary);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    #breadcrumb {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: var(--sds-bg-surface);
+      border-bottom: 1px solid var(--sds-border-default);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      height: 48px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    #breadcrumb .crumb {
+      color: var(--sds-interactive-primary);
+      cursor: pointer;
+      font-weight: 500;
+      transition: opacity 0.15s;
+    }
+
+    #breadcrumb .crumb:hover { opacity: 0.7; }
+
+    #breadcrumb .separator {
+      color: var(--sds-text-secondary);
+      font-size: 12px;
+    }
+
+    #breadcrumb .current {
+      color: var(--sds-text-primary);
+      font-weight: 600;
+    }
+
+    #title-bar {
+      position: fixed;
+      top: 48px;
+      left: 0;
+      right: 0;
+      z-index: 99;
+      background: var(--sds-bg-surface);
+      border-bottom: 1px solid var(--sds-border-default);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    #title-bar h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--sds-text-primary);
+    }
+
+    #title-bar .subtitle {
+      font-size: 13px;
+      color: var(--sds-text-secondary);
+      margin-top: 2px;
+    }
+
+    #title-bar .zoom-hint {
+      font-size: 12px;
+      color: var(--sds-text-secondary);
+      background: var(--sds-bg-page);
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--sds-border-default);
+    }
+
+    #canvas-container {
+      position: fixed;
+      top: 110px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+
+    svg:active { cursor: grabbing; }
+
+    /* Node hover effects are handled by D3 */
+
+    /* Detail sidebar */
+    #detail-panel {
+      position: fixed;
+      top: 0;
+      right: -420px;
+      width: 420px;
+      height: 100vh;
+      background: var(--sds-bg-surface);
+      border-left: 1px solid var(--sds-border-default);
+      box-shadow: -4px 0 16px rgba(0,0,0,0.08);
+      z-index: 200;
+      overflow-y: auto;
+      transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 0;
+    }
+
+    #detail-panel.open { right: 0; }
+
+    #detail-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.2);
+      z-index: 199;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    #detail-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .detail-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--sds-border-default);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .detail-header h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--sds-text-primary);
+    }
+
+    .detail-header .type-badge {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      margin-top: 6px;
+      display: inline-block;
+    }
+
+    .detail-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: var(--sds-bg-page);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--sds-text-secondary);
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+
+    .detail-close:hover { background: var(--sds-border-default); }
+
+    .detail-section {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--sds-border-default);
+    }
+
+    .detail-section:last-child { border-bottom: none; }
+
+    .detail-section h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--sds-text-secondary);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .detail-section p {
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--sds-text-primary);
+    }
+
+    .detail-section ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .detail-section ul li {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--sds-text-primary);
+      padding: 6px 0;
+      border-bottom: 1px solid var(--sds-bg-page);
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .detail-section ul li:last-child { border-bottom: none; }
+
+    .detail-section ul li .bullet {
+      flex-shrink: 0;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-top: 6px;
+    }
+
+    .exit-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: var(--sds-bg-page);
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .exit-arrow {
+      color: var(--sds-interactive-primary);
+      font-weight: 600;
+    }
+
+    .exit-label {
+      color: var(--sds-text-secondary);
+      font-size: 12px;
+    }
+
+    /* Minimap */
+    #minimap {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      width: 180px;
+      height: 120px;
+      background: var(--sds-bg-surface);
+      border: 1px solid var(--sds-border-default);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 50;
+      overflow: hidden;
+      display: none;
+    }
+
+    #minimap svg {
+      cursor: default;
+    }
+
+    .minimap-viewport {
+      fill: rgba(1, 61, 91, 0.1);
+      stroke: var(--sds-interactive-primary);
+      stroke-width: 2;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="breadcrumb">
+    <span class="current" id="bc-root">Product Search &amp; Purchase Flow</span>
+  </div>
+
+  <div id="title-bar">
+    <div>
+      <h1 id="view-title">Product Search &amp; Purchase Flow</h1>
+      <div class="subtitle" id="view-subtitle">Click a phase to explore its flow</div>
+    </div>
+    <div class="zoom-hint">Scroll to zoom &middot; Drag to pan</div>
+  </div>
+
+  <div id="canvas-container">
+    <svg id="main-svg"></svg>
+  </div>
+
+  <div id="minimap"><svg id="minimap-svg"></svg></div>
+
+  <div id="detail-overlay"></div>
+  <div id="detail-panel">
+    <div id="detail-content"></div>
+  </div>
+
+  <script>
+    // ==========================================
+    // FLOW DATA — converted from Mermaid diagram
+    // ==========================================
+    const flowData = {
+      title: "Product Search & Purchase Flow",
+      phases: [
+        {
+          id: "search",
+          label: "Search",
+          description: "Find products through search",
+          icon: "search",
+          color: "#EBF4F5",
+          borderColor: "#0C4A69",
+          nodes: [
+            {
+              id: "start",
+              type: "start",
+              label: "Start",
+              screenType: "entry",
+              userAction: "User begins their product search journey",
+              description: "Entry point for the product search and purchase flow. The user arrives at the application ready to find and purchase a product.",
+              edgeCases: [
+                "User may arrive from a deep link or marketing campaign",
+                "Returning users may have saved search history"
+              ],
+              exits: [
+                { to: "search-products", label: "Begin search" }
+              ]
+            },
+            {
+              id: "search-products",
+              type: "screen",
+              label: "Search Products",
+              screenType: "form",
+              userAction: "Enter search terms, apply filters, browse categories",
+              description: "The main product search interface where users can type keywords, apply category filters, set price ranges, and browse product listings.",
+              edgeCases: [
+                "Empty state: First-time visitor with no search history",
+                "Autocomplete suggestions may fail to load",
+                "Very long search queries may need truncation"
+              ],
+              exits: [
+                { to: "found-results", label: "Submit search" }
+              ]
+            },
+            {
+              id: "found-results",
+              type: "decision",
+              label: "Found results?",
+              screenType: "decision",
+              userAction: "System evaluates whether matching products exist",
+              description: "Decision point where the system determines if the search query returned any matching products from the catalog.",
+              edgeCases: [
+                "Partial matches may return low-relevance results",
+                "Search service timeout could cause false negatives"
+              ],
+              exits: [
+                { to: "product-detail", label: "Yes — results found" },
+                { to: "no-results", label: "No — no matches" }
+              ]
+            },
+            {
+              id: "no-results",
+              type: "error",
+              label: "No Results Page",
+              screenType: "empty",
+              userAction: "Review suggestions, modify search, or browse categories",
+              description: "Displayed when no products match the search criteria. Shows helpful suggestions including alternative search terms, popular categories, and trending products.",
+              edgeCases: [
+                "Spell-check suggestions may not cover all languages",
+                "Category suggestions should be contextually relevant",
+                "User may become frustrated after repeated no-result searches"
+              ],
+              exits: [
+                { to: "search-products", label: "Refine search" }
+              ]
+            }
+          ],
+          edges: [
+            { from: "start", to: "search-products", label: "Begin", isHappyPath: true },
+            { from: "search-products", to: "found-results", label: "Search", isHappyPath: true },
+            { from: "found-results", to: "no-results", label: "No" },
+            { from: "no-results", to: "search-products", label: "Retry" }
+          ]
+        },
+        {
+          id: "product",
+          label: "Product",
+          description: "View product details and availability",
+          icon: "package",
+          color: "#F4FAEB",
+          borderColor: "#4A6B2F",
+          nodes: [
+            {
+              id: "product-detail",
+              type: "screen",
+              label: "Product Detail",
+              screenType: "detail",
+              userAction: "View product information, images, reviews, and pricing",
+              description: "Full product detail page showing images, description, specifications, pricing, reviews, and availability status. Users can select variants (size, color) if applicable.",
+              edgeCases: [
+                "Product images may fail to load — show placeholder",
+                "Price may vary by selected variant",
+                "Reviews section could be empty for new products",
+                "Product may be discontinued between search and detail view"
+              ],
+              exits: [
+                { to: "in-stock", label: "Check availability" }
+              ]
+            },
+            {
+              id: "in-stock",
+              type: "decision",
+              label: "In Stock?",
+              screenType: "decision",
+              userAction: "System checks current inventory status",
+              description: "Real-time inventory check to determine if the product is currently available for purchase. Status may vary by warehouse location and selected variant.",
+              edgeCases: [
+                "Stock status may change between page load and add-to-cart",
+                "Limited stock warning threshold (e.g., 'Only 3 left')",
+                "Backorder options may be available for some products"
+              ],
+              exits: [
+                { to: "add-to-cart", label: "Yes — available" },
+                { to: "notify-available", label: "No — out of stock" }
+              ]
+            },
+            {
+              id: "notify-available",
+              type: "screen",
+              label: "Notify When Available",
+              screenType: "form",
+              userAction: "Enter email to receive restock notification",
+              description: "Allows users to register for email notifications when an out-of-stock product becomes available again. Collects email address and optionally preferred variant.",
+              edgeCases: [
+                "User may already be registered for this notification",
+                "Email validation failures",
+                "Product may be permanently discontinued"
+              ],
+              exits: []
+            }
+          ],
+          edges: [
+            { from: "product-detail", to: "in-stock", label: "Check stock", isHappyPath: true },
+            { from: "in-stock", to: "notify-available", label: "No" }
+          ]
+        },
+        {
+          id: "purchase",
+          label: "Purchase",
+          description: "Complete the purchase transaction",
+          icon: "shopping-cart",
+          color: "#FCF9D9",
+          borderColor: "#8B7D2A",
+          nodes: [
+            {
+              id: "add-to-cart",
+              type: "screen",
+              label: "Add to Cart",
+              screenType: "form",
+              userAction: "Select quantity, confirm variant, add item to shopping cart",
+              description: "Cart addition interface where users confirm their selection (quantity, variant) and add the product to their shopping cart. Shows a confirmation with cart summary.",
+              edgeCases: [
+                "Stock depleted between detail view and cart addition",
+                "Cart may have maximum item limits",
+                "Duplicate items should increment quantity"
+              ],
+              exits: [
+                { to: "checkout", label: "Proceed to checkout" }
+              ]
+            },
+            {
+              id: "checkout",
+              type: "screen",
+              label: "Checkout",
+              screenType: "form",
+              userAction: "Enter shipping, payment details, and confirm order",
+              description: "Multi-step checkout process including shipping address, payment method selection, order review, and final confirmation. Supports saved addresses and payment methods for returning users.",
+              edgeCases: [
+                "Payment processing failure — show retry option",
+                "Address validation failures",
+                "Coupon/promo code invalid or expired",
+                "Session timeout during checkout",
+                "Cart contents changed while in checkout"
+              ],
+              exits: [
+                { to: "order-confirmed", label: "Place order" }
+              ]
+            },
+            {
+              id: "order-confirmed",
+              type: "end",
+              label: "Order Confirmed",
+              screenType: "detail",
+              userAction: "View order confirmation and tracking details",
+              description: "Confirmation page displaying order number, estimated delivery date, and order summary. Provides links to track the order and continue shopping.",
+              edgeCases: [
+                "Confirmation email may be delayed",
+                "User may want to immediately modify the order"
+              ],
+              exits: []
+            }
+          ],
+          edges: [
+            { from: "add-to-cart", to: "checkout", label: "Checkout", isHappyPath: true },
+            { from: "checkout", to: "order-confirmed", label: "Confirm", isHappyPath: true }
+          ]
+        }
+      ],
+      crossPhaseEdges: [
+        { from: "search/found-results", to: "product/product-detail", label: "Yes", style: "solid", isHappyPath: true },
+        { from: "product/in-stock", to: "purchase/add-to-cart", label: "Yes", style: "solid", isHappyPath: true }
+      ]
+    };
+
+    // ==========================================
+    // SVG ICONS (Lucide-style inline SVGs)
+    // ==========================================
+    const icons = {
+      search: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`,
+      package: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16.5 9.4-9-5.19"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" x2="12" y1="22.08" y2="12"/></svg>`,
+      'shopping-cart': `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>`,
+      check: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+      play: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>`,
+      'alert-circle': `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>`,
+      close: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`,
+      'chevron-right': `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>`,
+      diamond: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 12l10 10 10-10z"/></svg>`,
+      monitor: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>`,
+      bell: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>`,
+      'arrow-right': `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>`
+    };
+
+    // ==========================================
+    // APP STATE
+    // ==========================================
+    let currentLevel = 1;
+    let currentPhase = null;
+    let svg, g, zoom;
+    const width = window.innerWidth;
+    const height = window.innerHeight - 110;
+
+    // ==========================================
+    // INITIALIZE
+    // ==========================================
+    function init() {
+      svg = d3.select('#main-svg');
+
+      zoom = d3.zoom()
+        .scaleExtent([0.3, 3])
+        .on('zoom', (event) => {
+          g.attr('transform', event.transform);
+        });
+
+      svg.call(zoom);
+      g = svg.append('g');
+
+      // Arrow marker definitions
+      const defs = svg.append('defs');
+
+      // Standard arrow
+      defs.append('marker')
+        .attr('id', 'arrow')
+        .attr('viewBox', '0 0 10 10')
+        .attr('refX', 10)
+        .attr('refY', 5)
+        .attr('markerWidth', 8)
+        .attr('markerHeight', 8)
+        .attr('orient', 'auto-start-reverse')
+        .append('path')
+        .attr('d', 'M 0 0 L 10 5 L 0 10 z')
+        .attr('fill', '#999');
+
+      // Happy path arrow
+      defs.append('marker')
+        .attr('id', 'arrow-happy')
+        .attr('viewBox', '0 0 10 10')
+        .attr('refX', 10)
+        .attr('refY', 5)
+        .attr('markerWidth', 8)
+        .attr('markerHeight', 8)
+        .attr('orient', 'auto-start-reverse')
+        .append('path')
+        .attr('d', 'M 0 0 L 10 5 L 0 10 z')
+        .attr('fill', '#013D5B');
+
+      // Drop shadow filter
+      const filter = defs.append('filter')
+        .attr('id', 'drop-shadow')
+        .attr('x', '-20%').attr('y', '-20%')
+        .attr('width', '140%').attr('height', '140%');
+      filter.append('feDropShadow')
+        .attr('dx', 0).attr('dy', 2).attr('stdDeviation', 4)
+        .attr('flood-color', 'rgba(0,0,0,0.08)');
+
+      // Hover shadow
+      const hoverFilter = defs.append('filter')
+        .attr('id', 'hover-shadow')
+        .attr('x', '-20%').attr('y', '-20%')
+        .attr('width', '140%').attr('height', '140%');
+      hoverFilter.append('feDropShadow')
+        .attr('dx', 0).attr('dy', 4).attr('stdDeviation', 8)
+        .attr('flood-color', 'rgba(0,0,0,0.12)');
+
+      renderLevel1();
+    }
+
+    // ==========================================
+    // LEVEL 1 — OVERVIEW
+    // ==========================================
+    function renderLevel1() {
+      currentLevel = 1;
+      currentPhase = null;
+      g.selectAll('*').remove();
+
+      updateBreadcrumb([{ label: flowData.title, active: true }]);
+      document.getElementById('view-title').textContent = flowData.title;
+      document.getElementById('view-subtitle').textContent = 'Click a phase to explore its flow';
+      document.getElementById('minimap').style.display = 'none';
+
+      const phases = flowData.phases;
+      const phaseWidth = 260;
+      const phaseHeight = 140;
+      const gap = 100;
+      const totalWidth = phases.length * phaseWidth + (phases.length - 1) * gap;
+      const startX = (width - totalWidth) / 2;
+      const centerY = height / 2 - 30;
+
+      // Draw connecting arrows between phases
+      for (let i = 0; i < phases.length - 1; i++) {
+        const x1 = startX + i * (phaseWidth + gap) + phaseWidth;
+        const x2 = startX + (i + 1) * (phaseWidth + gap);
+        const y = centerY + phaseHeight / 2;
+
+        g.append('path')
+          .attr('d', `M ${x1} ${y} L ${x2} ${y}`)
+          .attr('stroke', '#013D5B')
+          .attr('stroke-width', 2.5)
+          .attr('fill', 'none')
+          .attr('marker-end', 'url(#arrow-happy)')
+          .attr('opacity', 0)
+          .transition().duration(500).delay(200 + i * 100)
+          .attr('opacity', 1);
+      }
+
+      // Draw phase nodes
+      phases.forEach((phase, i) => {
+        const x = startX + i * (phaseWidth + gap);
+        const y = centerY;
+
+        const node = g.append('g')
+          .attr('class', 'phase-node')
+          .attr('transform', `translate(${x}, ${y})`)
+          .attr('cursor', 'pointer')
+          .attr('opacity', 0);
+
+        node.transition().duration(400).delay(i * 100)
+          .attr('opacity', 1);
+
+        // Background rect
+        node.append('rect')
+          .attr('width', phaseWidth)
+          .attr('height', phaseHeight)
+          .attr('rx', 16)
+          .attr('fill', phase.color)
+          .attr('stroke', phase.borderColor)
+          .attr('stroke-width', 2)
+          .attr('filter', 'url(#drop-shadow)');
+
+        // Phase number
+        node.append('circle')
+          .attr('cx', 32)
+          .attr('cy', 36)
+          .attr('r', 16)
+          .attr('fill', phase.borderColor)
+          .attr('opacity', 0.15);
+
+        node.append('text')
+          .attr('x', 32)
+          .attr('y', 41)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '13px')
+          .attr('font-weight', '700')
+          .attr('fill', phase.borderColor)
+          .text(i + 1);
+
+        // Label
+        node.append('text')
+          .attr('x', 56)
+          .attr('y', 42)
+          .attr('font-size', '18px')
+          .attr('font-weight', '700')
+          .attr('fill', '#1C1A17')
+          .text(phase.label);
+
+        // Description
+        node.append('text')
+          .attr('x', 20)
+          .attr('y', 72)
+          .attr('font-size', '13px')
+          .attr('fill', '#6B6560')
+          .text(phase.description);
+
+        // Node count
+        node.append('text')
+          .attr('x', 20)
+          .attr('y', 105)
+          .attr('font-size', '12px')
+          .attr('fill', '#6B6560')
+          .text(`${phase.nodes.length} steps`);
+
+        // CTA hint
+        node.append('text')
+          .attr('x', phaseWidth - 20)
+          .attr('y', 105)
+          .attr('text-anchor', 'end')
+          .attr('font-size', '12px')
+          .attr('font-weight', '600')
+          .attr('fill', phase.borderColor)
+          .text('Explore →');
+
+        // Hover and click
+        node.on('mouseover', function() {
+          d3.select(this).select('rect')
+            .transition().duration(150)
+            .attr('filter', 'url(#hover-shadow)')
+            .attr('stroke-width', 2.5);
+          d3.select(this)
+            .transition().duration(150)
+            .attr('transform', `translate(${x - 2}, ${y - 2}) scale(1.02)`);
+        });
+
+        node.on('mouseout', function() {
+          d3.select(this).select('rect')
+            .transition().duration(150)
+            .attr('filter', 'url(#drop-shadow)')
+            .attr('stroke-width', 2);
+          d3.select(this)
+            .transition().duration(150)
+            .attr('transform', `translate(${x}, ${y})`);
+        });
+
+        node.on('click', function() {
+          // Click pulse
+          d3.select(this).select('rect')
+            .transition().duration(100)
+            .attr('stroke-width', 4)
+            .transition().duration(200)
+            .attr('stroke-width', 2);
+
+          setTimeout(() => renderLevel2(phase), 250);
+        });
+      });
+
+      // Reset zoom
+      svg.transition().duration(400)
+        .call(zoom.transform, d3.zoomIdentity);
+    }
+
+    // ==========================================
+    // LEVEL 2 — FLOW DETAIL
+    // ==========================================
+    function renderLevel2(phase) {
+      currentLevel = 2;
+      currentPhase = phase;
+      g.selectAll('*').remove();
+
+      updateBreadcrumb([
+        { label: flowData.title, active: false, action: () => renderLevel1() },
+        { label: phase.label, active: true }
+      ]);
+      document.getElementById('view-title').textContent = phase.label;
+      document.getElementById('view-subtitle').textContent = phase.description + ' — Click a node for details';
+
+      const nodes = phase.nodes;
+      const nodeW = 200;
+      const nodeH = 64;
+      const gapX = 120;
+      const gapY = 120;
+
+      // Layout: position nodes
+      // Use a simple left-to-right layout with decisions branching down
+      const positions = computeLayout(phase, nodeW, nodeH, gapX, gapY);
+
+      // Center the view
+      const allX = Object.values(positions).map(p => p.x);
+      const allY = Object.values(positions).map(p => p.y);
+      const minX = Math.min(...allX) - 60;
+      const maxX = Math.max(...allX) + nodeW + 60;
+      const minY = Math.min(...allY) - 60;
+      const maxY = Math.max(...allY) + nodeH + 60;
+      const contentW = maxX - minX;
+      const contentH = maxY - minY;
+      const scale = Math.min(width / contentW, height / contentH, 1) * 0.85;
+      const tx = (width - contentW * scale) / 2 - minX * scale;
+      const ty = (height - contentH * scale) / 2 - minY * scale;
+
+      // Draw edges first (behind nodes)
+      phase.edges.forEach((edge, i) => {
+        const fromPos = positions[edge.from];
+        const toPos = positions[edge.to];
+        if (!fromPos || !toPos) return;
+
+        const fromCx = fromPos.x + nodeW / 2;
+        const fromCy = fromPos.y + nodeH / 2;
+        const toCx = toPos.x + nodeW / 2;
+        const toCy = toPos.y + nodeH / 2;
+
+        // Calculate edge path with proper start/end points at node boundaries
+        const path = computeEdgePath(fromPos, toPos, nodeW, nodeH);
+
+        const edgePath = g.append('path')
+          .attr('d', path)
+          .attr('fill', 'none')
+          .attr('stroke', edge.isHappyPath ? '#013D5B' : '#C0BCB5')
+          .attr('stroke-width', edge.isHappyPath ? 3 : 1.5)
+          .attr('stroke-dasharray', edge.isHappyPath ? 'none' : 'none')
+          .attr('marker-end', edge.isHappyPath ? 'url(#arrow-happy)' : 'url(#arrow)')
+          .attr('opacity', 0);
+
+        edgePath.transition().duration(400).delay(200 + i * 50)
+          .attr('opacity', 1);
+
+        // Edge label
+        if (edge.label) {
+          const midX = (fromPos.x + nodeW / 2 + toPos.x + nodeW / 2) / 2;
+          const midY = (fromPos.y + nodeH / 2 + toPos.y + nodeH / 2) / 2;
+
+          const labelG = g.append('g')
+            .attr('transform', `translate(${midX}, ${midY})`)
+            .attr('opacity', 0);
+
+          labelG.append('rect')
+            .attr('x', -20)
+            .attr('y', -10)
+            .attr('width', 40)
+            .attr('height', 20)
+            .attr('rx', 4)
+            .attr('fill', 'white')
+            .attr('stroke', edge.isHappyPath ? '#013D5B' : '#E0DCD3')
+            .attr('stroke-width', 1);
+
+          labelG.append('text')
+            .attr('text-anchor', 'middle')
+            .attr('dy', 4)
+            .attr('font-size', '11px')
+            .attr('font-weight', edge.isHappyPath ? '600' : '400')
+            .attr('fill', edge.isHappyPath ? '#013D5B' : '#6B6560')
+            .text(edge.label);
+
+          labelG.transition().duration(400).delay(300 + i * 50)
+            .attr('opacity', 1);
+        }
+      });
+
+      // Draw nodes
+      nodes.forEach((node, i) => {
+        const pos = positions[node.id];
+        if (!pos) return;
+
+        const nodeG = g.append('g')
+          .attr('class', 'flow-node')
+          .attr('transform', `translate(${pos.x}, ${pos.y})`)
+          .attr('cursor', 'pointer')
+          .attr('opacity', 0);
+
+        nodeG.transition().duration(400).delay(i * 80)
+          .attr('opacity', 1);
+
+        drawNode(nodeG, node, nodeW, nodeH, phase);
+
+        // Hover
+        nodeG.on('mouseover', function() {
+          d3.select(this).select('.node-bg')
+            .transition().duration(150)
+            .attr('filter', 'url(#hover-shadow)');
+          d3.select(this)
+            .transition().duration(150)
+            .attr('transform', `translate(${pos.x - 1}, ${pos.y - 1}) scale(1.03)`);
+        });
+
+        nodeG.on('mouseout', function() {
+          d3.select(this).select('.node-bg')
+            .transition().duration(150)
+            .attr('filter', 'url(#drop-shadow)');
+          d3.select(this)
+            .transition().duration(150)
+            .attr('transform', `translate(${pos.x}, ${pos.y})`);
+        });
+
+        nodeG.on('click', function() {
+          showDetail(node, phase);
+        });
+      });
+
+      // Animate to center
+      svg.transition().duration(500)
+        .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+
+      // Show minimap if > 8 nodes
+      if (nodes.length > 8) {
+        renderMinimap(positions, nodeW, nodeH, phase);
+      } else {
+        document.getElementById('minimap').style.display = 'none';
+      }
+    }
+
+    // ==========================================
+    // NODE DRAWING
+    // ==========================================
+    function drawNode(nodeG, node, w, h, phase) {
+      const styles = getNodeStyle(node.type, phase);
+
+      if (node.type === 'decision') {
+        // Diamond shape
+        const dw = w * 0.65;
+        const dh = h * 1.1;
+        nodeG.append('polygon')
+          .attr('class', 'node-bg')
+          .attr('points', `${w/2},${(h-dh)/2} ${w/2+dw/2},${h/2} ${w/2},${(h+dh)/2} ${w/2-dw/2},${h/2}`)
+          .attr('fill', styles.fill)
+          .attr('stroke', styles.stroke)
+          .attr('stroke-width', 2)
+          .attr('filter', 'url(#drop-shadow)');
+
+        nodeG.append('text')
+          .attr('x', w / 2)
+          .attr('y', h / 2 + 5)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '13px')
+          .attr('font-weight', '600')
+          .attr('fill', styles.textColor)
+          .text(node.label);
+
+      } else if (node.type === 'start' || node.type === 'end') {
+        // Pill/stadium shape
+        nodeG.append('rect')
+          .attr('class', 'node-bg')
+          .attr('width', w)
+          .attr('height', h)
+          .attr('rx', h / 2)
+          .attr('fill', styles.fill)
+          .attr('stroke', styles.stroke)
+          .attr('stroke-width', 2)
+          .attr('filter', 'url(#drop-shadow)');
+
+        // Icon
+        const iconX = 24;
+        const iconG = nodeG.append('g')
+          .attr('transform', `translate(${iconX}, ${h/2 - 8})`)
+          .attr('color', styles.iconColor);
+        iconG.html(node.type === 'start' ? icons.play : icons.check);
+
+        nodeG.append('text')
+          .attr('x', iconX + 26)
+          .attr('y', h / 2 + 5)
+          .attr('font-size', '14px')
+          .attr('font-weight', '600')
+          .attr('fill', styles.textColor)
+          .text(node.label);
+
+      } else if (node.type === 'error') {
+        // Rectangle with red left accent
+        nodeG.append('rect')
+          .attr('class', 'node-bg')
+          .attr('width', w)
+          .attr('height', h)
+          .attr('rx', 10)
+          .attr('fill', styles.fill)
+          .attr('stroke', styles.stroke)
+          .attr('stroke-width', 1.5)
+          .attr('filter', 'url(#drop-shadow)');
+
+        // Red accent bar
+        nodeG.append('rect')
+          .attr('width', 4)
+          .attr('height', h - 16)
+          .attr('x', 6)
+          .attr('y', 8)
+          .attr('rx', 2)
+          .attr('fill', '#F44336');
+
+        // Icon
+        const iconG = nodeG.append('g')
+          .attr('transform', `translate(${20}, ${h/2 - 8})`)
+          .attr('color', '#F44336');
+        iconG.html(icons['alert-circle']);
+
+        nodeG.append('text')
+          .attr('x', 44)
+          .attr('y', h / 2 - 4)
+          .attr('font-size', '13px')
+          .attr('font-weight', '600')
+          .attr('fill', styles.textColor)
+          .text(node.label);
+
+        nodeG.append('text')
+          .attr('x', 44)
+          .attr('y', h / 2 + 14)
+          .attr('font-size', '11px')
+          .attr('fill', '#6B6560')
+          .text(node.screenType);
+
+      } else {
+        // Standard screen rectangle
+        nodeG.append('rect')
+          .attr('class', 'node-bg')
+          .attr('width', w)
+          .attr('height', h)
+          .attr('rx', 10)
+          .attr('fill', styles.fill)
+          .attr('stroke', styles.stroke)
+          .attr('stroke-width', 1.5)
+          .attr('filter', 'url(#drop-shadow)');
+
+        // Icon
+        const iconG = nodeG.append('g')
+          .attr('transform', `translate(${16}, ${h/2 - 8})`)
+          .attr('color', phase.borderColor);
+        iconG.html(icons.monitor);
+
+        nodeG.append('text')
+          .attr('x', 42)
+          .attr('y', h / 2 - 4)
+          .attr('font-size', '13px')
+          .attr('font-weight', '600')
+          .attr('fill', styles.textColor)
+          .text(node.label);
+
+        nodeG.append('text')
+          .attr('x', 42)
+          .attr('y', h / 2 + 14)
+          .attr('font-size', '11px')
+          .attr('fill', '#6B6560')
+          .text(node.screenType);
+      }
+    }
+
+    function getNodeStyle(type, phase) {
+      switch (type) {
+        case 'start':
+          return { fill: '#E8F5E9', stroke: '#4CAF50', textColor: '#2E7D32', iconColor: '#2E7D32' };
+        case 'end':
+          return { fill: '#4CAF50', stroke: '#388E3C', textColor: '#FFFFFF', iconColor: '#FFFFFF' };
+        case 'decision':
+          return { fill: '#FFF8E1', stroke: phase.borderColor, textColor: '#1C1A17', iconColor: phase.borderColor };
+        case 'error':
+          return { fill: '#FFF5F5', stroke: '#FFCDD2', textColor: '#1C1A17', iconColor: '#F44336' };
+        case 'external':
+          return { fill: '#F5F5F5', stroke: '#BDBDBD', textColor: '#1C1A17', iconColor: '#757575' };
+        default:
+          return { fill: '#FFFFFF', stroke: '#E0DCD3', textColor: '#1C1A17', iconColor: phase.borderColor };
+      }
+    }
+
+    // ==========================================
+    // LAYOUT COMPUTATION
+    // ==========================================
+    function computeLayout(phase, nodeW, nodeH, gapX, gapY) {
+      const positions = {};
+      const nodes = phase.nodes;
+      const edges = phase.edges;
+
+      // Build adjacency for simple tree layout
+      const children = {};
+      const branchDown = {};
+      edges.forEach(e => {
+        if (!children[e.from]) children[e.from] = [];
+        children[e.from].push({ to: e.to, isHappyPath: e.isHappyPath, label: e.label });
+      });
+
+      // Find root node (node not in any "to")
+      const toSet = new Set(edges.map(e => e.to));
+      let root = nodes.find(n => !toSet.has(n.id));
+      if (!root) root = nodes[0];
+
+      // BFS layout: happy path goes right, branches go down
+      const visited = new Set();
+      const queue = [{ id: root.id, col: 0, row: 0 }];
+      visited.add(root.id);
+
+      while (queue.length > 0) {
+        const { id, col, row } = queue.shift();
+        positions[id] = {
+          x: col * (nodeW + gapX),
+          y: row * (nodeH + gapY)
+        };
+
+        const kids = children[id] || [];
+        // Sort: happy path first (goes right), others go down
+        const happyKids = kids.filter(k => k.isHappyPath);
+        const otherKids = kids.filter(k => !k.isHappyPath);
+
+        let nextCol = col + 1;
+        let branchRow = row + 1;
+
+        happyKids.forEach(k => {
+          if (!visited.has(k.to)) {
+            visited.add(k.to);
+            queue.push({ id: k.to, col: nextCol, row: row });
+            nextCol++;
+          }
+        });
+
+        otherKids.forEach(k => {
+          if (!visited.has(k.to)) {
+            visited.add(k.to);
+            queue.push({ id: k.to, col: col, row: branchRow });
+            branchRow++;
+          }
+        });
+      }
+
+      // Place any unpositioned nodes
+      nodes.forEach((n, i) => {
+        if (!positions[n.id]) {
+          positions[n.id] = { x: i * (nodeW + gapX), y: 0 };
+        }
+      });
+
+      return positions;
+    }
+
+    function computeEdgePath(fromPos, toPos, nodeW, nodeH) {
+      const fx = fromPos.x + nodeW / 2;
+      const fy = fromPos.y + nodeH / 2;
+      const tx = toPos.x + nodeW / 2;
+      const ty = toPos.y + nodeH / 2;
+
+      const dx = tx - fx;
+      const dy = ty - fy;
+
+      let sx, sy, ex, ey;
+
+      if (Math.abs(dx) > Math.abs(dy)) {
+        // Horizontal edge
+        if (dx > 0) {
+          sx = fromPos.x + nodeW;
+          ex = toPos.x;
+        } else {
+          sx = fromPos.x;
+          ex = toPos.x + nodeW;
+        }
+        sy = fy;
+        ey = ty;
+      } else {
+        // Vertical edge
+        sx = fx;
+        ex = tx;
+        if (dy > 0) {
+          sy = fromPos.y + nodeH;
+          ey = toPos.y;
+        } else {
+          sy = fromPos.y;
+          ey = toPos.y + nodeH;
+        }
+      }
+
+      // Use a curved path
+      if (Math.abs(dx) > Math.abs(dy)) {
+        const midX = (sx + ex) / 2;
+        return `M ${sx} ${sy} C ${midX} ${sy}, ${midX} ${ey}, ${ex} ${ey}`;
+      } else {
+        const midY = (sy + ey) / 2;
+        return `M ${sx} ${sy} C ${sx} ${midY}, ${ex} ${midY}, ${ex} ${ey}`;
+      }
+    }
+
+    // ==========================================
+    // LEVEL 3 — DETAIL PANEL
+    // ==========================================
+    function showDetail(node, phase) {
+      const panel = document.getElementById('detail-panel');
+      const overlay = document.getElementById('detail-overlay');
+      const content = document.getElementById('detail-content');
+
+      updateBreadcrumb([
+        { label: flowData.title, active: false, action: () => { closeDetail(); renderLevel1(); } },
+        { label: phase.label, active: false, action: () => { closeDetail(); } },
+        { label: node.label, active: true }
+      ]);
+
+      const styles = getNodeStyle(node.type, phase);
+      const typeBadgeColors = {
+        start: { bg: '#E8F5E9', color: '#2E7D32' },
+        end: { bg: '#E8F5E9', color: '#2E7D32' },
+        decision: { bg: '#FFF8E1', color: '#F57F17' },
+        error: { bg: '#FFEBEE', color: '#C62828' },
+        screen: { bg: '#E3F2FD', color: '#1565C0' },
+        external: { bg: '#F5F5F5', color: '#616161' }
+      };
+      const badge = typeBadgeColors[node.type] || typeBadgeColors.screen;
+
+      let edgeCasesHtml = '';
+      if (node.edgeCases && node.edgeCases.length > 0) {
+        edgeCasesHtml = `
+          <div class="detail-section">
+            <h3>Edge Cases</h3>
+            <ul>
+              ${node.edgeCases.map(ec => `
+                <li>
+                  <span class="bullet" style="background: #F44336;"></span>
+                  <span>${ec}</span>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+        `;
+      }
+
+      let exitsHtml = '';
+      if (node.exits && node.exits.length > 0) {
+        exitsHtml = `
+          <div class="detail-section">
+            <h3>Exits</h3>
+            ${node.exits.map(exit => `
+              <div class="exit-item">
+                <span class="exit-arrow">${icons['arrow-right']}</span>
+                <span><strong>${exit.to}</strong></span>
+                <span class="exit-label">${exit.label}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      content.innerHTML = `
+        <div class="detail-header">
+          <div>
+            <h2>${node.label}</h2>
+            <span class="type-badge" style="background: ${badge.bg}; color: ${badge.color};">
+              ${node.type}${node.screenType && node.screenType !== 'decision' ? ' / ' + node.screenType : ''}
+            </span>
+          </div>
+          <button class="detail-close" onclick="closeDetail()">
+            ${icons.close}
+          </button>
+        </div>
+        <div class="detail-section">
+          <h3>User Action</h3>
+          <p>${node.userAction || 'N/A'}</p>
+        </div>
+        <div class="detail-section">
+          <h3>Description</h3>
+          <p>${node.description || 'N/A'}</p>
+        </div>
+        ${edgeCasesHtml}
+        ${exitsHtml}
+      `;
+
+      panel.classList.add('open');
+      overlay.classList.add('open');
+    }
+
+    function closeDetail() {
+      document.getElementById('detail-panel').classList.remove('open');
+      document.getElementById('detail-overlay').classList.remove('open');
+
+      // Restore breadcrumb to current level
+      if (currentLevel === 2 && currentPhase) {
+        updateBreadcrumb([
+          { label: flowData.title, active: false, action: () => renderLevel1() },
+          { label: currentPhase.label, active: true }
+        ]);
+      } else {
+        updateBreadcrumb([{ label: flowData.title, active: true }]);
+      }
+    }
+
+    document.getElementById('detail-overlay').addEventListener('click', closeDetail);
+
+    // ==========================================
+    // BREADCRUMB
+    // ==========================================
+    function updateBreadcrumb(items) {
+      const bc = document.getElementById('breadcrumb');
+      bc.innerHTML = '';
+
+      items.forEach((item, i) => {
+        if (i > 0) {
+          const sep = document.createElement('span');
+          sep.className = 'separator';
+          sep.innerHTML = icons['chevron-right'];
+          bc.appendChild(sep);
+        }
+
+        const span = document.createElement('span');
+        if (item.active) {
+          span.className = 'current';
+          span.textContent = item.label;
+        } else {
+          span.className = 'crumb';
+          span.textContent = item.label;
+          if (item.action) {
+            span.addEventListener('click', item.action);
+          }
+        }
+        bc.appendChild(span);
+      });
+    }
+
+    // ==========================================
+    // MINIMAP
+    // ==========================================
+    function renderMinimap(positions, nodeW, nodeH, phase) {
+      const minimapEl = document.getElementById('minimap');
+      minimapEl.style.display = 'block';
+      const mmSvg = d3.select('#minimap-svg');
+      mmSvg.selectAll('*').remove();
+
+      const allX = Object.values(positions).map(p => p.x);
+      const allY = Object.values(positions).map(p => p.y);
+      const minX = Math.min(...allX) - 20;
+      const maxX = Math.max(...allX) + nodeW + 20;
+      const minY = Math.min(...allY) - 20;
+      const maxY = Math.max(...allY) + nodeH + 20;
+
+      mmSvg.attr('viewBox', `${minX} ${minY} ${maxX - minX} ${maxY - minY}`);
+
+      // Draw mini nodes
+      phase.nodes.forEach(node => {
+        const pos = positions[node.id];
+        if (!pos) return;
+        const style = getNodeStyle(node.type, phase);
+        mmSvg.append('rect')
+          .attr('x', pos.x)
+          .attr('y', pos.y)
+          .attr('width', nodeW)
+          .attr('height', nodeH)
+          .attr('rx', 4)
+          .attr('fill', style.fill)
+          .attr('stroke', style.stroke)
+          .attr('stroke-width', 2);
+      });
+    }
+
+    // ==========================================
+    // KEYBOARD NAVIGATION
+    // ==========================================
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (document.getElementById('detail-panel').classList.contains('open')) {
+          closeDetail();
+        } else if (currentLevel === 2) {
+          renderLevel1();
+        }
+      }
+    });
+
+    // ==========================================
+    // RESIZE HANDLER
+    // ==========================================
+    window.addEventListener('resize', () => {
+      if (currentLevel === 1) {
+        renderLevel1();
+      } else if (currentLevel === 2 && currentPhase) {
+        renderLevel2(currentPhase);
+      }
+    });
+
+    // ==========================================
+    // INIT
+    // ==========================================
+    init();
+  </script>
+</body>
+</html>

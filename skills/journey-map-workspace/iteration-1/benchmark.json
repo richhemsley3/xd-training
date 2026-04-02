@@ -1,0 +1,80 @@
+{
+  "skill_name": "journey-map",
+  "iteration": 1,
+  "configurations": [
+    {
+      "name": "with_skill",
+      "evals": [
+        {
+          "eval_name": "saas-onboarding",
+          "pass_rate": 0.8,
+          "passed": 8,
+          "total": 10,
+          "tokens": null,
+          "time_seconds": null
+        },
+        {
+          "eval_name": "ecommerce-journey",
+          "pass_rate": 0.875,
+          "passed": 7,
+          "total": 8,
+          "tokens": null,
+          "time_seconds": null
+        },
+        {
+          "eval_name": "structured-data",
+          "pass_rate": 0.9,
+          "passed": 9,
+          "total": 10,
+          "tokens": null,
+          "time_seconds": null
+        }
+      ],
+      "aggregate": {
+        "pass_rate": 0.8583,
+        "pass_rate_stddev": 0.0416,
+        "mean_tokens": null,
+        "mean_time_seconds": null
+      }
+    },
+    {
+      "name": "without_skill",
+      "evals": [
+        {
+          "eval_name": "saas-onboarding",
+          "pass_rate": 0.7,
+          "passed": 7,
+          "total": 10,
+          "tokens": null,
+          "time_seconds": null
+        },
+        {
+          "eval_name": "ecommerce-journey",
+          "pass_rate": 0.875,
+          "passed": 7,
+          "total": 8,
+          "tokens": null,
+          "time_seconds": null
+        },
+        {
+          "eval_name": "structured-data",
+          "pass_rate": 0.9,
+          "passed": 9,
+          "total": 10,
+          "tokens": null,
+          "time_seconds": null
+        }
+      ],
+      "aggregate": {
+        "pass_rate": 0.825,
+        "pass_rate_stddev": 0.0854,
+        "mean_tokens": null,
+        "mean_time_seconds": null
+      }
+    }
+  ],
+  "delta": {
+    "pass_rate": 0.0333
+  },
+  "analyst_notes": "The delta is small (+3.3pp) because two assertions are non-discriminating: (1) 'Uses D3.js from CDN' checks for d3js.org but both configs use cdn.jsdelivr.net which is equally valid; (2) 'Interactive behavior' checks for addEventListener but D3 uses .on() for events. Both fail identically for both configs. The only discriminating assertion is 'Grid/table layout' — the skill drives CSS Grid usage while the baseline falls back to HTML tables. After removing non-discriminating assertions, the effective delta would be larger. Recommend fixing these assertions for iteration 2."
+}

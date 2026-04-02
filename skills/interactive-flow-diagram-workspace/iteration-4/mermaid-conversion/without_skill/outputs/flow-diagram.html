@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-Commerce Flow Diagram</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f1117;
+    color: #e1e4e8;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  #toolbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    background: #161921;
+    border-bottom: 1px solid #2a2d37;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 100;
+  }
+
+  #toolbar h1 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #c9cdd4;
+    letter-spacing: 0.02em;
+  }
+
+  .toolbar-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .toolbar-btn {
+    background: #22252e;
+    border: 1px solid #2a2d37;
+    color: #9ca3af;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .toolbar-btn:hover {
+    background: #2a2d37;
+    color: #e1e4e8;
+  }
+
+  #canvas {
+    width: 100%;
+    height: calc(100vh - 48px);
+    margin-top: 48px;
+  }
+
+  .node-group { cursor: pointer; }
+
+  .node-rect {
+    rx: 8;
+    ry: 8;
+    stroke-width: 1.5;
+    transition: filter 0.2s ease;
+  }
+
+  .node-stadium {
+    stroke-width: 1.5;
+    transition: filter 0.2s ease;
+  }
+
+  .node-diamond {
+    stroke-width: 1.5;
+    transition: filter 0.2s ease;
+  }
+
+  .node-group:hover .node-rect,
+  .node-group:hover .node-stadium,
+  .node-group:hover .node-diamond {
+    filter: brightness(1.2);
+  }
+
+  .node-group.active .node-rect,
+  .node-group.active .node-stadium,
+  .node-group.active .node-diamond {
+    filter: brightness(1.3) drop-shadow(0 0 12px rgba(99, 144, 255, 0.4));
+  }
+
+  .node-label {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    fill: #e8eaed;
+    pointer-events: none;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+
+  .edge-path {
+    fill: none;
+    stroke-width: 1.8;
+    transition: stroke 0.2s ease, stroke-width 0.2s ease;
+  }
+
+  .edge-label-bg {
+    fill: #0f1117;
+    rx: 4;
+    ry: 4;
+  }
+
+  .edge-label {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    fill: #9ca3af;
+    text-anchor: middle;
+    dominant-baseline: central;
+    pointer-events: none;
+  }
+
+  .arrowhead {
+    transition: fill 0.2s ease;
+  }
+
+  .tooltip {
+    position: fixed;
+    background: #1e2028;
+    border: 1px solid #363944;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: #c9cdd4;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    max-width: 240px;
+    z-index: 200;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  .tooltip .tt-title {
+    font-weight: 600;
+    color: #e8eaed;
+    margin-bottom: 4px;
+    font-size: 13px;
+  }
+
+  .tooltip .tt-type {
+    font-size: 11px;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .minimap {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    width: 180px;
+    height: 120px;
+    background: #161921;
+    border: 1px solid #2a2d37;
+    border-radius: 8px;
+    overflow: hidden;
+    z-index: 100;
+  }
+
+  .minimap-viewport {
+    fill: rgba(99, 144, 255, 0.08);
+    stroke: rgba(99, 144, 255, 0.3);
+    stroke-width: 1;
+  }
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <h1>E-Commerce Purchase Flow</h1>
+  <div class="toolbar-actions">
+    <button class="toolbar-btn" onclick="resetView()">Reset View</button>
+    <button class="toolbar-btn" onclick="fitToScreen()">Fit to Screen</button>
+  </div>
+</div>
+
+<svg id="canvas"></svg>
+<div class="tooltip" id="tooltip"></div>
+<div class="minimap"><svg id="minimap-svg"></svg></div>
+
+<script>
+const nodes = [
+  { id: 'A', label: 'Start',                shape: 'stadium', type: 'terminal',  desc: 'User begins the shopping journey.' },
+  { id: 'B', label: 'Search Products',      shape: 'rect',    type: 'process',   desc: 'User searches the product catalog.' },
+  { id: 'C', label: 'Found results?',       shape: 'diamond', type: 'decision',  desc: 'System checks if matching products were found.' },
+  { id: 'D', label: 'Product Detail',       shape: 'rect',    type: 'process',   desc: 'User views detailed product information.' },
+  { id: 'E', label: 'No Results Page',      shape: 'rect',    type: 'process',   desc: 'No matching products. User can refine search.' },
+  { id: 'F', label: 'In Stock?',            shape: 'diamond', type: 'decision',  desc: 'System checks product availability.' },
+  { id: 'G', label: 'Add to Cart',          shape: 'rect',    type: 'process',   desc: 'User adds the product to their cart.' },
+  { id: 'H', label: 'Notify When Available',shape: 'rect',    type: 'process',   desc: 'User opts in for restock notification.' },
+  { id: 'I', label: 'Checkout',             shape: 'rect',    type: 'process',   desc: 'User reviews cart and completes payment.' },
+  { id: 'J', label: 'Order Confirmed',      shape: 'stadium', type: 'terminal',  desc: 'Order placed successfully.' },
+];
+
+const edges = [
+  { source: 'A', target: 'B', label: '' },
+  { source: 'B', target: 'C', label: '' },
+  { source: 'C', target: 'D', label: 'Yes' },
+  { source: 'C', target: 'E', label: 'No' },
+  { source: 'E', target: 'B', label: '' },
+  { source: 'D', target: 'F', label: '' },
+  { source: 'F', target: 'G', label: 'Yes' },
+  { source: 'F', target: 'H', label: 'No' },
+  { source: 'G', target: 'I', label: '' },
+  { source: 'I', target: 'J', label: '' },
+];
+
+// Layout positions (manual Sugiyama-like placement)
+const positions = {
+  A: { x: 0,   y: 0 },
+  B: { x: 200, y: 0 },
+  C: { x: 420, y: 0 },
+  D: { x: 640, y: 0 },
+  E: { x: 420, y: 160 },
+  F: { x: 860, y: 0 },
+  G: { x: 1080,y: 0 },
+  H: { x: 860, y: 160 },
+  I: { x: 1300,y: 0 },
+  J: { x: 1520,y: 0 },
+};
+
+const nodeW = 150, nodeH = 48;
+const diamondW = 130, diamondH = 70;
+
+const colorMap = {
+  terminal: { fill: '#1a2744', stroke: '#3b6cf5' },
+  process:  { fill: '#1a2430', stroke: '#2a8a7a' },
+  decision: { fill: '#2a2230', stroke: '#9b6dd7' },
+};
+
+nodes.forEach(n => { n.x = positions[n.id].x; n.y = positions[n.id].y; });
+
+const svg = d3.select('#canvas');
+const width = window.innerWidth;
+const height = window.innerHeight - 48;
+svg.attr('width', width).attr('height', height);
+
+const defs = svg.append('defs');
+
+// Arrowhead marker
+defs.append('marker')
+  .attr('id', 'arrowhead')
+  .attr('viewBox', '0 0 10 8')
+  .attr('refX', 10).attr('refY', 4)
+  .attr('markerWidth', 10).attr('markerHeight', 8)
+  .attr('orient', 'auto')
+  .append('path')
+  .attr('d', 'M0,0 L10,4 L0,8 Z')
+  .attr('class', 'arrowhead')
+  .attr('fill', '#3d4250');
+
+defs.append('marker')
+  .attr('id', 'arrowhead-active')
+  .attr('viewBox', '0 0 10 8')
+  .attr('refX', 10).attr('refY', 4)
+  .attr('markerWidth', 10).attr('markerHeight', 8)
+  .attr('orient', 'auto')
+  .append('path')
+  .attr('d', 'M0,0 L10,4 L0,8 Z')
+  .attr('class', 'arrowhead')
+  .attr('fill', '#6390ff');
+
+const g = svg.append('g').attr('class', 'viewport');
+
+// Zoom
+const zoom = d3.zoom()
+  .scaleExtent([0.3, 3])
+  .on('zoom', (e) => {
+    g.attr('transform', e.transform);
+    updateMinimap(e.transform);
+  });
+svg.call(zoom);
+
+// Helper: get connection point on node boundary
+function getNodePort(node, side) {
+  const w = node.shape === 'diamond' ? diamondW : nodeW;
+  const h = node.shape === 'diamond' ? diamondH : nodeH;
+  switch (side) {
+    case 'right':  return { x: node.x + w / 2, y: node.y };
+    case 'left':   return { x: node.x - w / 2, y: node.y };
+    case 'bottom': return { x: node.x, y: node.y + h / 2 };
+    case 'top':    return { x: node.x, y: node.y - h / 2 };
+  }
+}
+
+// Build edge paths
+function edgePath(e) {
+  const src = nodes.find(n => n.id === e.source);
+  const tgt = nodes.find(n => n.id === e.target);
+
+  // E -> B loops back up
+  if (e.source === 'E' && e.target === 'B') {
+    const p1 = getNodePort(src, 'left');
+    const p2 = getNodePort(tgt, 'bottom');
+    return `M${p1.x},${p1.y} C${p1.x - 60},${p1.y} ${p2.x},${p2.y + 60} ${p2.x},${p2.y}`;
+  }
+
+  // Decision "No" goes down
+  if (e.source === 'C' && e.target === 'E') {
+    const p1 = getNodePort(src, 'bottom');
+    const p2 = getNodePort(tgt, 'top');
+    return `M${p1.x},${p1.y} L${p2.x},${p2.y}`;
+  }
+  if (e.source === 'F' && e.target === 'H') {
+    const p1 = getNodePort(src, 'bottom');
+    const p2 = getNodePort(tgt, 'top');
+    return `M${p1.x},${p1.y} L${p2.x},${p2.y}`;
+  }
+
+  // Default: right to left
+  const p1 = getNodePort(src, 'right');
+  const p2 = getNodePort(tgt, 'left');
+  const mx = (p1.x + p2.x) / 2;
+  return `M${p1.x},${p1.y} C${mx},${p1.y} ${mx},${p2.y} ${p2.x},${p2.y}`;
+}
+
+function edgeLabelPos(e) {
+  const src = nodes.find(n => n.id === e.source);
+  const tgt = nodes.find(n => n.id === e.target);
+  if (e.source === 'E' && e.target === 'B') {
+    const p1 = getNodePort(src, 'left');
+    const p2 = getNodePort(tgt, 'bottom');
+    return { x: (p1.x + p2.x) / 2 - 30, y: (p1.y + p2.y) / 2 + 10 };
+  }
+  if ((e.source === 'C' && e.target === 'E') || (e.source === 'F' && e.target === 'H')) {
+    const p1 = getNodePort(src, 'bottom');
+    const p2 = getNodePort(tgt, 'top');
+    return { x: (p1.x + p2.x) / 2 + 18, y: (p1.y + p2.y) / 2 };
+  }
+  const p1 = getNodePort(src, 'right');
+  const p2 = getNodePort(tgt, 'left');
+  return { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 - 12 };
+}
+
+// Draw edges
+const edgeGroup = g.append('g').attr('class', 'edges');
+const edgeEls = edgeGroup.selectAll('.edge')
+  .data(edges).enter().append('g').attr('class', 'edge');
+
+edgeEls.append('path')
+  .attr('class', 'edge-path')
+  .attr('d', d => edgePath(d))
+  .attr('stroke', '#3d4250')
+  .attr('marker-end', 'url(#arrowhead)');
+
+edgeEls.each(function(d) {
+  if (!d.label) return;
+  const pos = edgeLabelPos(d);
+  const grp = d3.select(this);
+  grp.append('rect')
+    .attr('class', 'edge-label-bg')
+    .attr('x', pos.x - 16).attr('y', pos.y - 10)
+    .attr('width', 32).attr('height', 20);
+  grp.append('text')
+    .attr('class', 'edge-label')
+    .attr('x', pos.x).attr('y', pos.y)
+    .text(d.label);
+});
+
+// Draw nodes
+const nodeGroup = g.append('g').attr('class', 'nodes');
+const tooltip = d3.select('#tooltip');
+
+const nodeEls = nodeGroup.selectAll('.node-group')
+  .data(nodes).enter().append('g')
+  .attr('class', 'node-group')
+  .attr('transform', d => `translate(${d.x}, ${d.y})`)
+  .on('mouseenter', function(event, d) {
+    d3.select(this).classed('active', true);
+    highlightConnected(d.id, true);
+    tooltip.style('opacity', 1)
+      .html(`<div class="tt-type">${d.type}</div><div class="tt-title">${d.label}</div>${d.desc}`);
+  })
+  .on('mousemove', (event) => {
+    tooltip.style('left', (event.clientX + 16) + 'px')
+      .style('top', (event.clientY - 10) + 'px');
+  })
+  .on('mouseleave', function(event, d) {
+    d3.select(this).classed('active', false);
+    highlightConnected(d.id, false);
+    tooltip.style('opacity', 0);
+  });
+
+nodeEls.each(function(d) {
+  const el = d3.select(this);
+  const c = colorMap[d.type];
+
+  if (d.shape === 'stadium') {
+    el.append('rect')
+      .attr('class', 'node-stadium')
+      .attr('x', -nodeW / 2).attr('y', -nodeH / 2)
+      .attr('width', nodeW).attr('height', nodeH)
+      .attr('rx', nodeH / 2).attr('ry', nodeH / 2)
+      .attr('fill', c.fill).attr('stroke', c.stroke);
+  } else if (d.shape === 'diamond') {
+    const hw = diamondW / 2, hh = diamondH / 2;
+    el.append('polygon')
+      .attr('class', 'node-diamond')
+      .attr('points', `0,${-hh} ${hw},0 0,${hh} ${-hw},0`)
+      .attr('fill', c.fill).attr('stroke', c.stroke);
+  } else {
+    el.append('rect')
+      .attr('class', 'node-rect')
+      .attr('x', -nodeW / 2).attr('y', -nodeH / 2)
+      .attr('width', nodeW).attr('height', nodeH)
+      .attr('fill', c.fill).attr('stroke', c.stroke);
+  }
+
+  el.append('text')
+    .attr('class', 'node-label')
+    .text(d.label);
+});
+
+// Highlight connected edges
+function highlightConnected(nodeId, on) {
+  edgeEls.each(function(d) {
+    const connected = d.source === nodeId || d.target === nodeId;
+    d3.select(this).select('.edge-path')
+      .attr('stroke', connected && on ? '#6390ff' : '#3d4250')
+      .attr('stroke-width', connected && on ? 2.5 : 1.8)
+      .attr('marker-end', connected && on ? 'url(#arrowhead-active)' : 'url(#arrowhead)');
+  });
+}
+
+// Initial fit
+function fitToScreen() {
+  const pad = 80;
+  const xs = nodes.map(n => n.x);
+  const ys = nodes.map(n => n.y);
+  const minX = Math.min(...xs) - nodeW;
+  const maxX = Math.max(...xs) + nodeW;
+  const minY = Math.min(...ys) - diamondH;
+  const maxY = Math.max(...ys) + diamondH;
+  const bw = maxX - minX;
+  const bh = maxY - minY;
+  const scale = Math.min((width - pad * 2) / bw, (height - pad * 2) / bh, 1.4);
+  const tx = (width - bw * scale) / 2 - minX * scale;
+  const ty = (height - bh * scale) / 2 - minY * scale;
+  svg.transition().duration(600)
+    .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+}
+
+function resetView() {
+  svg.transition().duration(600)
+    .call(zoom.transform, d3.zoomIdentity);
+}
+
+// Minimap
+const mmSvg = d3.select('#minimap-svg').attr('width', 180).attr('height', 120);
+const mmScale = 0.08;
+const mmG = mmSvg.append('g').attr('transform', `translate(90, 40) scale(${mmScale})`);
+
+mmG.selectAll('.mm-edge').data(edges).enter().append('path')
+  .attr('d', d => edgePath(d))
+  .attr('fill', 'none').attr('stroke', '#2a2d37').attr('stroke-width', 2);
+
+mmG.selectAll('.mm-node').data(nodes).enter().append('circle')
+  .attr('cx', d => d.x).attr('cy', d => d.y).attr('r', 12)
+  .attr('fill', d => colorMap[d.type].stroke).attr('opacity', 0.7);
+
+const mmViewport = mmSvg.append('rect').attr('class', 'minimap-viewport');
+
+function updateMinimap(transform) {
+  const vx = (-transform.x / transform.k) * mmScale + 90;
+  const vy = (-transform.y / transform.k) * mmScale + 40;
+  const vw = (width / transform.k) * mmScale;
+  const vh = (height / transform.k) * mmScale;
+  mmViewport.attr('x', vx).attr('y', vy).attr('width', vw).attr('height', vh);
+}
+
+// Animate initial entrance
+nodeEls.attr('opacity', 0)
+  .transition().duration(500)
+  .delay((d, i) => i * 80)
+  .attr('opacity', 1);
+
+edgeEls.attr('opacity', 0)
+  .transition().duration(400)
+  .delay((d, i) => 300 + i * 60)
+  .attr('opacity', 1);
+
+setTimeout(fitToScreen, 1200);
+
+// Resize
+window.addEventListener('resize', () => {
+  const w = window.innerWidth;
+  const h = window.innerHeight - 48;
+  svg.attr('width', w).attr('height', h);
+});
+</script>
+</body>
+</html>

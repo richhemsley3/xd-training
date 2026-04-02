@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>E-Commerce Journey Map</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f0f2f5;
+      padding: 30px;
+      color: #333;
+    }
+    h1 { text-align: center; font-size: 22px; margin-bottom: 6px; }
+    .subtitle { text-align: center; color: #888; margin-bottom: 28px; font-size: 14px; }
+
+    .phases-container {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 16px;
+    }
+
+    .phase-card {
+      flex: 1;
+      min-width: 220px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+
+    .phase-card-header {
+      padding: 12px 16px;
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .phase-card-body {
+      padding: 14px 16px;
+    }
+
+    .section-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: #999;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-top: 12px;
+      margin-bottom: 4px;
+    }
+    .section-label:first-child { margin-top: 0; }
+
+    .step-list {
+      list-style: none;
+      padding: 0;
+    }
+    .step-list li {
+      font-size: 13px;
+      color: #555;
+      padding: 3px 0;
+    }
+
+    .touchpoint-tag {
+      display: inline-block;
+      background: #e8f4fd;
+      color: #0984e3;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin: 2px 2px;
+    }
+
+    .role-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin: 2px 2px;
+      font-weight: 500;
+    }
+
+    .pain-item {
+      font-size: 12px;
+      color: #d63031;
+      padding: 2px 0;
+    }
+    .pain-item::before { content: '⚠ '; }
+
+    .opp-item {
+      font-size: 12px;
+      color: #00b894;
+      padding: 2px 0;
+    }
+    .opp-item::before { content: '✦ '; }
+
+    .chart-container {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      padding: 20px;
+      margin-top: 24px;
+    }
+    .chart-container h3 { font-size: 16px; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <h1>E-Commerce Purchase Journey Map</h1>
+  <div class="subtitle">Browse → Compare → Purchase → Delivery → Post-Purchase</div>
+
+  <div class="phases-container" id="phases"></div>
+
+  <div class="chart-container">
+    <h3>Sentiment Curve</h3>
+    <div id="chart"></div>
+  </div>
+
+  <script>
+    const phases = [
+      {
+        name: "Browse", color: "#6c5ce7",
+        steps: ["Homepage Visit", "Category Browse"],
+        touchpoints: ["Website", "Mobile App"],
+        roles: [
+          { name: "Marketing", color: "#6c5ce7" },
+          { name: "Product", color: "#0984e3" }
+        ],
+        emotions: [0.7, 0.65],
+        painPoints: ["Filters don't work well on mobile"],
+        opportunities: ["Personalized recommendations", "AI search"]
+      },
+      {
+        name: "Compare", color: "#0984e3",
+        steps: ["Product Details", "Price Comparison"],
+        touchpoints: ["Website", "Email"],
+        roles: [
+          { name: "Product", color: "#0984e3" },
+          { name: "Marketing", color: "#6c5ce7" }
+        ],
+        emotions: [0.6, 0.55],
+        painPoints: ["Inconsistent product info", "No price match guarantee"],
+        opportunities: ["Side-by-side comparison", "Price alerts"]
+      },
+      {
+        name: "Purchase", color: "#00b894",
+        steps: ["Add to Cart", "Checkout"],
+        touchpoints: ["Website", "Mobile App"],
+        roles: [
+          { name: "Product", color: "#0984e3" },
+          { name: "Support", color: "#00b894" }
+        ],
+        emotions: [0.7, 0.35],
+        painPoints: ["Too many checkout steps", "Forced account creation", "Payment errors"],
+        opportunities: ["Guest checkout", "One-click purchase", "Apple Pay"]
+      },
+      {
+        name: "Delivery", color: "#fdcb6e",
+        steps: ["Order Confirmation", "Shipping & Tracking"],
+        touchpoints: ["Email", "Mobile App", "Phone"],
+        roles: [
+          { name: "Logistics", color: "#e17055" },
+          { name: "Support", color: "#00b894" }
+        ],
+        emotions: [0.6, 0.4],
+        painPoints: ["Delivery delays", "Tracking not updated", "No proactive notifications"],
+        opportunities: ["SMS updates", "Proactive delay alerts"]
+      },
+      {
+        name: "Post-Purchase", color: "#e17055",
+        steps: ["Unboxing & Use", "Returns / Support"],
+        touchpoints: ["Email", "Phone", "Website"],
+        roles: [
+          { name: "Support", color: "#00b894" },
+          { name: "Marketing", color: "#6c5ce7" }
+        ],
+        emotions: [0.8, 0.45],
+        painPoints: ["Complicated return process"],
+        opportunities: ["Request review", "Self-serve returns", "Chatbot support"]
+      }
+    ];
+
+    const container = document.getElementById('phases');
+    phases.forEach(phase => {
+      const card = document.createElement('div');
+      card.className = 'phase-card';
+      card.innerHTML = `
+        <div class="phase-card-header" style="background:${phase.color}">${phase.name}</div>
+        <div class="phase-card-body">
+          <div class="section-label">Steps</div>
+          <ul class="step-list">${phase.steps.map(s => `<li>• ${s}</li>`).join('')}</ul>
+          <div class="section-label">Touchpoints</div>
+          <div>${phase.touchpoints.map(t => `<span class="touchpoint-tag">${t}</span>`).join('')}</div>
+          <div class="section-label">Teams</div>
+          <div>${phase.roles.map(r => `<span class="role-tag" style="background:${r.color}22;color:${r.color}">${r.name}</span>`).join('')}</div>
+          <div class="section-label">Pain Points</div>
+          ${phase.painPoints.map(p => `<div class="pain-item">${p}</div>`).join('')}
+          <div class="section-label">Opportunities</div>
+          ${phase.opportunities.map(o => `<div class="opp-item">${o}</div>`).join('')}
+        </div>
+      `;
+      container.appendChild(card);
+    });
+
+    // Sentiment chart
+    const allEmotions = phases.flatMap((p, pi) => p.emotions.map((e, ei) => ({
+      step: p.steps[ei],
+      score: e,
+      phase: p.name
+    })));
+
+    const margin = { top: 20, right: 30, bottom: 60, left: 50 };
+    const width = 800 - margin.left - margin.right;
+    const height = 220 - margin.top - margin.bottom;
+
+    const svg = d3.select("#chart")
+      .append("svg")
+      .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+      .attr("width", "100%")
+      .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const x = d3.scalePoint()
+      .domain(allEmotions.map(d => d.step))
+      .range([0, width])
+      .padding(0.5);
+
+    const y = d3.scaleLinear().domain([0, 1]).range([height, 0]);
+
+    svg.append("g")
+      .attr("transform", `translate(0,${height})`)
+      .call(d3.axisBottom(x))
+      .selectAll("text")
+      .attr("transform", "rotate(-30)")
+      .style("text-anchor", "end")
+      .style("font-size", "10px");
+
+    svg.append("g").call(d3.axisLeft(y).ticks(5).tickFormat(d => d.toFixed(1)));
+
+    const line = d3.line()
+      .x(d => x(d.step))
+      .y(d => y(d.score))
+      .curve(d3.curveMonotoneX);
+
+    svg.append("path")
+      .datum(allEmotions)
+      .attr("fill", "none")
+      .attr("stroke", "#0984e3")
+      .attr("stroke-width", 2.5)
+      .attr("d", line);
+
+    svg.selectAll(".dot")
+      .data(allEmotions)
+      .join("circle")
+      .attr("cx", d => x(d.step))
+      .attr("cy", d => y(d.score))
+      .attr("r", 5)
+      .attr("fill", d => d.score > 0.6 ? "#00b894" : d.score > 0.3 ? "#0984e3" : "#d63031")
+      .attr("stroke", "white")
+      .attr("stroke-width", 2);
+  </script>
+</body>
+</html>

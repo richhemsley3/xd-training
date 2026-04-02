@@ -1,0 +1,18 @@
+{
+  "skill": "interactive-flow-diagram",
+  "iteration": "iteration-4",
+  "with_skill_avg": 96.7,
+  "without_skill_avg": 60.0,
+  "delta": 36.7,
+  "eval_count": 3,
+  "with_rates": [
+    100.0,
+    90.0,
+    100.0
+  ],
+  "without_rates": [
+    50.0,
+    60.0,
+    70.0
+  ]
+}

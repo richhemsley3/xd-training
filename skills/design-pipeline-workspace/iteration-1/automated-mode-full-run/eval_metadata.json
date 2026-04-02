@@ -1,0 +1,19 @@
+{
+  "eval_id": 0,
+  "eval_name": "automated-mode-full-run",
+  "prompt": "I want to design a new data classification workflow for our product. We need users to be able to tag sensitive data fields across multiple data sources. I want to run the full design pipeline automated — don't stop and ask me anything, just run it end to end. The target users are data stewards and security admins. The market is data security and governance, and our main competitors are BigID, OneTrust, and Securiti. The problem is that users currently classify data manually field by field which is slow and error-prone at scale.",
+  "assertions": [
+    {"text": "Recognized automated mode from user prompt without asking", "type": "boolean"},
+    {"text": "Ran all 9 pipeline stages in correct order", "type": "boolean"},
+    {"text": "Produced research report as standalone HTML with SDS components", "type": "boolean"},
+    {"text": "Journey map uses D3.js interactive format", "type": "boolean"},
+    {"text": "Product design defaulted to 1 comprehensive prototype (all flows)", "type": "boolean"},
+    {"text": "Self-challenge step documented in product design reasoning", "type": "boolean"},
+    {"text": "Critique/heuristics ran 3 passes with auto-fix", "type": "boolean"},
+    {"text": "Accessibility ran 3 passes with auto-fix", "type": "boolean"},
+    {"text": "Research review evaluated designs against original findings", "type": "boolean"},
+    {"text": "Component gap report lists missing Design System Lab components", "type": "boolean"},
+    {"text": "Did not pause for user confirmation at any stage", "type": "boolean"},
+    {"text": "Presented final summary of all outputs at the end", "type": "boolean"}
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "prompt": "Create a journey map from this data:\n\nPhase: Discovery\n- Steps: Google Search, Read Reviews, Visit Website\n- Emotion: 0.5, 0.6, 0.7\n- Pain: Too many options, hard to trust reviews\n- Opportunity: Add comparison tool\n\nPhase: Evaluation\n- Steps: Free Trial, Demo Call, Internal Discussion\n- Emotion: 0.8, 0.7, 0.4\n- Pain: Trial too short, demo scheduling friction\n- Opportunity: Extend trial, self-serve demo\n\nPhase: Purchase\n- Steps: Procurement, Contract, Payment\n- Emotion: 0.3, 0.2, 0.5\n- Pain: Complex procurement process, legal review delays\n- Opportunity: Streamline contract templates\n\nPhase: Implementation\n- Steps: Setup, Training, Go-Live\n- Emotion: 0.6, 0.7, 0.9\n- Pain: Integration complexity\n- Opportunity: Pre-built integrations",
+  "assertions": [
+    {"type": "file_exists", "name": "HTML file exists", "pattern": "*.html"},
+    {"type": "contains", "name": "Uses D3.js from CDN", "text": "d3js.org"},
+    {"type": "contains", "name": "All 4 phases present", "text": "Discovery", "also_contains": ["Evaluation", "Purchase", "Implementation"]},
+    {"type": "contains", "name": "All 12 steps present", "text": "Google Search", "also_contains": ["Free Trial", "Procurement", "Go-Live"]},
+    {"type": "contains", "name": "Emotion scores in data", "text": "0.2"},
+    {"type": "contains", "name": "Pain point: trust reviews", "text": "trust reviews"},
+    {"type": "contains", "name": "Opportunity: comparison tool", "text": "comparison tool"},
+    {"type": "contains", "name": "Pain point: procurement", "text": "procurement"},
+    {"type": "contains", "name": "Opportunity: pre-built integrations", "text": "integrations"},
+    {"type": "contains", "name": "Emotion curve SVG", "text": "<svg"}
+  ]
+}

@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skill Evaluation Review — Interactive Flow Diagram</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --border: #e2e2e2;
+    --border-light: #f0f0f0;
+    --text: #1a1a1a;
+    --text-secondary: #666;
+    --text-tertiary: #999;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --green: #16a34a;
+    --green-bg: #f0fdf4;
+    --red: #dc2626;
+    --red-bg: #fef2f2;
+    --yellow-bg: #fffbeb;
+    --yellow: #d97706;
+    --radius: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+  }
+  .header-left { display: flex; align-items: center; gap: 24px; }
+  .header h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+  .header-subtitle { font-size: 13px; color: var(--text-tertiary); }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 0;
+    background: var(--bg);
+    border-radius: 6px;
+    padding: 3px;
+    border: 1px solid var(--border);
+  }
+  .tab {
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow);
+  }
+
+  /* Main content */
+  .main { max-width: 1600px; margin: 0 auto; padding: 24px 32px; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Navigation */
+  .nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    background: var(--surface);
+    padding: 12px 20px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+  .nav-bar .case-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .nav-bar .case-counter {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-left: 12px;
+    font-weight: 400;
+  }
+  .nav-buttons { display: flex; gap: 8px; align-items: center; }
+  .nav-btn {
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .nav-btn:disabled { opacity: 0.35; cursor: not-allowed; border-color: var(--border); color: var(--text); }
+  .nav-dots { display: flex; gap: 6px; }
+  .nav-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border);
+    border: none; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .nav-dot.active { background: var(--accent); }
+
+  /* Prompt */
+  .prompt-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 16px;
+  }
+  .prompt-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+  }
+  .prompt-text { font-size: 14px; color: var(--text); }
+
+  /* Columns */
+  .columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .column {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .column-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .column-title {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .column-title.with-skill { color: var(--accent); }
+  .column-title.without-skill { color: var(--text-secondary); }
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+  .badge.pass { background: var(--green-bg); color: var(--green); }
+  .badge.partial { background: var(--yellow-bg); color: var(--yellow); }
+
+  .iframe-wrap {
+    width: 100%;
+    height: 550px;
+    border: none;
+    background: #fff;
+  }
+  .iframe-wrap iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  /* Grading collapsible */
+  .grading-section {
+    margin-bottom: 16px;
+  }
+  .grading-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+  }
+  .grading-toggle:hover { border-color: var(--accent); }
+  .grading-toggle .arrow {
+    transition: transform 0.2s;
+    font-size: 10px;
+  }
+  .grading-toggle.open .arrow { transform: rotate(90deg); }
+  .grading-details {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    padding: 16px;
+  }
+  .grading-details.open { display: block; }
+  .grading-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .grading-col h4 {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+  }
+  .assertion {
+    font-size: 13px;
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .assertion .icon-pass { color: var(--green); }
+  .assertion .icon-fail { color: var(--red); }
+
+  /* Feedback */
+  .feedback-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 16px;
+  }
+  .feedback-section label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+  }
+  .feedback-section textarea {
+    width: 100%;
+    min-height: 80px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    color: var(--text);
+    transition: border-color 0.15s;
+  }
+  .feedback-section textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+  }
+
+  /* Submit */
+  .submit-bar {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 8px;
+  }
+  .submit-btn {
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .submit-btn:hover { background: var(--accent-hover); }
+
+  /* Benchmark tab */
+  .bench-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .bench-section h2 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  table.bench-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  table.bench-table th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    padding: 8px 12px;
+    border-bottom: 2px solid var(--border);
+  }
+  table.bench-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-light);
+  }
+  table.bench-table tr:last-child td { border-bottom: none; }
+  table.bench-table .metric-name { font-weight: 500; }
+  .delta-positive { color: var(--green); font-weight: 600; }
+  .delta-negative { color: var(--red); font-weight: 600; }
+  .delta-neutral { color: var(--yellow); font-weight: 600; }
+
+  .notes-list {
+    list-style: none;
+    padding: 0;
+  }
+  .notes-list li {
+    font-size: 14px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .notes-list li:last-child { border-bottom: none; }
+  .notes-list .note-bullet {
+    color: var(--accent);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* Per-eval table */
+  .eval-pass { background: var(--green-bg); }
+  .eval-partial { background: var(--yellow-bg); }
+  table.bench-table td.pass-cell { color: var(--green); font-weight: 600; }
+  table.bench-table td.partial-cell { color: var(--yellow); font-weight: 600; }
+
+  .kbd {
+    display: inline-block;
+    padding: 1px 6px;
+    font-size: 11px;
+    font-family: inherit;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text-tertiary);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div>
+      <h1>Skill Evaluation Review</h1>
+      <div class="header-subtitle">interactive-flow-diagram &middot; iteration-1</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-tab="outputs">Outputs</button>
+    <button class="tab" data-tab="benchmark">Benchmark</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- OUTPUTS TAB -->
+  <div id="tab-outputs" class="tab-content active">
+    <div class="nav-bar">
+      <div style="display:flex;align-items:center;">
+        <span class="case-label" id="case-label"></span>
+        <span class="case-counter" id="case-counter"></span>
+      </div>
+      <div class="nav-buttons">
+        <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">
+          <span>&larr;</span> Prev
+        </button>
+        <div class="nav-dots" id="nav-dots"></div>
+        <button class="nav-btn" id="next-btn" onclick="navigate(1)">
+          Next <span>&rarr;</span>
+        </button>
+        <span style="margin-left:8px;font-size:12px;color:var(--text-tertiary);">
+          <span class="kbd">&larr;</span> <span class="kbd">&rarr;</span>
+        </span>
+      </div>
+    </div>
+
+    <div id="case-container"></div>
+
+    <div class="submit-bar">
+      <button class="submit-btn" onclick="submitReviews()">Submit All Reviews</button>
+    </div>
+  </div>
+
+  <!-- BENCHMARK TAB -->
+  <div id="tab-benchmark" class="tab-content">
+    <div class="bench-section">
+      <h2>Summary</h2>
+      <table class="bench-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>With Skill</th>
+            <th>Without Skill</th>
+            <th>Delta</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="metric-name">Pass Rate</td>
+            <td>100% &plusmn; 0%</td>
+            <td>76% &plusmn; 5%</td>
+            <td class="delta-positive">+24%</td>
+          </tr>
+          <tr>
+            <td class="metric-name">Time (sec)</td>
+            <td>227.0 &plusmn; 13.6</td>
+            <td>99.7 &plusmn; 41.6</td>
+            <td class="delta-neutral">+127.2</td>
+          </tr>
+          <tr>
+            <td class="metric-name">Tokens</td>
+            <td>45,757 &plusmn; 808</td>
+            <td>31,653 &plusmn; 3,710</td>
+            <td class="delta-neutral">+14,104</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="bench-section">
+      <h2>Per-Eval Breakdown</h2>
+      <table class="bench-table">
+        <thead>
+          <tr>
+            <th>Test Case</th>
+            <th>With Skill</th>
+            <th>Without Skill</th>
+            <th>Failed (Without Skill)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="metric-name">onboarding-flow</td>
+            <td class="pass-cell">9/9 (100%)</td>
+            <td class="partial-cell">5/7 (71%)</td>
+            <td>Uses D3.js from CDN, Multiple zoom levels</td>
+          </tr>
+          <tr>
+            <td class="metric-name">checkout-flow</td>
+            <td class="pass-cell">12/12 (100%)</td>
+            <td class="partial-cell">8/10 (80%)</td>
+            <td>Uses D3.js from CDN, Breadcrumb navigation</td>
+          </tr>
+          <tr>
+            <td class="metric-name">mermaid-conversion</td>
+            <td class="pass-cell">11/11 (100%)</td>
+            <td class="partial-cell">7/9 (78%)</td>
+            <td>Uses D3.js from CDN, Breadcrumb navigation</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="bench-section">
+      <h2>Analyst Notes</h2>
+      <ul class="notes-list">
+        <li>
+          <span class="note-bullet">&bull;</span>
+          <span>With-skill runs consistently achieved 100% pass rate across all assertions.</span>
+        </li>
+        <li>
+          <span class="note-bullet">&bull;</span>
+          <span>Without-skill runs never used D3.js (used vanilla JS/CSS instead) and often lacked breadcrumb navigation.</span>
+        </li>
+        <li>
+          <span class="note-bullet">&bull;</span>
+          <span>With-skill runs take ~2.3x longer and use ~1.4x more tokens, but produce significantly more structured output with three zoom levels vs flat layouts.</span>
+        </li>
+        <li>
+          <span class="note-bullet">&bull;</span>
+          <span>The skill's biggest impact is enforcing the three-level architecture and Software DS token usage &mdash; both absent from all baselines.</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+const BASE = '/Users/richhemsley/Desktop/Claude/skills/interactive-flow-diagram-workspace/iteration-1';
+
+const testCases = [
+  {
+    id: 'onboarding-flow',
+    label: 'Onboarding Flow',
+    prompt: 'Create an interactive flow diagram for a user onboarding flow: Welcome \u2192 Profile Setup \u2192 Connect Account \u2192 Tutorial \u2192 Dashboard. Each step should be clickable to see details about what happens on that screen.',
+    withSkill: `file://${BASE}/onboarding-flow/with_skill/outputs/onboarding-flow.html`,
+    withoutSkill: `file://${BASE}/onboarding-flow/without_skill/outputs/onboarding-flow.html`,
+    withGrade: { passed: 9, total: 9, failures: [] },
+    withoutGrade: { passed: 5, total: 7, failures: ['Uses D3.js from CDN', 'Multiple zoom levels'] }
+  },
+  {
+    id: 'checkout-flow',
+    label: 'Checkout Flow',
+    prompt: 'Build me an interactive user flow for an e-commerce checkout: Browse \u2192 Cart \u2192 Shipping \u2192 Payment \u2192 Confirmation, with error handling for payment failure and address validation. Include decision diamonds for the validation steps and highlight the happy path.',
+    withSkill: `file://${BASE}/checkout-flow/with_skill/outputs/checkout-flow.html`,
+    withoutSkill: `file://${BASE}/checkout-flow/without_skill/outputs/checkout-flow.html`,
+    withGrade: { passed: 12, total: 12, failures: [] },
+    withoutGrade: { passed: 8, total: 10, failures: ['Uses D3.js from CDN', 'Breadcrumb navigation'] }
+  },
+  {
+    id: 'mermaid-conversion',
+    label: 'Mermaid Conversion',
+    prompt: 'Turn this into an interactive flow diagram: [Mermaid flowchart LR with 10 nodes for product search flow]',
+    withSkill: `file://${BASE}/mermaid-conversion/with_skill/outputs/product-search-flow.html`,
+    withoutSkill: `file://${BASE}/mermaid-conversion/without_skill/outputs/flow-diagram.html`,
+    withGrade: { passed: 11, total: 11, failures: [] },
+    withoutGrade: { passed: 7, total: 9, failures: ['Uses D3.js from CDN', 'Breadcrumb navigation'] }
+  }
+];
+
+let currentIndex = 0;
+const feedback = {};
+
+// Tab switching
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+function renderGradeList(grade, label) {
+  const totalAssertions = grade.total;
+  const passedList = [];
+  for (let i = 0; i < grade.passed; i++) {
+    passedList.push(`<div class="assertion"><span class="icon-pass">\u2713</span> Assertion ${i + 1} passed</div>`);
+  }
+  const failedList = grade.failures.map(f =>
+    `<div class="assertion"><span class="icon-fail">\u2717</span> ${f}</div>`
+  );
+  return passedList.join('') + failedList.join('');
+}
+
+function renderCase(index) {
+  const tc = testCases[index];
+  const withBadge = tc.withGrade.passed === tc.withGrade.total
+    ? `<span class="badge pass">${tc.withGrade.passed}/${tc.withGrade.total} passed</span>`
+    : `<span class="badge partial">${tc.withGrade.passed}/${tc.withGrade.total} passed</span>`;
+  const withoutBadge = tc.withoutGrade.passed === tc.withoutGrade.total
+    ? `<span class="badge pass">${tc.withoutGrade.passed}/${tc.withoutGrade.total} passed</span>`
+    : `<span class="badge partial">${tc.withoutGrade.passed}/${tc.withoutGrade.total} passed</span>`;
+
+  const savedFeedback = feedback[tc.id] || '';
+
+  document.getElementById('case-label').textContent = tc.label;
+  document.getElementById('case-counter').textContent = `${index + 1} of ${testCases.length}`;
+
+  // Update dots
+  const dotsEl = document.getElementById('nav-dots');
+  dotsEl.innerHTML = testCases.map((_, i) =>
+    `<button class="nav-dot ${i === index ? 'active' : ''}" onclick="goTo(${i})"></button>`
+  ).join('');
+
+  // Update buttons
+  document.getElementById('prev-btn').disabled = index === 0;
+  document.getElementById('next-btn').disabled = index === testCases.length - 1;
+
+  document.getElementById('case-container').innerHTML = `
+    <div class="prompt-section">
+      <div class="prompt-label">Prompt</div>
+      <div class="prompt-text">${tc.prompt}</div>
+    </div>
+
+    <div class="columns">
+      <div class="column">
+        <div class="column-header">
+          <span class="column-title with-skill">With Skill</span>
+          ${withBadge}
+        </div>
+        <div class="iframe-wrap">
+          <iframe src="${tc.withSkill}" sandbox="allow-scripts allow-same-origin"></iframe>
+        </div>
+      </div>
+      <div class="column">
+        <div class="column-header">
+          <span class="column-title without-skill">Without Skill (Baseline)</span>
+          ${withoutBadge}
+        </div>
+        <div class="iframe-wrap">
+          <iframe src="${tc.withoutSkill}" sandbox="allow-scripts allow-same-origin"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <div class="grading-section">
+      <button class="grading-toggle" onclick="toggleGrading(this)">
+        <span class="arrow">\u25B6</span>
+        Grading Details
+      </button>
+      <div class="grading-details">
+        <div class="grading-grid">
+          <div class="grading-col">
+            <h4>With Skill (${tc.withGrade.passed}/${tc.withGrade.total})</h4>
+            ${renderGradeList(tc.withGrade, 'with')}
+          </div>
+          <div class="grading-col">
+            <h4>Without Skill (${tc.withoutGrade.passed}/${tc.withoutGrade.total})</h4>
+            ${renderGradeList(tc.withoutGrade, 'without')}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feedback-section">
+      <label for="feedback-input">Feedback for this test case</label>
+      <textarea id="feedback-input" placeholder="Add your observations, notes, or suggestions\u2026"
+        oninput="saveFeedback('${tc.id}', this.value)">${savedFeedback}</textarea>
+    </div>
+  `;
+}
+
+function saveFeedback(id, value) {
+  feedback[id] = value;
+}
+
+function navigate(dir) {
+  const next = currentIndex + dir;
+  if (next >= 0 && next < testCases.length) {
+    currentIndex = next;
+    renderCase(currentIndex);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function goTo(index) {
+  currentIndex = index;
+  renderCase(currentIndex);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleGrading(btn) {
+  btn.classList.toggle('open');
+  const details = btn.nextElementSibling;
+  details.classList.toggle('open');
+}
+
+function submitReviews() {
+  const data = {
+    timestamp: new Date().toISOString(),
+    evaluation: 'interactive-flow-diagram',
+    iteration: 1,
+    reviews: testCases.map(tc => ({
+      testCase: tc.id,
+      feedback: feedback[tc.id] || '',
+      withSkillGrade: `${tc.withGrade.passed}/${tc.withGrade.total}`,
+      withoutSkillGrade: `${tc.withoutGrade.passed}/${tc.withoutGrade.total}`
+    }))
+  };
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'feedback.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  // Don't navigate if user is typing in textarea
+  if (e.target.tagName === 'TEXTAREA') return;
+
+  if (e.key === 'ArrowLeft') {
+    navigate(-1);
+  } else if (e.key === 'ArrowRight') {
+    navigate(1);
+  }
+});
+
+// Initial render
+renderCase(0);
+</script>
+</body>
+</html>

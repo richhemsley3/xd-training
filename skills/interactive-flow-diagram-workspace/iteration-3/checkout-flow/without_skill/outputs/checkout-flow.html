@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-Commerce Checkout Flow</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1117; color: #e1e4ea; overflow: hidden; height: 100vh; }
+
+  /* Top bar */
+  .toolbar {
+    position: fixed; top: 0; left: 0; right: 0; height: 52px; z-index: 100;
+    background: #1a1d27; border-bottom: 1px solid #2a2d3a;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+  }
+  .toolbar h1 { font-size: 15px; font-weight: 600; color: #c8ccd4; letter-spacing: -0.2px; }
+  .toolbar-group { display: flex; align-items: center; gap: 8px; }
+  .toolbar .zoom-label { font-size: 12px; color: #7a7f8e; min-width: 42px; text-align: center; }
+  .toolbar button {
+    background: #252836; border: 1px solid #363a4a; color: #b0b5c3; border-radius: 6px;
+    padding: 6px 12px; font-size: 12px; cursor: pointer; transition: all 0.15s;
+  }
+  .toolbar button:hover { background: #2e3245; border-color: #4a4f62; color: #e1e4ea; }
+  .toolbar button.active { background: #3b7ddd22; border-color: #3b7ddd; color: #6ea8fe; }
+
+  /* Legend */
+  .legend-toggle {
+    position: fixed; top: 62px; right: 16px; z-index: 90;
+    background: #1e2130; border: 1px solid #2e3245; border-radius: 8px;
+    padding: 4px 10px; font-size: 11px; color: #7a7f8e; cursor: pointer;
+  }
+  .legend-toggle:hover { color: #b0b5c3; }
+  .legend {
+    position: fixed; top: 90px; right: 16px; z-index: 90;
+    background: #1a1d27; border: 1px solid #2a2d3a; border-radius: 10px;
+    padding: 16px 18px; font-size: 12px; display: none;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .legend.visible { display: block; }
+  .legend-title { font-weight: 600; margin-bottom: 10px; color: #c8ccd4; font-size: 13px; }
+  .legend-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; color: #9198a8; }
+  .legend-swatch {
+    width: 28px; height: 16px; border-radius: 4px; flex-shrink: 0;
+  }
+  .legend-swatch.diamond {
+    width: 16px; height: 16px; transform: rotate(45deg); border-radius: 2px;
+  }
+
+  /* Canvas */
+  .canvas-wrap { position: absolute; top: 52px; left: 0; right: 0; bottom: 0; overflow: hidden; cursor: grab; }
+  .canvas-wrap.grabbing { cursor: grabbing; }
+  .canvas {
+    position: absolute; transform-origin: 0 0;
+    width: 2400px; height: 1800px;
+    transition: transform 0.08s ease-out;
+  }
+
+  /* SVG layer for connectors */
+  .connectors {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+  }
+  .connectors path, .connectors line {
+    fill: none; stroke-width: 2; stroke-linecap: round;
+  }
+  .connector-happy { stroke: #3b7ddd; }
+  .connector-error { stroke: #e5484d; stroke-dasharray: 6 4; }
+  .connector-alt { stroke: #7a7f8e; stroke-dasharray: 4 3; }
+  .connector-arrow { fill: #3b7ddd; stroke: none; }
+  .connector-arrow.error { fill: #e5484d; }
+  .connector-arrow.alt { fill: #7a7f8e; }
+
+  .connector-label {
+    font-size: 11px; fill: #7a7f8e; font-family: inherit; pointer-events: none;
+  }
+  .connector-label.yes { fill: #3bba6e; }
+  .connector-label.no { fill: #e5484d; }
+
+  /* Nodes base */
+  .node {
+    position: absolute; cursor: pointer;
+    transition: box-shadow 0.2s, transform 0.15s, border-color 0.2s;
+    user-select: none;
+  }
+  .node:hover { transform: translateY(-2px); z-index: 10; }
+
+  /* Process / action nodes */
+  .node-process {
+    background: #1e2130; border: 1.5px solid #2e3245; border-radius: 10px;
+    padding: 16px 22px; min-width: 170px; text-align: center;
+  }
+  .node-process:hover { border-color: #4a5070; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+  .node-process.happy { border-color: #3b7ddd55; background: #1a2340; }
+  .node-process.happy:hover { border-color: #3b7ddd; box-shadow: 0 4px 24px rgba(59,125,221,0.15); }
+
+  .node-label { font-size: 13px; font-weight: 600; color: #e1e4ea; margin-bottom: 4px; }
+  .node-sub { font-size: 11px; color: #7a7f8e; line-height: 1.4; }
+
+  /* Start / End terminals */
+  .node-terminal {
+    border-radius: 24px; padding: 12px 28px; text-align: center; font-weight: 600; font-size: 13px;
+  }
+  .node-start { background: #1a3a2a; border: 1.5px solid #2a6b45; color: #5bda8a; }
+  .node-start:hover { border-color: #3bba6e; box-shadow: 0 4px 20px rgba(59,186,110,0.15); }
+  .node-end { background: #1a2a3a; border: 1.5px solid #2a4a6b; color: #6ea8fe; }
+  .node-end:hover { border-color: #3b7ddd; box-shadow: 0 4px 20px rgba(59,125,221,0.15); }
+  .node-end-error { background: #2a1a1a; border: 1.5px solid #6b2a2a; color: #f28b8b; }
+  .node-end-error:hover { border-color: #e5484d; box-shadow: 0 4px 20px rgba(229,72,77,0.15); }
+
+  /* Decision diamonds */
+  .node-decision {
+    width: 140px; height: 140px; position: absolute;
+  }
+  .node-decision:hover { transform: translateY(-2px) rotate(0deg); }
+  .diamond-shape {
+    width: 100px; height: 100px;
+    transform: rotate(45deg);
+    border-radius: 6px;
+    position: absolute; top: 20px; left: 20px;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .diamond-shape.validate { background: #2a2520; border: 1.5px solid #6b5a2a; }
+  .diamond-shape.validate:hover { border-color: #d4a72c; box-shadow: 0 4px 20px rgba(212,167,44,0.15); }
+  .diamond-text {
+    transform: rotate(-45deg);
+    font-size: 11px; font-weight: 600; color: #e1c97a; text-align: center;
+    line-height: 1.3; white-space: nowrap;
+  }
+
+  /* Error nodes */
+  .node-error {
+    background: #261a1e; border: 1.5px solid #5a2a35; border-radius: 10px;
+    padding: 14px 20px; min-width: 150px; text-align: center;
+  }
+  .node-error:hover { border-color: #e5484d; box-shadow: 0 4px 20px rgba(229,72,77,0.12); }
+  .node-error .node-label { color: #f28b8b; }
+  .node-error .node-sub { color: #a8636b; }
+
+  /* Detail panel */
+  .detail-panel {
+    position: fixed; bottom: -320px; left: 50%; transform: translateX(-50%);
+    width: 440px; background: #1a1d27; border: 1px solid #2e3245;
+    border-radius: 12px 12px 0 0; padding: 20px 24px 24px;
+    z-index: 100; transition: bottom 0.3s ease;
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.5);
+  }
+  .detail-panel.visible { bottom: 0; }
+  .detail-panel .close-btn {
+    position: absolute; top: 12px; right: 14px; background: none; border: none;
+    color: #7a7f8e; cursor: pointer; font-size: 18px; line-height: 1;
+  }
+  .detail-panel .close-btn:hover { color: #e1e4ea; }
+  .detail-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .detail-type { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: #7a7f8e; margin-bottom: 12px; }
+  .detail-desc { font-size: 13px; color: #9198a8; line-height: 1.6; margin-bottom: 14px; }
+  .detail-connections { font-size: 12px; color: #7a7f8e; }
+  .detail-connections strong { color: #b0b5c3; }
+  .detail-tag {
+    display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px;
+    margin-right: 4px; margin-bottom: 4px;
+  }
+  .tag-happy { background: #1a3050; color: #6ea8fe; }
+  .tag-error { background: #301a1a; color: #f28b8b; }
+  .tag-decision { background: #2a2510; color: #e1c97a; }
+
+  /* Minimap */
+  .minimap {
+    position: fixed; bottom: 16px; right: 16px; width: 180px; height: 120px;
+    background: #1a1d27; border: 1px solid #2a2d3a; border-radius: 8px;
+    z-index: 90; overflow: hidden;
+  }
+  .minimap-canvas { width: 100%; height: 100%; position: relative; }
+  .minimap-dot {
+    position: absolute; width: 4px; height: 4px; border-radius: 1px;
+  }
+  .minimap-viewport {
+    position: absolute; border: 1px solid #3b7ddd88; border-radius: 2px;
+    pointer-events: none;
+  }
+
+  /* Happy path glow animation */
+  @keyframes pulseHappy {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(59,125,221,0); }
+    50% { box-shadow: 0 0 12px 2px rgba(59,125,221,0.15); }
+  }
+  .highlight-happy .node-process.happy { animation: pulseHappy 2s ease-in-out infinite; }
+
+  /* Step indicator on happy path nodes */
+  .step-badge {
+    position: absolute; top: -10px; left: -10px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #3b7ddd; color: #fff; font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(59,125,221,0.3);
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <h1>E-Commerce Checkout Flow</h1>
+  <div class="toolbar-group">
+    <button id="btn-happy" onclick="toggleHappyPath()">Happy Path</button>
+    <button id="btn-fit" onclick="fitToView()">Fit</button>
+    <button onclick="zoomBy(-0.15)">-</button>
+    <span class="zoom-label" id="zoom-label">100%</span>
+    <button onclick="zoomBy(0.15)">+</button>
+    <button onclick="resetView()">Reset</button>
+  </div>
+</div>
+
+<button class="legend-toggle" onclick="document.querySelector('.legend').classList.toggle('visible')">Legend</button>
+<div class="legend">
+  <div class="legend-title">Legend</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#1a2340;border:1.5px solid #3b7ddd55;border-radius:4px;"></div> Happy path step</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#1e2130;border:1.5px solid #2e3245;border-radius:4px;"></div> Process step</div>
+  <div class="legend-item"><div class="legend-swatch diamond" style="background:#2a2520;border:1.5px solid #6b5a2a;"></div> Decision / validation</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#261a1e;border:1.5px solid #5a2a35;border-radius:4px;"></div> Error handling</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#1a3a2a;border:1.5px solid #2a6b45;border-radius:50px;"></div> Start / End</div>
+  <div class="legend-item"><div style="width:28px;height:0;border-top:2px solid #3b7ddd;"></div> Happy path</div>
+  <div class="legend-item"><div style="width:28px;height:0;border-top:2px dashed #e5484d;"></div> Error path</div>
+</div>
+
+<div class="canvas-wrap" id="canvasWrap">
+  <div class="canvas" id="canvas">
+    <svg class="connectors" id="connectors" viewBox="0 0 2400 1800"></svg>
+  </div>
+</div>
+
+<div class="detail-panel" id="detailPanel">
+  <button class="close-btn" onclick="closeDetail()">&times;</button>
+  <div class="detail-type" id="detailType"></div>
+  <div class="detail-title" id="detailTitle"></div>
+  <div class="detail-desc" id="detailDesc"></div>
+  <div class="detail-connections" id="detailConn"></div>
+</div>
+
+<div class="minimap" id="minimap">
+  <div class="minimap-canvas" id="minimapCanvas">
+    <div class="minimap-viewport" id="minimapViewport"></div>
+  </div>
+</div>
+
+<script>
+// ──────────────────────────────────────────────
+// Node data
+// ──────────────────────────────────────────────
+const nodes = [
+  // Happy path
+  { id: 'start', type: 'terminal-start', label: 'Start', x: 200, y: 60, desc: 'User arrives at the e-commerce storefront.', tags: ['happy'] },
+  { id: 'browse', type: 'process-happy', label: 'Browse Products', sub: 'Search, filter, view details', x: 155, y: 160, step: 1, desc: 'User explores the product catalog. They can search, filter by category, and view product detail pages.', tags: ['happy'], next: ['add-cart'], prev: ['start'] },
+  { id: 'add-cart', type: 'process-happy', label: 'Add to Cart', sub: 'Select qty, variant', x: 155, y: 280, step: 2, desc: 'User selects quantity and product variant (size, color), then adds the item to their shopping cart.', tags: ['happy'], next: ['view-cart'], prev: ['browse'] },
+  { id: 'view-cart', type: 'process-happy', label: 'View Cart', sub: 'Review items, update qty', x: 155, y: 400, step: 3, desc: 'User reviews all items in the cart. They can update quantities, remove items, or apply promo codes.', tags: ['happy'], next: ['checkout'], prev: ['add-cart'] },
+  { id: 'checkout', type: 'process-happy', label: 'Begin Checkout', sub: 'Auth or guest checkout', x: 155, y: 520, step: 4, desc: 'User initiates the checkout flow. They can sign in to an existing account or continue as a guest.', tags: ['happy'], next: ['enter-address'], prev: ['view-cart'] },
+  { id: 'enter-address', type: 'process-happy', label: 'Enter Shipping Address', sub: 'Name, street, city, zip', x: 130, y: 640, step: 5, desc: 'User enters their full shipping address including name, street, city, state/province, and postal code.', tags: ['happy'], next: ['validate-address'], prev: ['checkout'] },
+  { id: 'validate-address', type: 'decision', label: 'Address\nValid?', x: 170, y: 780, desc: 'The system validates the shipping address using an address verification API. Checks for completeness, correct format, and deliverability.', tags: ['happy', 'decision'], yes: 'select-shipping', no: 'address-error' },
+  { id: 'select-shipping', type: 'process-happy', label: 'Select Shipping Method', sub: 'Standard, express, overnight', x: 130, y: 940, step: 6, desc: 'User chooses a shipping method. Available options are calculated based on the validated address and cart contents.', tags: ['happy'], next: ['enter-payment'], prev: ['validate-address'] },
+  { id: 'enter-payment', type: 'process-happy', label: 'Enter Payment Info', sub: 'Card, PayPal, Apple Pay', x: 140, y: 1060, step: 7, desc: 'User enters payment details. Supported methods include credit/debit card, PayPal, Apple Pay, and Google Pay.', tags: ['happy'], next: ['validate-payment'], prev: ['select-shipping'] },
+  { id: 'validate-payment', type: 'decision', label: 'Payment\nValid?', x: 170, y: 1200, desc: 'Payment is processed through the payment gateway. The system checks for sufficient funds, valid card number, correct CVV, and fraud detection.', tags: ['happy', 'decision'], yes: 'review-order', no: 'payment-error' },
+  { id: 'review-order', type: 'process-happy', label: 'Review Order', sub: 'Confirm items, total, address', x: 140, y: 1350, step: 8, desc: 'User reviews the complete order summary including items, quantities, shipping method, delivery estimate, and total cost.', tags: ['happy'], next: ['place-order'], prev: ['validate-payment'] },
+  { id: 'place-order', type: 'process-happy', label: 'Place Order', sub: 'Final submit', x: 155, y: 1470, step: 9, desc: 'User confirms and submits the order. The system processes the final charge and creates the order record.', tags: ['happy'], next: ['confirmation'], prev: ['review-order'] },
+  { id: 'confirmation', type: 'process-happy', label: 'Order Confirmation', sub: 'Order #, receipt, email', x: 135, y: 1590, step: 10, desc: 'System displays the order confirmation page with order number, estimated delivery, and a receipt summary. A confirmation email is sent.', tags: ['happy'], next: ['end'], prev: ['place-order'] },
+  { id: 'end', type: 'terminal-end', label: 'Done', x: 200, y: 1710, desc: 'Checkout flow complete. User can track their order or continue shopping.', tags: ['happy'] },
+
+  // Error paths
+  { id: 'address-error', type: 'error', label: 'Address Error', sub: 'Show validation message', x: 460, y: 800, desc: 'The address validation failed. The system highlights the problematic fields and shows specific error messages (e.g., missing zip code, unrecognized street).', tags: ['error'], next: ['enter-address'] },
+  { id: 'payment-error', type: 'error', label: 'Payment Failed', sub: 'Declined / insufficient funds', x: 460, y: 1200, desc: 'The payment was declined. Possible reasons: insufficient funds, expired card, incorrect CVV, fraud flag, or network error.', tags: ['error'], next: ['retry-payment'] },
+  { id: 'retry-payment', type: 'decision', label: 'Retry?', x: 530, y: 1350, desc: 'User decides whether to retry with different payment details or abandon checkout.', tags: ['error', 'decision'], yes: 'enter-payment', no: 'abandon' },
+  { id: 'abandon', type: 'terminal-error', label: 'Checkout Abandoned', x: 680, y: 1370, desc: 'User abandons the checkout. Cart is preserved for potential later completion. An abandoned cart email may be triggered.', tags: ['error'] },
+  { id: 'continue-shopping', type: 'process', label: 'Continue Shopping', sub: 'Return to catalog', x: 460, y: 160, desc: 'User returns to the product catalog to browse more items before checking out.', tags: [], next: ['browse'] },
+];
+
+// ──────────────────────────────────────────────
+// Connections data: [fromId, toId, type, label?, labelX?, labelY?]
+// ──────────────────────────────────────────────
+const connections = [
+  ['start', 'browse', 'happy'],
+  ['browse', 'add-cart', 'happy'],
+  ['add-cart', 'view-cart', 'happy'],
+  ['view-cart', 'checkout', 'happy'],
+  ['view-cart', 'continue-shopping', 'alt', 'More items'],
+  ['continue-shopping', 'browse', 'alt'],
+  ['checkout', 'enter-address', 'happy'],
+  ['enter-address', 'validate-address', 'happy'],
+  ['validate-address', 'select-shipping', 'happy', 'Yes'],
+  ['validate-address', 'address-error', 'error', 'No'],
+  ['address-error', 'enter-address', 'error', 'Fix & retry'],
+  ['select-shipping', 'enter-payment', 'happy'],
+  ['enter-payment', 'validate-payment', 'happy'],
+  ['validate-payment', 'review-order', 'happy', 'Yes'],
+  ['validate-payment', 'payment-error', 'error', 'No'],
+  ['payment-error', 'retry-payment', 'error'],
+  ['retry-payment', 'enter-payment', 'error', 'Yes'],
+  ['retry-payment', 'abandon', 'error', 'No'],
+  ['review-order', 'place-order', 'happy'],
+  ['place-order', 'confirmation', 'happy'],
+  ['confirmation', 'end', 'happy'],
+];
+
+// ──────────────────────────────────────────────
+// Render nodes
+// ──────────────────────────────────────────────
+const canvas = document.getElementById('canvas');
+const nodeMap = {};
+
+nodes.forEach(n => {
+  nodeMap[n.id] = n;
+  const el = document.createElement('div');
+  el.className = 'node';
+  el.dataset.id = n.id;
+  el.style.left = n.x + 'px';
+  el.style.top = n.y + 'px';
+  el.onclick = (e) => { e.stopPropagation(); showDetail(n); };
+
+  if (n.type === 'terminal-start') {
+    el.classList.add('node-terminal', 'node-start');
+    el.innerHTML = `<div class="node-label">${n.label}</div>`;
+  } else if (n.type === 'terminal-end') {
+    el.classList.add('node-terminal', 'node-end');
+    el.innerHTML = `<div class="node-label">${n.label}</div>`;
+  } else if (n.type === 'terminal-error') {
+    el.classList.add('node-terminal', 'node-end-error');
+    el.innerHTML = `<div class="node-label">${n.label}</div>`;
+  } else if (n.type === 'decision') {
+    el.classList.add('node-decision');
+    const cls = n.tags.includes('error') ? 'validate' : 'validate';
+    el.innerHTML = `<div class="diamond-shape ${cls}"><div class="diamond-text">${n.label.replace('\n','<br>')}</div></div>`;
+  } else if (n.type === 'error') {
+    el.classList.add('node-error');
+    el.innerHTML = `<div class="node-label">${n.label}</div><div class="node-sub">${n.sub || ''}</div>`;
+  } else if (n.type === 'process-happy') {
+    el.classList.add('node-process', 'happy');
+    el.innerHTML = `${n.step ? `<div class="step-badge">${n.step}</div>` : ''}<div class="node-label">${n.label}</div><div class="node-sub">${n.sub || ''}</div>`;
+  } else {
+    el.classList.add('node-process');
+    el.innerHTML = `<div class="node-label">${n.label}</div><div class="node-sub">${n.sub || ''}</div>`;
+  }
+
+  canvas.appendChild(el);
+});
+
+// ──────────────────────────────────────────────
+// Get node center for connector routing
+// ──────────────────────────────────────────────
+function getNodeRect(id) {
+  const n = nodeMap[id];
+  const el = canvas.querySelector(`[data-id="${id}"]`);
+  const w = el.offsetWidth;
+  const h = el.offsetHeight;
+  return { x: n.x, y: n.y, w, h, cx: n.x + w / 2, cy: n.y + h / 2 };
+}
+
+function getAnchor(id, side) {
+  const r = getNodeRect(id);
+  if (side === 'bottom') return { x: r.cx, y: r.y + r.h };
+  if (side === 'top') return { x: r.cx, y: r.y };
+  if (side === 'right') return { x: r.x + r.w, y: r.cy };
+  if (side === 'left') return { x: r.x, y: r.cy };
+  return { x: r.cx, y: r.cy };
+}
+
+// ──────────────────────────────────────────────
+// Draw connectors (SVG paths)
+// ──────────────────────────────────────────────
+function drawConnectors() {
+  const svg = document.getElementById('connectors');
+  svg.innerHTML = '';
+
+  connections.forEach(([fromId, toId, type, label]) => {
+    const from = nodeMap[fromId];
+    const to = nodeMap[toId];
+    if (!from || !to) return;
+
+    let startAnchor, endAnchor;
+
+    // Determine anchor points based on relative positions
+    const fromRect = getNodeRect(fromId);
+    const toRect = getNodeRect(toId);
+
+    const dx = toRect.cx - fromRect.cx;
+    const dy = toRect.cy - fromRect.cy;
+
+    // Special routing for certain connections
+    if (fromId === 'validate-address' && toId === 'address-error') {
+      startAnchor = getAnchor(fromId, 'right');
+      endAnchor = getAnchor(toId, 'left');
+    } else if (fromId === 'address-error' && toId === 'enter-address') {
+      startAnchor = getAnchor(fromId, 'top');
+      endAnchor = getAnchor(toId, 'right');
+    } else if (fromId === 'validate-payment' && toId === 'payment-error') {
+      startAnchor = getAnchor(fromId, 'right');
+      endAnchor = getAnchor(toId, 'left');
+    } else if (fromId === 'retry-payment' && toId === 'enter-payment') {
+      startAnchor = getAnchor(fromId, 'top');
+      endAnchor = getAnchor(toId, 'right');
+    } else if (fromId === 'retry-payment' && toId === 'abandon') {
+      startAnchor = getAnchor(fromId, 'right');
+      endAnchor = getAnchor(toId, 'left');
+    } else if (fromId === 'view-cart' && toId === 'continue-shopping') {
+      startAnchor = getAnchor(fromId, 'right');
+      endAnchor = getAnchor(toId, 'bottom');
+    } else if (fromId === 'continue-shopping' && toId === 'browse') {
+      startAnchor = getAnchor(fromId, 'left');
+      endAnchor = getAnchor(toId, 'right');
+    } else {
+      // Default: bottom to top for vertical flow
+      if (Math.abs(dy) > Math.abs(dx)) {
+        if (dy > 0) {
+          startAnchor = getAnchor(fromId, 'bottom');
+          endAnchor = getAnchor(toId, 'top');
+        } else {
+          startAnchor = getAnchor(fromId, 'top');
+          endAnchor = getAnchor(toId, 'bottom');
+        }
+      } else {
+        if (dx > 0) {
+          startAnchor = getAnchor(fromId, 'right');
+          endAnchor = getAnchor(toId, 'left');
+        } else {
+          startAnchor = getAnchor(fromId, 'left');
+          endAnchor = getAnchor(toId, 'right');
+        }
+      }
+    }
+
+    const sx = startAnchor.x, sy = startAnchor.y;
+    const ex = endAnchor.x, ey = endAnchor.y;
+
+    // Build path
+    let path;
+    const midY = (sy + ey) / 2;
+    const midX = (sx + ex) / 2;
+
+    if (fromId === 'address-error' && toId === 'enter-address') {
+      // Route up and left
+      path = `M${sx},${sy} L${sx},${ey} L${ex},${ey}`;
+    } else if (fromId === 'retry-payment' && toId === 'enter-payment') {
+      // Route up and left
+      const topY = toRect.cy;
+      path = `M${sx},${sy} L${sx},${topY} L${ex},${topY}`;
+    } else if (fromId === 'view-cart' && toId === 'continue-shopping') {
+      path = `M${sx},${sy} L${ex},${sy} L${ex},${ey}`;
+    } else if (fromId === 'continue-shopping' && toId === 'browse') {
+      path = `M${sx},${sy} L${ex + 100},${sy} L${ex + 100},${ey} L${ex},${ey}`;
+    } else if (Math.abs(sx - ex) < 5) {
+      // Straight vertical
+      path = `M${sx},${sy} L${ex},${ey}`;
+    } else {
+      // Elbow connector
+      path = `M${sx},${sy} L${sx},${midY} L${ex},${midY} L${ex},${ey}`;
+    }
+
+    const cls = type === 'happy' ? 'connector-happy' : type === 'error' ? 'connector-error' : 'connector-alt';
+
+    const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    pathEl.setAttribute('d', path);
+    pathEl.setAttribute('class', cls);
+    svg.appendChild(pathEl);
+
+    // Arrowhead
+    const angle = Math.atan2(ey - (ey - 14), ex - ex); // straight down by default
+    // Simple triangle at end
+    const arrowSize = 6;
+    // Determine direction of arrival
+    let ax = ex, ay = ey;
+    // Compute incoming direction from path
+    let inDx = 0, inDy = -1; // default: arriving from top
+    // Parse the last segment
+    const segments = path.split(' L');
+    if (segments.length >= 2) {
+      const prev = segments[segments.length - 2].replace('M', '').split(',').map(Number);
+      const last = segments[segments.length - 1].split(',').map(Number);
+      inDx = last[0] - prev[0];
+      inDy = last[1] - prev[1];
+      const len = Math.sqrt(inDx * inDx + inDy * inDy);
+      if (len > 0) { inDx /= len; inDy /= len; }
+    }
+
+    const perpX = -inDy, perpY = inDx;
+    const arrowPath = `M${ax},${ay} L${ax - inDx * arrowSize - perpX * arrowSize * 0.6},${ay - inDy * arrowSize - perpY * arrowSize * 0.6} L${ax - inDx * arrowSize + perpX * arrowSize * 0.6},${ay - inDy * arrowSize + perpY * arrowSize * 0.6} Z`;
+    const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    arrow.setAttribute('d', arrowPath);
+    arrow.setAttribute('class', `connector-arrow ${type === 'error' ? 'error' : type === 'alt' ? 'alt' : ''}`);
+    svg.appendChild(arrow);
+
+    // Label
+    if (label) {
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      // Position label near the start of the connector
+      let lx, ly;
+      if (fromId === 'validate-address' && toId === 'select-shipping') {
+        lx = sx - 30; ly = sy + 20;
+      } else if (fromId === 'validate-address' && toId === 'address-error') {
+        lx = sx + 20; ly = sy - 5;
+      } else if (fromId === 'validate-payment' && toId === 'review-order') {
+        lx = sx - 30; ly = sy + 20;
+      } else if (fromId === 'validate-payment' && toId === 'payment-error') {
+        lx = sx + 20; ly = sy - 5;
+      } else if (fromId === 'retry-payment' && toId === 'enter-payment') {
+        lx = sx - 30; ly = sy - 10;
+      } else if (fromId === 'retry-payment' && toId === 'abandon') {
+        lx = sx + 20; ly = sy - 5;
+      } else {
+        lx = midX + 6; ly = midY - 6;
+      }
+      text.setAttribute('x', lx);
+      text.setAttribute('y', ly);
+      const isYes = label === 'Yes';
+      const isNo = label === 'No';
+      text.setAttribute('class', `connector-label ${isYes ? 'yes' : isNo ? 'no' : ''}`);
+      text.textContent = label;
+      svg.appendChild(text);
+    }
+  });
+}
+
+// Defer rendering until layout is computed
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    drawConnectors();
+    buildMinimap();
+    fitToView();
+  });
+});
+
+// ──────────────────────────────────────────────
+// Pan & Zoom
+// ──────────────────────────────────────────────
+let scale = 1, panX = 0, panY = 0;
+let isPanning = false, startPanX, startPanY, startMouseX, startMouseY;
+
+const canvasWrap = document.getElementById('canvasWrap');
+
+canvasWrap.addEventListener('mousedown', (e) => {
+  if (e.target.closest('.node')) return;
+  isPanning = true;
+  startMouseX = e.clientX;
+  startMouseY = e.clientY;
+  startPanX = panX;
+  startPanY = panY;
+  canvasWrap.classList.add('grabbing');
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (!isPanning) return;
+  panX = startPanX + (e.clientX - startMouseX);
+  panY = startPanY + (e.clientY - startMouseY);
+  applyTransform();
+});
+
+window.addEventListener('mouseup', () => {
+  isPanning = false;
+  canvasWrap.classList.remove('grabbing');
+});
+
+canvasWrap.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? -0.08 : 0.08;
+  const rect = canvasWrap.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  const oldScale = scale;
+  scale = Math.max(0.2, Math.min(3, scale + delta));
+  // Zoom toward cursor
+  panX = mx - (mx - panX) * (scale / oldScale);
+  panY = my - (my - panY) * (scale / oldScale);
+  applyTransform();
+}, { passive: false });
+
+function applyTransform() {
+  canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+  document.getElementById('zoom-label').textContent = Math.round(scale * 100) + '%';
+  updateMinimap();
+}
+
+function zoomBy(d) {
+  const rect = canvasWrap.getBoundingClientRect();
+  const cx = rect.width / 2, cy = rect.height / 2;
+  const oldScale = scale;
+  scale = Math.max(0.2, Math.min(3, scale + d));
+  panX = cx - (cx - panX) * (scale / oldScale);
+  panY = cy - (cy - panY) * (scale / oldScale);
+  applyTransform();
+}
+
+function resetView() {
+  scale = 1; panX = 0; panY = 0;
+  applyTransform();
+}
+
+function fitToView() {
+  const rect = canvasWrap.getBoundingClientRect();
+  // Find bounding box of all nodes
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  nodes.forEach(n => {
+    const el = canvas.querySelector(`[data-id="${n.id}"]`);
+    minX = Math.min(minX, n.x);
+    minY = Math.min(minY, n.y);
+    maxX = Math.max(maxX, n.x + (el ? el.offsetWidth : 180));
+    maxY = Math.max(maxY, n.y + (el ? el.offsetHeight : 60));
+  });
+  const contentW = maxX - minX + 80;
+  const contentH = maxY - minY + 80;
+  const viewW = rect.width - 40;
+  const viewH = rect.height - 40;
+  scale = Math.min(viewW / contentW, viewH / contentH, 1.2);
+  panX = (viewW - contentW * scale) / 2 - minX * scale + 20;
+  panY = (viewH - contentH * scale) / 2 - minY * scale + 20;
+  applyTransform();
+}
+
+// ──────────────────────────────────────────────
+// Detail panel
+// ──────────────────────────────────────────────
+function showDetail(n) {
+  const panel = document.getElementById('detailPanel');
+  document.getElementById('detailTitle').textContent = n.label.replace('\n', ' ');
+  const typeNames = { 'terminal-start': 'Start', 'terminal-end': 'End', 'terminal-error': 'Error End', 'process-happy': 'Process (Happy Path)', 'process': 'Process', 'decision': 'Decision', 'error': 'Error Handler' };
+  document.getElementById('detailType').textContent = typeNames[n.type] || n.type;
+  document.getElementById('detailDesc').textContent = n.desc || '';
+
+  let tagsHtml = '';
+  (n.tags || []).forEach(t => {
+    const cls = t === 'happy' ? 'tag-happy' : t === 'error' ? 'tag-error' : t === 'decision' ? 'tag-decision' : 'tag-happy';
+    tagsHtml += `<span class="detail-tag ${cls}">${t}</span> `;
+  });
+  document.getElementById('detailConn').innerHTML = tagsHtml;
+
+  // Highlight the clicked node
+  document.querySelectorAll('.node').forEach(el => el.style.outline = 'none');
+  const clicked = canvas.querySelector(`[data-id="${n.id}"]`);
+  if (clicked) clicked.style.outline = '2px solid #3b7ddd';
+
+  panel.classList.add('visible');
+}
+
+function closeDetail() {
+  document.getElementById('detailPanel').classList.remove('visible');
+  document.querySelectorAll('.node').forEach(el => el.style.outline = 'none');
+}
+
+canvasWrap.addEventListener('click', (e) => {
+  if (!e.target.closest('.node')) closeDetail();
+});
+
+// ──────────────────────────────────────────────
+// Happy path toggle
+// ──────────────────────────────────────────────
+let happyHighlight = false;
+function toggleHappyPath() {
+  happyHighlight = !happyHighlight;
+  document.getElementById('btn-happy').classList.toggle('active', happyHighlight);
+  canvas.classList.toggle('highlight-happy', happyHighlight);
+
+  // Dim non-happy nodes
+  document.querySelectorAll('.node').forEach(el => {
+    const id = el.dataset.id;
+    const n = nodeMap[id];
+    if (happyHighlight && !(n.tags || []).includes('happy')) {
+      el.style.opacity = '0.25';
+    } else {
+      el.style.opacity = '1';
+    }
+  });
+}
+
+// ──────────────────────────────────────────────
+// Minimap
+// ──────────────────────────────────────────────
+function buildMinimap() {
+  const mc = document.getElementById('minimapCanvas');
+  // Clear existing dots
+  mc.querySelectorAll('.minimap-dot').forEach(d => d.remove());
+  const scaleM = 180 / 2400;
+  nodes.forEach(n => {
+    const dot = document.createElement('div');
+    dot.className = 'minimap-dot';
+    const color = (n.tags || []).includes('happy') ? '#3b7ddd' : (n.tags || []).includes('error') ? '#e5484d' : '#7a7f8e';
+    dot.style.background = color;
+    dot.style.left = (n.x * scaleM) + 'px';
+    dot.style.top = (n.y * scaleM) + 'px';
+    dot.style.width = n.type === 'decision' ? '6px' : '8px';
+    dot.style.height = n.type === 'decision' ? '6px' : '4px';
+    mc.appendChild(dot);
+  });
+  updateMinimap();
+}
+
+function updateMinimap() {
+  const rect = canvasWrap.getBoundingClientRect();
+  const scaleM = 180 / 2400;
+  const vp = document.getElementById('minimapViewport');
+  const vpW = (rect.width / scale) * scaleM;
+  const vpH = (rect.height / scale) * scaleM;
+  const vpX = (-panX / scale) * scaleM;
+  const vpY = (-panY / scale) * scaleM;
+  vp.style.width = vpW + 'px';
+  vp.style.height = vpH + 'px';
+  vp.style.left = vpX + 'px';
+  vp.style.top = vpY + 'px';
+}
+
+// Keyboard shortcuts
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeDetail();
+  if (e.key === '0') resetView();
+  if (e.key === 'f') fitToView();
+  if (e.key === 'h') toggleHappyPath();
+  if (e.key === '+' || e.key === '=') zoomBy(0.15);
+  if (e.key === '-') zoomBy(-0.15);
+});
+
+window.addEventListener('resize', () => updateMinimap());
+</script>
+</body>
+</html>

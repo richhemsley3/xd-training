@@ -1,0 +1,57 @@
+{
+  "eval_name": "login-signup-flow",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "HTML file exists",
+      "passed": true,
+      "evidence": "screen-flow.html exists in outputs directory"
+    },
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": false,
+      "evidence": "Missing: d3js.org; File uses cdn.jsdelivr.net/npm/d3@7 instead"
+    },
+    {
+      "text": "Landing page screen",
+      "passed": true,
+      "evidence": "Found: Landing Page screen defined with id 'landing'"
+    },
+    {
+      "text": "Login form screen",
+      "passed": true,
+      "evidence": "Found: Login Form screen defined with id 'login'"
+    },
+    {
+      "text": "Sign up form screen",
+      "passed": true,
+      "evidence": "Found: Sign Up Form screen defined with id 'signup'"
+    },
+    {
+      "text": "Dashboard screen",
+      "passed": true,
+      "evidence": "Found: Dashboard screen defined with id 'dashboard'"
+    },
+    {
+      "text": "Error state screen",
+      "passed": true,
+      "evidence": "Found: Invalid Credentials screen with isError flag"
+    },
+    {
+      "text": "Email verification screen",
+      "passed": true,
+      "evidence": "Found: Email Verification screen defined with id 'verification'"
+    },
+    {
+      "text": "Branching paths",
+      "passed": false,
+      "evidence": "Missing: branch; The word 'branch' does not appear in the file content, though branching is implemented via two exits from landing"
+    },
+    {
+      "text": "Green connectors",
+      "passed": true,
+      "evidence": "Found: #66BB6A used for green connector paths and pills"
+    }
+  ],
+  "pass_rate": 0.8
+}

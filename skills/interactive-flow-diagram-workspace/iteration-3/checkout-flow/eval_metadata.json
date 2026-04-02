@@ -1,0 +1,20 @@
+{
+  "eval_id": 1,
+  "eval_name": "checkout-flow",
+  "prompt": "Build me an interactive user flow for an e-commerce checkout: Browse → Cart → Shipping → Payment → Confirmation, with error handling for payment failure and address validation. Include decision diamonds for the validation steps and highlight the happy path.",
+  "assertions": [
+    "Uses D3.js from CDN",
+    "Single standalone HTML file",
+    "Nodes are clickable (click handlers)",
+    "Multiple zoom levels (at least 2 distinct views)",
+    "Breadcrumb or back navigation",
+    "Custom styled nodes (not default SVG)",
+    "Smooth transitions between states",
+    "Dark theme styling (#0F0F0F or similar dark background)",
+    "Orthogonal connectors (right-angle paths)",
+    "Action pills on connectors",
+    "Decision diamonds for validation steps",
+    "Error paths with distinct red styling",
+    "Happy path visually highlighted"
+  ]
+}

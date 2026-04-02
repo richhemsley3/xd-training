@@ -1,0 +1,57 @@
+{
+  "eval_name": "saas-onboarding",
+  "configuration": "without_skill",
+  "expectations": [
+    {
+      "text": "HTML file exists",
+      "passed": true,
+      "evidence": "Found: journey-map.html exists in outputs directory"
+    },
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": false,
+      "evidence": "Missing: 'd3@7' not found in output"
+    },
+    {
+      "text": "Standalone (no external CSS)",
+      "passed": true,
+      "evidence": "Found: '<style' in output"
+    },
+    {
+      "text": "Has 4 phases",
+      "passed": true,
+      "evidence": "Found: 'Awareness' in output"
+    },
+    {
+      "text": "Emotion curve present",
+      "passed": true,
+      "evidence": "Found: 'curveMonotone' in output"
+    },
+    {
+      "text": "Grid/table layout",
+      "passed": true,
+      "evidence": "Found: 'grid' in output"
+    },
+    {
+      "text": "Pain points section",
+      "passed": true,
+      "evidence": "Found: 'pain' in output"
+    },
+    {
+      "text": "Opportunities section",
+      "passed": true,
+      "evidence": "Found: 'opportunit' in output"
+    },
+    {
+      "text": "SVG element for chart",
+      "passed": false,
+      "evidence": "Missing: '<svg' not found in output"
+    },
+    {
+      "text": "Interactive behavior",
+      "passed": true,
+      "evidence": "Found: 'addEventListener' in output"
+    }
+  ],
+  "pass_rate": 0.8
+}

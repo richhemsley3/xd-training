@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-Commerce Purchase Experience — Customer Journey Map</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #FAF8F5;
+      color: #1C1A17;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    /* ─── Title Bar ─── */
+    .title-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 32px 20px;
+      background: #FFFFFF;
+      border-bottom: 1px solid #EBE6DD;
+    }
+    .title-left h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1C1A17;
+    }
+    .title-left h1 .separator {
+      color: #B0ABA2;
+      font-weight: 300;
+      margin: 0 8px;
+    }
+    .title-left h1 .subtitle {
+      font-weight: 400;
+      color: #6B6760;
+      font-size: 18px;
+    }
+    .persona-info {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #6B6760;
+    }
+
+    /* ─── Role Legend ─── */
+    .role-legend {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-size: 9px;
+      color: #6B6760;
+      flex-shrink: 0;
+    }
+    .role-legend-title {
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-right: 4px;
+    }
+    .role-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity 0.2s;
+    }
+    .role-legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    /* ─── Grid Container ─── */
+    .grid-wrapper {
+      overflow-x: auto;
+      overflow-y: auto;
+      max-height: calc(100vh - 90px);
+      position: relative;
+    }
+    .journey-grid {
+      display: grid;
+      min-width: max-content;
+      border: 1px solid #E0DCD3;
+      background: #FFFFFF;
+    }
+
+    /* ─── Row Labels (sticky left) ─── */
+    .row-label {
+      position: sticky;
+      left: 0;
+      z-index: 3;
+      width: 140px;
+      min-width: 140px;
+      background: #FFFFFF;
+      border-right: 1px solid #E0DCD3;
+      border-bottom: 1px solid rgba(208, 203, 195, 0.4);
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #6B6760;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .row-label .row-subtitle {
+      font-size: 9px;
+      font-weight: 400;
+      color: #B0ABA2;
+      text-transform: none;
+      letter-spacing: 0;
+      margin-top: 2px;
+    }
+
+    /* ─── Corner cells (above both sticky axes) ─── */
+    .corner-cell {
+      z-index: 4 !important;
+    }
+    .corner-phase {
+      position: sticky;
+      left: 0;
+      top: 0;
+      z-index: 4;
+      background: #F4F1EB;
+      height: 44px;
+      border-right: 1px solid #E0DCD3;
+      border-bottom: 1px solid #E0DCD3;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #6B6760;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .corner-step {
+      position: sticky;
+      left: 0;
+      top: 44px;
+      z-index: 4;
+      background: #FFFFFF;
+      height: 36px;
+      border-right: 1px solid #E0DCD3;
+      border-bottom: 1px solid rgba(208, 203, 195, 0.4);
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #6B6760;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ─── Phase Header Bands (full-width warm-gray) ─── */
+    .phase-header {
+      background: #F4F1EB;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #1C1A17;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid #E0DCD3;
+      border-right: 1px solid #E0DCD3;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    /* ─── Step Headers ─── */
+    .step-header {
+      background: #FFFFFF;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 400;
+      color: #6B6760;
+      border-bottom: 1px solid rgba(208, 203, 195, 0.4);
+      border-right: 1px solid rgba(208, 203, 195, 0.4);
+      position: sticky;
+      top: 44px;
+      z-index: 2;
+    }
+
+    /* ─── Content Cells ─── */
+    .cell {
+      padding: 12px 16px;
+      min-height: 72px;
+      font-size: 12px;
+      font-weight: 400;
+      color: #54514D;
+      border-bottom: 1px solid rgba(208, 203, 195, 0.4);
+      border-right: 1px solid rgba(208, 203, 195, 0.4);
+      background: #FAF8F5;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    .cell:hover { background: rgba(244, 241, 235, 0.6); }
+    .cell.zebra { background: #FAFAF8; }
+    .cell.zebra:hover { background: rgba(244, 241, 235, 0.6); }
+
+    /* ─── Role Cells ─── */
+    .role-cell {
+      padding: 12px 16px;
+      min-height: 52px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      border-bottom: 1px solid rgba(208, 203, 195, 0.4);
+      border-right: 1px solid rgba(208, 203, 195, 0.4);
+      background: #FFFFFF;
+    }
+
+    /* ─── Role Badge Pills ─── */
+    .role-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 28px;
+      padding: 0 12px;
+      border-radius: 14px;
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: opacity 0.2s, outline 0.2s;
+      width: 100%;
+      max-width: 160px;
+    }
+    .role-badge.secondary {
+      height: 22px;
+      padding: 0 10px;
+      border-radius: 11px;
+      font-size: 10px;
+      font-weight: 500;
+      width: auto;
+      max-width: 140px;
+    }
+    .role-badge.faded { opacity: 0.3; }
+    .role-badge.active-ring {
+      outline: 2px solid white;
+      outline-offset: 1px;
+    }
+
+    /* ─── Emotion Row ─── */
+    .emotion-row-container {
+      position: relative;
+      min-height: 150px;
+      overflow: visible;
+      z-index: 1;
+      border-bottom: 1px solid rgba(208, 203, 195, 0.4);
+      background: #FFFFFF;
+    }
+    #emotion-svg {
+      display: block;
+      overflow: visible;
+    }
+
+    /* ─── Pain Points (plain text, red accent, NO emoji) ─── */
+    .pain-item {
+      color: #BF5547;
+      margin-bottom: 4px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .pain-bg { background: #FFEEEB !important; }
+
+    /* ─── Opportunities (plain text, green accent, NO emoji) ─── */
+    .opp-item {
+      color: #62800B;
+      margin-bottom: 4px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .opp-bg { background: #F4FAEB !important; }
+
+    /* ─── Needs ─── */
+    .need-item {
+      color: #8A7515;
+      font-style: italic;
+      margin-bottom: 4px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .need-bg { background: #FCF9D9 !important; }
+
+    /* ─── Touchpoints ─── */
+    .touchpoint-item {
+      font-size: 12px;
+      color: #54514D;
+      margin-bottom: 3px;
+    }
+
+    /* ─── Workarounds ─── */
+    .workaround-text {
+      font-size: 12px;
+      color: #54514D;
+      line-height: 1.5;
+    }
+
+    /* ─── Metrics ─── */
+    .metric-card {
+      display: inline-flex;
+      flex-direction: column;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: #FFFFFF;
+      border: 1px solid #EBE6DD;
+    }
+    .metric-value { font-size: 16px; font-weight: 700; }
+    .metric-name { font-size: 10px; color: #6B6760; }
+
+    /* ─── Support Reliance ─── */
+    .support-bar-wrap { width: 80%; margin: 0 auto; text-align: center; }
+    .support-bar {
+      height: 8px;
+      border-radius: 4px;
+      background: #EBE6DD;
+      position: relative;
+      overflow: hidden;
+    }
+    .support-bar-fill {
+      position: absolute;
+      left: 0; top: 0; height: 100%;
+      border-radius: 4px;
+    }
+    .support-label { font-size: 10px; color: #6B6760; margin-top: 4px; }
+
+    /* ─── Role Dot Prefix ─── */
+    .role-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
+    /* ─── Empty Cell ─── */
+    .empty-cell { color: #B0ABA2; text-align: center; }
+
+    /* ─── Curve Legend ─── */
+    .curve-legend {
+      position: absolute;
+      bottom: 6px;
+      right: 12px;
+      display: flex;
+      gap: 14px;
+      font-size: 9px;
+      color: #6B6760;
+      z-index: 2;
+    }
+    .curve-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ─── Tooltip ─── */
+    .tooltip {
+      position: fixed;
+      pointer-events: none;
+      background: #FFFFFF;
+      border: 1px solid #E0DCD3;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #1C1A17;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      z-index: 100;
+      max-width: 260px;
+      display: none;
+    }
+    .tooltip .tt-label { font-weight: 600; margin-bottom: 4px; }
+    .tooltip .tt-score { color: #6B6760; font-size: 11px; }
+    .tooltip .tt-annotation { margin-top: 4px; font-style: italic; color: #54514D; }
+
+    /* ─── Print ─── */
+    @media print {
+      .grid-wrapper { overflow: visible; max-height: none; }
+      .journey-grid { min-width: auto; }
+      body { background: #FFFFFF; }
+      .tooltip { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="tooltip" id="tooltip"></div>
+
+<div class="title-bar">
+  <div class="title-left">
+    <h1>E-Commerce Purchase Experience<span class="separator">|</span><span class="subtitle">Customer Journey Map</span></h1>
+    <div class="persona-info">Persona: Online Shopper &mdash; Goal: Find, purchase, and receive products with a seamless experience</div>
+  </div>
+  <div class="role-legend" id="role-legend"></div>
+</div>
+
+<div class="grid-wrapper">
+  <div class="journey-grid" id="journey-grid"></div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   Journey Data
+   ═══════════════════════════════════════════════════ */
+const journeyData = {
+  title: "E-Commerce Purchase Experience",
+  persona: {
+    name: "Online Shopper",
+    role: "Consumer",
+    goal: "Find, purchase, and receive products with a seamless experience"
+  },
+  phases: [
+    {
+      id: "browse",
+      label: "Browse",
+      color: "#805AA1",
+      steps: [
+        {
+          id: "discover",
+          label: "Discover Products",
+          primaryUser: { name: "Marketing", color: "#013D5B" },
+          secondaryUsers: [{ name: "Product", color: "#4A6E82" }],
+          emotion: { score: 0.75, label: "Curious", annotation: "Customer is excited to explore and discover new products" },
+          needs: {
+            "Marketing": "Engaging landing pages that convert visitors",
+            "Product": "Clear product categorization and search"
+          },
+          workarounds: "Uses Google search and social media for product discovery",
+          touchpoints: ["Website", "Mobile App", "Email"],
+          painPoints: {
+            "Marketing": ["Hard to personalize first-time visitor experience"],
+            "Product": ["Search results not relevant enough"]
+          },
+          opportunities: {
+            "Marketing": ["AI-powered personalized recommendations on first visit"],
+            "Product": ["Improve search algorithm with semantic matching"]
+          },
+          metrics: { name: "Bounce Rate", value: "38%" },
+          supportReliance: "light"
+        },
+        {
+          id: "browse-catalog",
+          label: "Browse Catalog",
+          primaryUser: { name: "Product", color: "#4A6E82" },
+          secondaryUsers: [{ name: "Marketing", color: "#013D5B" }],
+          emotion: { score: 0.65, label: "Engaged", annotation: "Browsing categories and filtering results" },
+          needs: {
+            "Product": "Intuitive navigation and filters",
+            "Marketing": "Promote featured products within browsing flow"
+          },
+          workarounds: "Opens multiple tabs to compare items side by side",
+          touchpoints: ["Website", "Mobile App"],
+          painPoints: {
+            "Product": ["Too many clicks to find niche products"],
+            "Marketing": ["Promotional banners disrupt browsing flow"]
+          },
+          opportunities: {
+            "Product": ["Add smart filters and breadcrumb navigation"],
+            "Marketing": ["Contextual, non-intrusive product suggestions"]
+          },
+          metrics: { name: "Pages/Session", value: "4.2" },
+          supportReliance: "light"
+        }
+      ]
+    },
+    {
+      id: "compare",
+      label: "Compare",
+      color: "#013D5B",
+      steps: [
+        {
+          id: "compare-products",
+          label: "Compare Products",
+          primaryUser: { name: "Product", color: "#4A6E82" },
+          secondaryUsers: [{ name: "Marketing", color: "#013D5B" }],
+          emotion: { score: 0.55, label: "Analytical", annotation: "Evaluating features, prices, and reviews across products" },
+          needs: {
+            "Product": "Side-by-side comparison tools",
+            "Marketing": "Highlight product differentiators clearly"
+          },
+          workarounds: "Uses spreadsheets or external review sites to compare",
+          touchpoints: ["Website", "Mobile App"],
+          painPoints: {
+            "Product": ["No built-in comparison feature"],
+            "Marketing": ["Inconsistent product information across listings"]
+          },
+          opportunities: {
+            "Product": ["Build native comparison tool with spec matrix"],
+            "Marketing": ["Standardize product data and highlight key differentiators"]
+          },
+          metrics: { name: "Compare Usage", value: "23%" },
+          supportReliance: "light"
+        },
+        {
+          id: "read-reviews",
+          label: "Read Reviews",
+          primaryUser: { name: "Marketing", color: "#013D5B" },
+          secondaryUsers: [{ name: "Support", color: "#5C7A3D" }],
+          emotion: { score: 0.5, label: "Cautious", annotation: "Seeking social proof and validation before committing" },
+          secondaryEmotions: [
+            { role: "Support", score: 0.45, label: "Monitoring", annotation: "Support tracks negative reviews for follow-up" }
+          ],
+          needs: {
+            "Marketing": "Authentic, verified customer reviews",
+            "Support": "Quick response to negative reviews and questions"
+          },
+          workarounds: "Searches for reviews on YouTube, Reddit, and third-party sites",
+          touchpoints: ["Website", "Mobile App"],
+          painPoints: {
+            "Marketing": ["Fake reviews erode trust"],
+            "Support": ["Customer questions in reviews go unanswered"]
+          },
+          opportunities: {
+            "Marketing": ["Verified purchase badge and video reviews"],
+            "Support": ["Auto-route review questions to support team"]
+          },
+          metrics: { name: "Review Read Rate", value: "67%" },
+          supportReliance: "medium"
+        }
+      ]
+    },
+    {
+      id: "purchase",
+      label: "Purchase",
+      color: "#0C4A69",
+      steps: [
+        {
+          id: "add-to-cart",
+          label: "Add to Cart",
+          primaryUser: { name: "Product", color: "#4A6E82" },
+          secondaryUsers: [{ name: "Marketing", color: "#013D5B" }],
+          emotion: { score: 0.6, label: "Decided", annotation: "Customer has made a choice and is ready to buy" },
+          needs: {
+            "Product": "Frictionless add-to-cart experience",
+            "Marketing": "Upsell and cross-sell opportunities"
+          },
+          workarounds: "Uses cart as a wishlist, adds items but delays purchase",
+          touchpoints: ["Website", "Mobile App"],
+          painPoints: {
+            "Product": ["Cart does not persist across devices"],
+            "Marketing": ["Aggressive upsells cause cart abandonment"]
+          },
+          opportunities: {
+            "Product": ["Cross-device cart sync with account login"],
+            "Marketing": ["Subtle, relevant cross-sell recommendations"]
+          },
+          metrics: { name: "Cart Add Rate", value: "31%" },
+          supportReliance: "light"
+        },
+        {
+          id: "checkout",
+          label: "Checkout",
+          primaryUser: { name: "Product", color: "#4A6E82" },
+          secondaryUsers: [
+            { name: "Support", color: "#5C7A3D" },
+            { name: "Logistics", color: "#805AA1" }
+          ],
+          emotion: { score: 0.25, label: "Frustrated", annotation: "Checkout friction: too many steps, forced account creation, hidden fees" },
+          secondaryEmotions: [
+            { role: "Support", score: 0.3, label: "Overwhelmed", annotation: "High volume of checkout-related support tickets" }
+          ],
+          needs: {
+            "Product": "Streamlined single-page checkout",
+            "Support": "Real-time chat for payment issues",
+            "Logistics": "Accurate shipping cost and time estimates"
+          },
+          workarounds: "Abandons cart and searches for discount codes on external sites",
+          touchpoints: ["Website", "Mobile App", "Phone"],
+          painPoints: {
+            "Product": ["Forced account creation before checkout", "Too many form fields and steps"],
+            "Support": ["No live help available during checkout errors"],
+            "Logistics": ["Hidden shipping fees revealed at last step"]
+          },
+          opportunities: {
+            "Product": ["Guest checkout with optional account creation post-purchase"],
+            "Support": ["Proactive chat widget triggered by checkout hesitation"],
+            "Logistics": ["Show shipping costs on product page, not just at checkout"]
+          },
+          metrics: { name: "Cart Abandon", value: "69%" },
+          supportReliance: "medium"
+        },
+        {
+          id: "payment",
+          label: "Payment Confirmation",
+          primaryUser: { name: "Product", color: "#4A6E82" },
+          secondaryUsers: [{ name: "Support", color: "#5C7A3D" }],
+          emotion: { score: 0.45, label: "Anxious", annotation: "Worried about payment security and order accuracy" },
+          needs: {
+            "Product": "Clear order confirmation with all details",
+            "Support": "Instant confirmation email and support access"
+          },
+          workarounds: "Takes screenshots of order confirmation page",
+          touchpoints: ["Website", "Email"],
+          painPoints: {
+            "Product": ["Unclear confirmation page, missing order details"],
+            "Support": ["Confirmation email delayed or lands in spam"]
+          },
+          opportunities: {
+            "Product": ["Rich confirmation page with order timeline"],
+            "Support": ["Instant SMS confirmation alongside email"]
+          },
+          metrics: { name: "Conversion Rate", value: "3.2%" },
+          supportReliance: "medium"
+        }
+      ]
+    },
+    {
+      id: "delivery",
+      label: "Delivery",
+      color: "#7A9A01",
+      steps: [
+        {
+          id: "order-tracking",
+          label: "Order Tracking",
+          primaryUser: { name: "Logistics", color: "#805AA1" },
+          secondaryUsers: [
+            { name: "Support", color: "#5C7A3D" },
+            { name: "Product", color: "#4A6E82" }
+          ],
+          emotion: { score: 0.35, label: "Impatient", annotation: "Anxiously checking tracking updates, especially if delayed" },
+          secondaryEmotions: [
+            { role: "Support", score: 0.3, label: "Strained", annotation: "Flood of where-is-my-order inquiries" }
+          ],
+          needs: {
+            "Logistics": "Real-time tracking with accurate ETAs",
+            "Support": "Proactive delay notifications to customers",
+            "Product": "Integrated tracking in app and website"
+          },
+          workarounds: "Refreshes tracking page repeatedly, calls support for updates",
+          touchpoints: ["Website", "Mobile App", "Email"],
+          painPoints: {
+            "Logistics": ["Tracking info updates lag behind actual status", "Delivery date estimates are unreliable"],
+            "Support": ["Flood of where-is-my-order inquiries"],
+            "Product": ["Tracking experience fragmented across carrier sites"]
+          },
+          opportunities: {
+            "Logistics": ["Real-time GPS tracking with push notifications"],
+            "Support": ["Automated proactive delay alerts before customer asks"],
+            "Product": ["Unified tracking experience within the app"]
+          },
+          metrics: { name: "WISMO Tickets", value: "42%" },
+          supportReliance: "heavy"
+        },
+        {
+          id: "receive-package",
+          label: "Receive Package",
+          primaryUser: { name: "Logistics", color: "#805AA1" },
+          secondaryUsers: [{ name: "Support", color: "#5C7A3D" }],
+          emotion: { score: 0.55, label: "Relieved", annotation: "Package arrives, but condition and timeliness affect satisfaction" },
+          secondaryEmotions: [
+            { role: "Support", score: 0.4, label: "Reactive", annotation: "Handling damage reports and delivery complaints" }
+          ],
+          needs: {
+            "Logistics": "Safe, timely delivery with proof",
+            "Support": "Easy process for damaged or wrong items"
+          },
+          workarounds: "Takes photos of package condition upon arrival",
+          touchpoints: ["Mobile App", "Email"],
+          painPoints: {
+            "Logistics": ["Packages left in unsafe locations", "Delivery delays with no explanation"],
+            "Support": ["Reporting damaged items requires multiple steps"]
+          },
+          opportunities: {
+            "Logistics": ["Delivery photo confirmation and safe-place options"],
+            "Support": ["One-tap damage report with photo upload"]
+          },
+          metrics: { name: "On-Time Rate", value: "78%" },
+          supportReliance: "medium"
+        }
+      ]
+    },
+    {
+      id: "post-purchase",
+      label: "Post-Purchase",
+      color: "#8A7515",
+      steps: [
+        {
+          id: "product-experience",
+          label: "Use Product",
+          primaryUser: { name: "Product", color: "#4A6E82" },
+          secondaryUsers: [
+            { name: "Support", color: "#5C7A3D" },
+            { name: "Marketing", color: "#013D5B" }
+          ],
+          emotion: { score: 0.7, label: "Satisfied", annotation: "Product meets expectations, customer is happy with purchase" },
+          needs: {
+            "Product": "Easy setup guides and documentation",
+            "Support": "Quick help if product issues arise",
+            "Marketing": "Gather feedback for testimonials"
+          },
+          workarounds: "Watches YouTube tutorials for product setup",
+          touchpoints: ["Email", "Mobile App"],
+          painPoints: {
+            "Product": ["Missing or unclear setup instructions"],
+            "Support": ["Long wait times for product support"],
+            "Marketing": ["No structured feedback collection mechanism"]
+          },
+          opportunities: {
+            "Product": ["In-app interactive setup wizard"],
+            "Support": ["AI chatbot for common product questions"],
+            "Marketing": ["Automated review request at optimal timing"]
+          },
+          metrics: { name: "CSAT Score", value: "4.1/5" },
+          supportReliance: "medium"
+        },
+        {
+          id: "return-repurchase",
+          label: "Return or Repurchase",
+          primaryUser: { name: "Support", color: "#5C7A3D" },
+          secondaryUsers: [
+            { name: "Logistics", color: "#805AA1" },
+            { name: "Marketing", color: "#013D5B" }
+          ],
+          emotion: { score: 0.6, label: "Evaluating", annotation: "Deciding whether to return, exchange, or buy again" },
+          secondaryEmotions: [
+            { role: "Logistics", score: 0.45, label: "Busy", annotation: "Processing reverse logistics and return shipments" }
+          ],
+          needs: {
+            "Support": "Hassle-free return and refund process",
+            "Logistics": "Efficient reverse logistics",
+            "Marketing": "Re-engagement and loyalty program"
+          },
+          workarounds: "Contacts support via multiple channels to expedite returns",
+          touchpoints: ["Website", "Email", "Phone"],
+          painPoints: {
+            "Support": ["Return process is confusing and multi-step"],
+            "Logistics": ["Return shipping is expensive for the customer"],
+            "Marketing": ["No personalized re-engagement after purchase"]
+          },
+          opportunities: {
+            "Support": ["Self-service returns portal with prepaid labels"],
+            "Logistics": ["Free return shipping for loyalty members"],
+            "Marketing": ["Personalized product recommendations based on purchase history"]
+          },
+          metrics: { name: "Return Rate", value: "12%" },
+          supportReliance: "heavy"
+        }
+      ]
+    }
+  ],
+  roles: [
+    { name: "Marketing", abbrev: "Mktg", color: "#013D5B" },
+    { name: "Product", abbrev: "Prod", color: "#4A6E82" },
+    { name: "Support", abbrev: "Spt", color: "#5C7A3D" },
+    { name: "Logistics", abbrev: "Log", color: "#805AA1" }
+  ]
+};
+
+/* ═══════════════════════════════════════════════════
+   State & Helpers
+   ═══════════════════════════════════════════════════ */
+let activeRole = null;
+
+function getAllSteps() {
+  return journeyData.phases.flatMap(p => p.steps);
+}
+
+function getRoleColor(name) {
+  const r = journeyData.roles.find(r => r.name === name);
+  return r ? r.color : '#6B6760';
+}
+
+function getRoleAbbrev(name) {
+  const r = journeyData.roles.find(r => r.name === name);
+  return r ? r.abbrev : name.substring(0, 3);
+}
+
+function showTooltip(event, html) {
+  const tt = document.getElementById('tooltip');
+  tt.innerHTML = html;
+  tt.style.display = 'block';
+  let x = event.clientX + 14;
+  let y = event.clientY - 14;
+  if (x + 260 > window.innerWidth) x = event.clientX - 270;
+  if (y < 0) y = 4;
+  tt.style.left = x + 'px';
+  tt.style.top = y + 'px';
+}
+
+function hideTooltip() {
+  document.getElementById('tooltip').style.display = 'none';
+}
+
+/* ═══════════════════════════════════════════════════
+   Role Legend
+   ═══════════════════════════════════════════════════ */
+function buildRoleLegend() {
+  const legend = document.getElementById('role-legend');
+  legend.innerHTML = '<span class="role-legend-title">Roles:</span>';
+  journeyData.roles.forEach(role => {
+    const item = document.createElement('span');
+    item.className = 'role-legend-item';
+    item.dataset.role = role.name;
+    item.innerHTML = '<span class="role-legend-dot" style="background:' + role.color + '"></span>' + role.abbrev;
+    if (activeRole && activeRole !== role.name) item.style.opacity = '0.3';
+    item.addEventListener('click', () => toggleRoleFilter(role.name));
+    legend.appendChild(item);
+  });
+}
+
+/* ═══════════════════════════════════════════════════
+   Role Filter
+   ═══════════════════════════════════════════════════ */
+function toggleRoleFilter(roleName) {
+  activeRole = (activeRole === roleName) ? null : roleName;
+  buildRoleLegend();
+  applyRoleFilter();
+  renderFilterableContent();
+}
+
+function applyRoleFilter() {
+  // Fade/unfade role badges
+  document.querySelectorAll('.role-badge').forEach(badge => {
+    if (activeRole && badge.dataset.role !== activeRole) {
+      badge.classList.add('faded');
+      badge.classList.remove('active-ring');
+    } else if (activeRole && badge.dataset.role === activeRole) {
+      badge.classList.remove('faded');
+      badge.classList.add('active-ring');
+    } else {
+      badge.classList.remove('faded');
+      badge.classList.remove('active-ring');
+    }
+  });
+}
+
+function renderFilterableContent() {
+  // Show/hide role-scoped content items
+  document.querySelectorAll('[data-filterable="true"]').forEach(cell => {
+    cell.querySelectorAll('[data-role]').forEach(item => {
+      if (activeRole) {
+        item.style.display = (item.dataset.role === activeRole) ? '' : 'none';
+      } else {
+        item.style.display = '';
+      }
+    });
+  });
+}
+
+/* ═══════════════════════════════════════════════════
+   Role-Scoped Content Builders (NO emoji icons)
+   ═══════════════════════════════════════════════════ */
+function buildRoleScopedString(data, itemClass) {
+  if (!data) return '<span class="empty-cell">&mdash;</span>';
+  if (typeof data === 'string') return '<div class="' + itemClass + '">' + data + '</div>';
+  return Object.entries(data).map(function(entry) {
+    var role = entry[0], text = entry[1];
+    var color = getRoleColor(role);
+    var abbrev = getRoleAbbrev(role);
+    return '<div class="' + itemClass + '" data-role="' + role + '"><span class="role-dot" style="background:' + color + '"></span>' + abbrev + ': ' + text + '</div>';
+  }).join('');
+}
+
+function buildRoleScopedArray(data, itemClass) {
+  if (!data) return '<span class="empty-cell">&mdash;</span>';
+  if (Array.isArray(data)) return data.map(function(item) {
+    return '<div class="' + itemClass + '">' + item + '</div>';
+  }).join('');
+  return Object.entries(data).flatMap(function(entry) {
+    var role = entry[0], items = entry[1];
+    var color = getRoleColor(role);
+    var abbrev = getRoleAbbrev(role);
+    return items.map(function(item) {
+      return '<div class="' + itemClass + '" data-role="' + role + '"><span class="role-dot" style="background:' + color + '"></span>' + abbrev + ': ' + item + '</div>';
+    });
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════
+   Grid Rendering
+   ═══════════════════════════════════════════════════ */
+function renderGrid() {
+  var grid = document.getElementById('journey-grid');
+  grid.innerHTML = '';
+
+  var allSteps = getAllSteps();
+  var totalCols = allSteps.length;
+  grid.style.gridTemplateColumns = '140px repeat(' + totalCols + ', minmax(180px, 220px))';
+
+  /* ─── ROW 1: Phase Headers (sticky top:0) ─── */
+  var phaseCorner = document.createElement('div');
+  phaseCorner.className = 'corner-phase';
+  phaseCorner.textContent = 'Phase';
+  grid.appendChild(phaseCorner);
+
+  journeyData.phases.forEach(function(phase) {
+    var hdr = document.createElement('div');
+    hdr.className = 'phase-header';
+    hdr.style.gridColumn = 'span ' + phase.steps.length;
+    hdr.textContent = phase.label;
+    grid.appendChild(hdr);
+  });
+
+  /* ─── ROW 2: Step Headers (sticky top:44px) ─── */
+  var stepCorner = document.createElement('div');
+  stepCorner.className = 'corner-step';
+  stepCorner.textContent = 'Step';
+  grid.appendChild(stepCorner);
+
+  allSteps.forEach(function(step) {
+    var hdr = document.createElement('div');
+    hdr.className = 'step-header';
+    hdr.textContent = step.label;
+    grid.appendChild(hdr);
+  });
+
+  /* ─── ROW 3: Primary User ─── */
+  addRowLabel(grid, 'Primary User');
+  allSteps.forEach(function(step) {
+    var cell = document.createElement('div');
+    cell.className = 'role-cell';
+    var badge = document.createElement('div');
+    badge.className = 'role-badge';
+    badge.style.background = step.primaryUser.color;
+    badge.textContent = step.primaryUser.name;
+    badge.dataset.role = step.primaryUser.name;
+    badge.addEventListener('click', function() { toggleRoleFilter(step.primaryUser.name); });
+    cell.appendChild(badge);
+    grid.appendChild(cell);
+  });
+
+  /* ─── ROW 4: Secondary Users ─── */
+  addRowLabel(grid, 'Secondary Users');
+  allSteps.forEach(function(step) {
+    var cell = document.createElement('div');
+    cell.className = 'role-cell zebra';
+    cell.style.background = '#FAFAF8';
+    (step.secondaryUsers || []).forEach(function(su) {
+      var badge = document.createElement('div');
+      badge.className = 'role-badge secondary';
+      badge.style.background = su.color;
+      badge.textContent = su.name;
+      badge.dataset.role = su.name;
+      badge.addEventListener('click', function() { toggleRoleFilter(su.name); });
+      cell.appendChild(badge);
+    });
+    if (!step.secondaryUsers || step.secondaryUsers.length === 0) {
+      cell.innerHTML = '<span class="empty-cell">&mdash;</span>';
+    }
+    grid.appendChild(cell);
+  });
+
+  /* ─── ROW 5: UX Score / Emotion Curve ─── */
+  var emotionLabel = document.createElement('div');
+  emotionLabel.className = 'row-label';
+  emotionLabel.innerHTML = 'UX Score<span class="row-subtitle">Emotion curve</span>';
+  grid.appendChild(emotionLabel);
+
+  var emotionContainer = document.createElement('div');
+  emotionContainer.id = 'emotion-row';
+  emotionContainer.className = 'emotion-row-container';
+  emotionContainer.style.gridColumn = '2 / ' + (totalCols + 2);
+
+  // Static SVG element in the HTML body
+  var svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svgEl.id = 'emotion-svg';
+  emotionContainer.appendChild(svgEl);
+
+  // Curve legend
+  var curveLegendDiv = document.createElement('div');
+  curveLegendDiv.className = 'curve-legend';
+
+  var primaryLegend = document.createElement('div');
+  primaryLegend.className = 'curve-legend-item';
+  primaryLegend.innerHTML = '<svg width="18" height="3"><line x1="0" y1="1.5" x2="18" y2="1.5" stroke="#0C4A69" stroke-width="2.5"/></svg> Primary';
+  curveLegendDiv.appendChild(primaryLegend);
+
+  var secondaryRoleNames = [];
+  var seen = {};
+  allSteps.forEach(function(s) {
+    (s.secondaryEmotions || []).forEach(function(e) {
+      if (!seen[e.role]) {
+        seen[e.role] = true;
+        secondaryRoleNames.push(e.role);
+      }
+    });
+  });
+
+  secondaryRoleNames.forEach(function(roleName) {
+    var roleObj = journeyData.roles.find(function(r) { return r.name === roleName; });
+    var color = roleObj ? roleObj.color : '#CF6253';
+    var abbrev = roleObj ? roleObj.abbrev : roleName;
+    var legItem = document.createElement('div');
+    legItem.className = 'curve-legend-item';
+    legItem.innerHTML = '<svg width="18" height="3"><line x1="0" y1="1.5" x2="18" y2="1.5" stroke="' + color + '" stroke-width="2" stroke-dasharray="4,2"/></svg> ' + abbrev;
+    curveLegendDiv.appendChild(legItem);
+  });
+
+  emotionContainer.appendChild(curveLegendDiv);
+  grid.appendChild(emotionContainer);
+
+  /* ─── ROW 6: Critical Unmet Needs ─── */
+  addRowLabel(grid, 'Critical Unmet Needs');
+  allSteps.forEach(function(step) {
+    var cell = document.createElement('div');
+    cell.className = 'cell need-bg';
+    cell.dataset.filterable = 'true';
+    cell.innerHTML = buildRoleScopedString(step.needs, 'need-item');
+    grid.appendChild(cell);
+  });
+
+  /* ─── ROW 7: Workarounds ─── */
+  addRowLabel(grid, 'Workarounds');
+  allSteps.forEach(function(step) {
+    var cell = document.createElement('div');
+    cell.className = 'cell zebra';
+    cell.innerHTML = step.workarounds
+      ? '<div class="workaround-text">' + step.workarounds + '</div>'
+      : '<span class="empty-cell">&mdash;</span>';
+    grid.appendChild(cell);
+  });
+
+  /* ─── ROW 8: Touchpoints ─── */
+  addRowLabel(grid, 'Touchpoints');
+  allSteps.forEach(function(step) {
+    var cell = document.createElement('div');
+    cell.className = 'cell';
+    var tps = step.touchpoints || [];
+    cell.innerHTML = tps.map(function(tp) {
+      return '<div class="touchpoint-item">' + tp + '</div>';
+    }).join('');
+    grid.appendChild(cell);
+  });
+
+  /* ─── ROW 9: Pain Points (NO emoji, plain red text) ─── */
+  addRowLabel(grid, 'Pain Points');
+  allSteps.forEach(function(step) {
+    var cell = document.createElement('div');
+    cell.className = 'cell pain-bg zebra';
+    cell.dataset.filterable = 'true';
+    cell.innerHTML = buildRoleScopedArray(step.painPoints, 'pain-item');
+    grid.appendChild(cell);
+  });
+
+  /* ─── ROW 10: Opportunities (NO emoji, plain green text) ─── */
+  addRowLabel(grid, 'Opportunities');
+  allSteps.forEach(function(step) {
+    var cell = document.createElement('div');
+    cell.className = 'cell opp-bg';
+    cell.dataset.filterable = 'true';
+    cell.innerHTML = buildRoleScopedArray(step.opportunities, 'opp-item');
+    grid.appendChild(cell);
+  });
+
+  /* ─── ROW 11: Metrics / KPIs ─── */
+  addRowLabel(grid, 'Metrics / KPIs');
+  allSteps.forEach(function(step) {
+    var cell = document.createElement('div');
+    cell.className = 'cell zebra';
+    if (step.metrics) {
+      var phase = journeyData.phases.find(function(p) { return p.steps.includes(step); });
+      cell.innerHTML = '<div class="metric-card"><div class="metric-value" style="color:' + (phase ? phase.color : '#1C1A17') + '">' + step.metrics.value + '</div><div class="metric-name">' + step.metrics.name + '</div></div>';
+    } else {
+      cell.innerHTML = '<span class="empty-cell">&mdash;</span>';
+    }
+    grid.appendChild(cell);
+  });
+
+  /* ─── ROW 12: Reliance on Support ─── */
+  addRowLabel(grid, 'Reliance on Support');
+  allSteps.forEach(function(step) {
+    var cell = document.createElement('div');
+    cell.className = 'cell';
+    var level = step.supportReliance || 'light';
+    var colors = { heavy: '#1C1A17', medium: '#54514D', light: '#B0ABA2' };
+    var widths = { heavy: '100%', medium: '60%', light: '30%' };
+    cell.innerHTML = '<div class="support-bar-wrap"><div class="support-bar"><div class="support-bar-fill" style="width:' + widths[level] + ';background:' + colors[level] + '"></div></div><div class="support-label">' + level.charAt(0).toUpperCase() + level.slice(1) + '</div></div>';
+    grid.appendChild(cell);
+  });
+
+  // Render emotion curve after layout
+  requestAnimationFrame(renderEmotionCurve);
+
+  // Apply current filter state
+  applyRoleFilter();
+  renderFilterableContent();
+}
+
+function addRowLabel(container, text, subtitle) {
+  var label = document.createElement('div');
+  label.className = 'row-label';
+  label.innerHTML = text + (subtitle ? '<span class="row-subtitle">' + subtitle + '</span>' : '');
+  container.appendChild(label);
+}
+
+/* ═══════════════════════════════════════════════════
+   Emotion Curve (D3.js) — selects static <svg id="emotion-svg">
+   ═══════════════════════════════════════════════════ */
+function renderEmotionCurve() {
+  var container = document.getElementById('emotion-row');
+  if (!container) return;
+
+  var emotionSvg = d3.select('#emotion-svg');
+  emotionSvg.selectAll('*').remove();
+
+  var totalContentWidth = container.scrollWidth || container.clientWidth;
+  var chartHeight = 150;
+
+  emotionSvg
+    .attr('width', totalContentWidth)
+    .attr('height', chartHeight)
+    .style('overflow', 'visible')
+    .style('position', 'relative')
+    .style('z-index', '1');
+
+  var allSteps = getAllSteps();
+  var margin = { top: 20, bottom: 30 };
+  var colWidth = totalContentWidth / allSteps.length;
+  var firstCenter = colWidth / 2;
+  var lastCenter = totalContentWidth - colWidth / 2;
+
+  // Background bands
+  var bandH = (chartHeight - margin.top - margin.bottom) / 3;
+  emotionSvg.append('rect').attr('x', 0).attr('y', margin.top)
+    .attr('width', totalContentWidth).attr('height', bandH).attr('fill', 'rgba(122,154,1, 0.04)');
+  emotionSvg.append('rect').attr('x', 0).attr('y', margin.top + bandH)
+    .attr('width', totalContentWidth).attr('height', bandH).attr('fill', 'rgba(12,74,105, 0.04)');
+  emotionSvg.append('rect').attr('x', 0).attr('y', margin.top + 2 * bandH)
+    .attr('width', totalContentWidth).attr('height', bandH).attr('fill', 'rgba(207,98,83, 0.04)');
+
+  var xScale = d3.scaleLinear()
+    .domain([0, allSteps.length - 1])
+    .range([firstCenter, lastCenter]);
+
+  var yScale = d3.scaleLinear()
+    .domain([0, 1])
+    .range([chartHeight - margin.bottom, margin.top]);
+
+  // Primary line
+  var lineGen = d3.line()
+    .x(function(d, i) { return xScale(i); })
+    .y(function(d) { return yScale(d.emotion.score); })
+    .curve(d3.curveMonotoneX);
+
+  emotionSvg.append('path')
+    .datum(allSteps)
+    .attr('d', lineGen)
+    .attr('fill', 'none')
+    .attr('stroke', '#0C4A69')
+    .attr('stroke-width', 2.5)
+    .attr('stroke-linecap', 'round');
+
+  // Secondary lines
+  var secRoles = {};
+  allSteps.forEach(function(s) {
+    (s.secondaryEmotions || []).forEach(function(e) {
+      secRoles[e.role] = true;
+    });
+  });
+
+  Object.keys(secRoles).forEach(function(role) {
+    var roleObj = journeyData.roles.find(function(r) { return r.name === role; });
+    var roleColor = roleObj ? roleObj.color : '#CF6253';
+
+    var secLine = d3.line()
+      .x(function(d, i) { return xScale(i); })
+      .y(function(d) {
+        var se = (d.secondaryEmotions || []).find(function(e) { return e.role === role; });
+        return yScale(se ? se.score : 0.5);
+      })
+      .curve(d3.curveMonotoneX);
+
+    emotionSvg.append('path')
+      .datum(allSteps)
+      .attr('d', secLine)
+      .attr('fill', 'none')
+      .attr('stroke', roleColor)
+      .attr('stroke-width', 2)
+      .attr('stroke-dasharray', '6,3')
+      .attr('stroke-linecap', 'round');
+
+    // Secondary data points
+    emotionSvg.selectAll('.sec-dot-' + role.replace(/\s/g, ''))
+      .data(allSteps)
+      .join('circle')
+      .attr('cx', function(d, i) { return xScale(i); })
+      .attr('cy', function(d) {
+        var se = (d.secondaryEmotions || []).find(function(e) { return e.role === role; });
+        return yScale(se ? se.score : 0.5);
+      })
+      .attr('r', 4)
+      .attr('fill', roleColor)
+      .attr('opacity', 0.7);
+  });
+
+  // Primary data points (on top)
+  emotionSvg.selectAll('.emotion-dot')
+    .data(allSteps)
+    .join('circle')
+    .attr('class', 'emotion-dot')
+    .attr('cx', function(d, i) { return xScale(i); })
+    .attr('cy', function(d) { return yScale(d.emotion.score); })
+    .attr('r', 5)
+    .attr('fill', function(d) {
+      return d.emotion.score > 0.6 ? '#7A9A01' : d.emotion.score > 0.3 ? '#0C4A69' : '#CF6253';
+    })
+    .attr('cursor', 'pointer')
+    .on('mouseenter', function(event, d) {
+      d3.select(this).attr('r', 12);
+      showTooltip(event,
+        '<div class="tt-label">' + d.label + '</div>' +
+        '<div>' + d.emotion.label + '</div>' +
+        '<div class="tt-score">Score: ' + d.emotion.score + '</div>' +
+        '<div class="tt-annotation">' + d.emotion.annotation + '</div>'
+      );
+    })
+    .on('mouseleave', function() {
+      d3.select(this).attr('r', 5);
+      hideTooltip();
+    });
+
+  // Emoji markers above primary dots
+  emotionSvg.selectAll('.emotion-emoji')
+    .data(allSteps)
+    .join('text')
+    .attr('class', 'emotion-emoji')
+    .attr('x', function(d, i) { return xScale(i); })
+    .attr('y', function(d) { return yScale(d.emotion.score) - 12; })
+    .attr('text-anchor', 'middle')
+    .attr('font-size', '14px')
+    .text(function(d) {
+      return d.emotion.score > 0.6 ? '\u{1F60A}' : d.emotion.score > 0.3 ? '\u{1F610}' : '\u{1F61E}';
+    });
+}
+
+/* ═══════════════════════════════════════════════════
+   Initialize
+   ═══════════════════════════════════════════════════ */
+buildRoleLegend();
+renderGrid();
+
+window.addEventListener('resize', function() {
+  requestAnimationFrame(renderEmotionCurve);
+});
+</script>
+</body>
+</html>

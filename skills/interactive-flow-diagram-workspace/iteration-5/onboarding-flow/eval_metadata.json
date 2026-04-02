@@ -1,0 +1,62 @@
+{
+  "prompt": "Create an interactive flow diagram for a user onboarding flow: Welcome → Profile Setup → Connect Account → Tutorial → Dashboard. Each step should be clickable to see details about what happens on that screen.",
+  "expected_output": "A standalone HTML file with D3.js rendering a 5-node linear flow on a single horizontally-scrolling canvas. Nodes styled with Figma-matched colors on warm canvas, with click-to-open detail sidebar.",
+  "assertions": [
+    {
+      "type": "file_exists",
+      "name": "HTML file exists",
+      "pattern": "*.html"
+    },
+    {
+      "type": "contains",
+      "name": "Uses D3.js from CDN",
+      "text": "d3@7"
+    },
+    {
+      "type": "contains",
+      "name": "All 5 phases present",
+      "text": "Welcome",
+      "also_contains": [
+        "Profile Setup",
+        "Connect Account",
+        "Tutorial",
+        "Dashboard"
+      ]
+    },
+    {
+      "type": "contains",
+      "name": "Warm canvas background",
+      "text": "#FAF8F5"
+    },
+    {
+      "type": "contains",
+      "name": "Process node fill",
+      "text": "#C1DDE3"
+    },
+    {
+      "type": "contains",
+      "name": "Start node fill",
+      "text": "#40454A"
+    },
+    {
+      "type": "contains",
+      "name": "SVG rendering",
+      "text": "<svg"
+    },
+    {
+      "type": "contains",
+      "name": "Click interaction",
+      "text": "click"
+    },
+    {
+      "type": "contains",
+      "name": "Zoom behavior for pan",
+      "text": "zoom"
+    },
+    {
+      "type": "contains",
+      "name": "Transition animations",
+      "text": "transition"
+    }
+  ]
+}

@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Onboarding Flow — Interactive Flow</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #FAF8F5;
+      color: #1C1A17;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+    }
+
+    /* ─── Breadcrumb ─── */
+    #breadcrumb {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 48px;
+      background: #FFFFFF;
+      border-bottom: 1px solid #E0DCD3;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    #breadcrumb .crumb {
+      font-size: 13px;
+      font-weight: 500;
+      color: #013D5B;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+    #breadcrumb .crumb:hover {
+      color: #05314D;
+    }
+    #breadcrumb .crumb.current {
+      color: #1C1A17;
+      font-weight: 600;
+      cursor: default;
+    }
+    #breadcrumb .separator {
+      margin: 0 8px;
+      color: #B0ABA2;
+      font-size: 12px;
+    }
+    #breadcrumb .title-label {
+      margin-left: auto;
+      font-size: 11px;
+      color: #6B6760;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ─── Detail Panel (Level 3) ─── */
+    #detail-panel {
+      position: fixed;
+      top: 48px;
+      right: -420px;
+      width: 420px;
+      bottom: 0;
+      background: #FFFFFF;
+      border-left: 1px solid #E0DCD3;
+      box-shadow: -4px 0 12px rgba(0,0,0,0.06);
+      z-index: 200;
+      overflow-y: auto;
+      transition: right 0.3s ease-out;
+      padding: 28px 24px;
+    }
+    #detail-panel.open {
+      right: 0;
+    }
+    #detail-panel .close-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid #E0DCD3;
+      background: #FAF8F5;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6B6760;
+      font-size: 14px;
+      transition: all 0.15s;
+    }
+    #detail-panel .close-btn:hover {
+      background: #E0DCD3;
+      color: #1C1A17;
+    }
+    #detail-panel .detail-type {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #013D5B;
+      background: #D9EBED;
+      padding: 3px 10px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+    #detail-panel .detail-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1C1A17;
+      margin-bottom: 6px;
+    }
+    #detail-panel .detail-subtitle {
+      font-size: 13px;
+      color: #54514D;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    #detail-panel .section-heading {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #6B6760;
+      margin: 20px 0 8px;
+    }
+    #detail-panel .section-content {
+      font-size: 13px;
+      color: #54514D;
+      line-height: 1.6;
+    }
+    #detail-panel .edge-case-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 12px;
+      background: #FFEEEB;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: #BF5547;
+      line-height: 1.4;
+    }
+    #detail-panel .edge-case-item .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #CF6253;
+      flex-shrink: 0;
+      margin-top: 5px;
+    }
+    #detail-panel .exit-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: #F4F1EB;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: #1C1A17;
+    }
+    #detail-panel .exit-label {
+      font-weight: 600;
+      color: #013D5B;
+    }
+    #detail-panel .exit-arrow {
+      color: #B0ABA2;
+    }
+
+    /* ─── Overlay ─── */
+    #overlay {
+      position: fixed;
+      top: 48px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(28, 26, 23, 0.15);
+      z-index: 150;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    #overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+  </style>
+</head>
+<body>
+  <div id="breadcrumb">
+    <span class="crumb current" id="crumb-overview">Overview</span>
+    <span class="title-label">User Onboarding Flow</span>
+  </div>
+  <svg id="flow-svg"></svg>
+  <div id="overlay"></div>
+  <div id="detail-panel">
+    <div class="close-btn" id="detail-close">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1L11 11M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <div id="detail-content"></div>
+  </div>
+
+  <script>
+    // ─── Flow Data ───
+    const flowData = {
+      title: "User Onboarding Flow",
+      phases: [
+        {
+          id: "welcome",
+          label: "Welcome",
+          description: "First impression and greeting",
+          icon: "hand-wave",
+          color: "rgba(1, 61, 91, 0.05)",
+          borderColor: "#013D5B",
+          nodes: [
+            {
+              id: "welcome-screen",
+              type: "screen",
+              label: "Welcome Screen",
+              screenType: "landing",
+              priority: "green",
+              subtitle: "Initial greeting and value proposition",
+              userAction: "Read welcome message and choose to get started",
+              description: "The user lands on the welcome screen after signing up. It displays the product logo, a brief value proposition headline, and a prominent 'Get Started' CTA button. A secondary option lets users skip the onboarding and go directly to the dashboard.",
+              edgeCases: [
+                "Returning user: If the user has already completed onboarding, redirect straight to Dashboard",
+                "Mobile viewport: Layout stacks vertically with simplified illustration"
+              ],
+              exits: [
+                { to: "profile-setup-screen", label: "Get Started" },
+                { to: "dashboard-screen", label: "Skip Onboarding" }
+              ],
+              sections: ["Hero illustration", "Value proposition headline", "Get Started button"]
+            },
+            {
+              id: "start-node",
+              type: "start",
+              label: "Start"
+            }
+          ],
+          edges: [
+            { from: "start-node", to: "welcome-screen", label: "", isHappyPath: true }
+          ]
+        },
+        {
+          id: "profile-setup",
+          label: "Profile Setup",
+          description: "Collect user identity details",
+          icon: "user",
+          color: "rgba(12, 74, 105, 0.05)",
+          borderColor: "#0C4A69",
+          nodes: [
+            {
+              id: "profile-setup-screen",
+              type: "screen",
+              label: "Profile Setup",
+              screenType: "form",
+              priority: "green",
+              subtitle: "User enters personal details",
+              userAction: "Fill in name, role, and upload avatar",
+              description: "A clean form asking for display name, job role/title, and optional profile photo upload. A progress bar at the top shows Step 2 of 5. The form validates inputs in real-time and shows inline error messages.",
+              edgeCases: [
+                "Validation error: Empty required fields show red inline messages",
+                "Photo upload fails: Show retry option with error toast",
+                "SSO user: Pre-fill name and email from identity provider"
+              ],
+              exits: [
+                { to: "connect-account-screen", label: "Continue" },
+                { to: "welcome-screen", label: "Back" }
+              ],
+              sections: ["Progress indicator", "Name input field", "Role selector", "Avatar upload", "Continue button"]
+            },
+            {
+              id: "profile-validation",
+              type: "decision",
+              label: "Valid?",
+              description: "Check if all required fields are filled correctly"
+            }
+          ],
+          edges: [
+            { from: "profile-setup-screen", to: "profile-validation", label: "Submit", isHappyPath: true },
+            { from: "profile-validation", to: "connect-account-screen", label: "Yes", isHappyPath: true },
+            { from: "profile-validation", to: "profile-setup-screen", label: "No", isError: true }
+          ]
+        },
+        {
+          id: "connect-account",
+          label: "Connect Account",
+          description: "Link external services",
+          icon: "link",
+          color: "rgba(122, 154, 1, 0.05)",
+          borderColor: "#7A9A01",
+          nodes: [
+            {
+              id: "connect-account-screen",
+              type: "screen",
+              label: "Connect Account",
+              screenType: "form",
+              priority: "green",
+              subtitle: "Integrate external services",
+              userAction: "Select and authenticate an external service",
+              description: "Displays a grid of available integrations (e.g., Google, Slack, GitHub) as clickable cards. Each card shows the service logo, name, and a brief description. Clicking a card initiates the OAuth flow for that service.",
+              edgeCases: [
+                "OAuth failure: Show error with retry option and support link",
+                "Service unavailable: Grey out card and show 'Temporarily unavailable' badge",
+                "No integrations needed: User can skip this step entirely"
+              ],
+              exits: [
+                { to: "tutorial-screen", label: "Continue" },
+                { to: "tutorial-screen", label: "Skip" }
+              ],
+              sections: ["Integration cards grid", "Search/filter bar", "Skip option", "Connected status badges"]
+            },
+            {
+              id: "oauth-flow",
+              type: "external",
+              label: "OAuth Provider",
+              description: "External authentication flow with third-party service"
+            },
+            {
+              id: "connection-error",
+              type: "error",
+              label: "Connection Failed",
+              description: "OAuth or API connection error occurred"
+            }
+          ],
+          edges: [
+            { from: "connect-account-screen", to: "oauth-flow", label: "Authenticate", isHappyPath: true },
+            { from: "oauth-flow", to: "connect-account-screen", label: "Success", isHappyPath: true },
+            { from: "oauth-flow", to: "connection-error", label: "Failure", isError: true },
+            { from: "connection-error", to: "connect-account-screen", label: "Retry" }
+          ]
+        },
+        {
+          id: "tutorial",
+          label: "Tutorial",
+          description: "Guided product walkthrough",
+          icon: "book-open",
+          color: "rgba(235, 206, 45, 0.05)",
+          borderColor: "#EBCE2D",
+          nodes: [
+            {
+              id: "tutorial-screen",
+              type: "screen",
+              label: "Tutorial",
+              screenType: "walkthrough",
+              priority: "blue",
+              subtitle: "Interactive product tour",
+              userAction: "Step through guided feature highlights",
+              description: "A multi-step interactive tutorial that highlights key product features. Each step uses a spotlight overlay to focus attention on a specific UI element, with a tooltip explaining its purpose. Users navigate with Next/Previous buttons or can skip the entire tutorial.",
+              edgeCases: [
+                "User resizes window: Reposition spotlight and tooltip",
+                "Feature not loaded: Skip that tutorial step gracefully",
+                "User has seen tutorial before: Offer 'Don't show again' checkbox"
+              ],
+              exits: [
+                { to: "dashboard-screen", label: "Finish Tutorial" },
+                { to: "dashboard-screen", label: "Skip Tutorial" }
+              ],
+              sections: ["Spotlight overlay", "Step tooltip", "Progress dots", "Next/Previous controls", "Skip link"]
+            },
+            {
+              id: "tutorial-complete-decision",
+              type: "decision",
+              label: "Complete all steps?"
+            }
+          ],
+          edges: [
+            { from: "tutorial-screen", to: "tutorial-complete-decision", label: "Progress", isHappyPath: true },
+            { from: "tutorial-complete-decision", to: "dashboard-screen", label: "Yes", isHappyPath: true },
+            { from: "tutorial-complete-decision", to: "tutorial-screen", label: "More steps" }
+          ]
+        },
+        {
+          id: "dashboard",
+          label: "Dashboard",
+          description: "Main product experience",
+          icon: "layout-dashboard",
+          color: "rgba(122, 154, 1, 0.05)",
+          borderColor: "#7A9A01",
+          nodes: [
+            {
+              id: "dashboard-screen",
+              type: "screen",
+              label: "Dashboard",
+              screenType: "dashboard",
+              priority: "green",
+              subtitle: "Main product home screen",
+              userAction: "Explore product features and begin working",
+              description: "The main dashboard view where the user lands after completing onboarding. It shows a personalized greeting, quick-start cards for common actions, recent activity feed, and a completion checklist for any remaining onboarding tasks. A dismissible banner at the top celebrates the user for completing setup.",
+              edgeCases: [
+                "First-time empty state: Show getting-started cards instead of recent activity",
+                "Incomplete onboarding: Show completion checklist with remaining steps",
+                "Account connection pending: Show pending status in integrations widget"
+              ],
+              exits: [],
+              sections: ["Welcome banner", "Quick-start action cards", "Activity feed", "Onboarding checklist widget"]
+            },
+            {
+              id: "end-node",
+              type: "end",
+              label: "Onboarding Complete"
+            }
+          ],
+          edges: [
+            { from: "dashboard-screen", to: "end-node", label: "", isHappyPath: true }
+          ]
+        }
+      ],
+      crossPhaseEdges: [
+        { from: "welcome/welcome-screen", to: "profile-setup/profile-setup-screen", label: "Get Started", style: "action", isHappyPath: true },
+        { from: "profile-setup/profile-setup-screen", to: "connect-account/connect-account-screen", label: "Continue", style: "action", isHappyPath: true },
+        { from: "connect-account/connect-account-screen", to: "tutorial/tutorial-screen", label: "Continue", style: "action", isHappyPath: true },
+        { from: "tutorial/tutorial-screen", to: "dashboard/dashboard-screen", label: "Finish", style: "action", isHappyPath: true },
+        { from: "welcome/welcome-screen", to: "dashboard/dashboard-screen", label: "Skip", style: "dashed" }
+      ]
+    };
+
+    // ─── SVG + Zoom Setup ───
+    const breadcrumb = document.getElementById('breadcrumb');
+    const detailPanel = document.getElementById('detail-panel');
+    const detailContent = document.getElementById('detail-content');
+    const overlay = document.getElementById('overlay');
+    const detailClose = document.getElementById('detail-close');
+
+    const width = window.innerWidth;
+    const height = window.innerHeight - 48;
+
+    const svg = d3.select('#flow-svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('margin-top', '48px');
+
+    // Arrowhead markers
+    const defs = svg.append('defs');
+
+    // Default dark blue arrow
+    defs.append('marker')
+      .attr('id', 'arrow-default')
+      .attr('viewBox', '0 0 8 6')
+      .attr('refX', 8).attr('refY', 3)
+      .attr('markerWidth', 8).attr('markerHeight', 6)
+      .attr('orient', 'auto')
+      .append('path')
+      .attr('d', 'M0,0 L8,3 L0,6 Z')
+      .attr('fill', '#013D5B');
+
+    // Happy path green arrow
+    defs.append('marker')
+      .attr('id', 'arrow-happy')
+      .attr('viewBox', '0 0 8 6')
+      .attr('refX', 8).attr('refY', 3)
+      .attr('markerWidth', 8).attr('markerHeight', 6)
+      .attr('orient', 'auto')
+      .append('path')
+      .attr('d', 'M0,0 L8,3 L0,6 Z')
+      .attr('fill', '#7A9A01');
+
+    // Error red arrow
+    defs.append('marker')
+      .attr('id', 'arrow-error')
+      .attr('viewBox', '0 0 8 6')
+      .attr('refX', 8).attr('refY', 3)
+      .attr('markerWidth', 8).attr('markerHeight', 6)
+      .attr('orient', 'auto')
+      .append('path')
+      .attr('d', 'M0,0 L8,3 L0,6 Z')
+      .attr('fill', '#CF6253');
+
+    const container = svg.append('g').attr('class', 'container');
+
+    const zoom = d3.zoom()
+      .scaleExtent([0.1, 4])
+      .on('zoom', (event) => {
+        container.attr('transform', event.transform);
+      });
+
+    svg.call(zoom);
+
+    // ─── State ───
+    let currentLevel = 1;
+    let currentPhase = null;
+
+    // ─── Icons (inline SVG paths) ───
+    const icons = {
+      'hand-wave': 'M7.5 3.5V2a1.5 1.5 0 0 1 3 0v1.5m-3 0V6m0-2.5a1.5 1.5 0 0 0-3 0V6m6-2.5V6m0-2.5a1.5 1.5 0 0 1 3 0V9a6 6 0 0 1-6 6H8a6 6 0 0 1-6-6V5.5a1.5 1.5 0 0 1 3 0V6',
+      'user': 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M12 7a4 4 0 1 0-8 0 4 4 0 0 0 8 0z',
+      'link': 'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71',
+      'book-open': 'M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z',
+      'layout-dashboard': 'M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z',
+      'zap': 'M13 2L3 14h9l-1 10 10-12h-9l1-10z',
+      'check': 'M20 6L9 17l-5-5'
+    };
+
+    function getIconSvg(name, size, color) {
+      size = size || 16;
+      color = color || '#54514D';
+      const path = icons[name] || icons['zap'];
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${path}"/></svg>`;
+    }
+
+    // ─── Fit to Content ───
+    function fitToContent(duration) {
+      duration = duration || 500;
+      setTimeout(() => {
+        const bounds = container.node().getBBox();
+        if (bounds.width === 0) return;
+        const padding = 80;
+        const fullWidth = bounds.width + padding * 2;
+        const fullHeight = bounds.height + padding * 2;
+        const scale = Math.min(width / fullWidth, height / fullHeight, 1);
+        const tx = (width - bounds.width * scale) / 2 - bounds.x * scale;
+        const ty = (height - bounds.height * scale) / 2 - bounds.y * scale;
+        svg.transition().duration(duration)
+          .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+      }, 50);
+    }
+
+    // ─── Breadcrumb Update ───
+    function updateBreadcrumb(phaseName, nodeName) {
+      let html = '';
+      if (currentLevel === 1) {
+        html = '<span class="crumb current" id="crumb-overview">Overview</span>';
+      } else if (currentLevel === 2) {
+        html = '<span class="crumb" onclick="goToLevel1()">Overview</span>';
+        html += '<span class="separator">/</span>';
+        html += `<span class="crumb current">${phaseName}</span>`;
+      }
+      html += '<span class="title-label">User Onboarding Flow</span>';
+      breadcrumb.innerHTML = html;
+    }
+
+    // ─── Level 1: Overview ───
+    function renderLevel1() {
+      currentLevel = 1;
+      currentPhase = null;
+      updateBreadcrumb();
+      container.selectAll('*').remove();
+
+      const phaseSpacing = 280;
+      const startX = 100;
+      const centerY = height / 2;
+      const cardW = 200;
+      const cardH = 100;
+
+      flowData.phases.forEach((phase, i) => {
+        phase.x = startX + i * phaseSpacing;
+        phase.y = centerY;
+      });
+
+      // Draw cross-phase connectors first (behind cards)
+      const edgesG = container.append('g').attr('class', 'edges');
+
+      for (let i = 0; i < flowData.phases.length - 1; i++) {
+        const from = flowData.phases[i];
+        const to = flowData.phases[i + 1];
+        const fromX = from.x + cardW / 2;
+        const fromY = from.y;
+        const toX = to.x - cardW / 2;
+        const toY = to.y;
+        const midX = (fromX + toX) / 2;
+
+        // Connection port - from
+        edgesG.append('circle')
+          .attr('cx', fromX).attr('cy', fromY)
+          .attr('r', 5)
+          .attr('fill', '#013D5B')
+          .attr('stroke', '#FFFFFF')
+          .attr('stroke-width', 2);
+
+        // Connection port - to
+        edgesG.append('circle')
+          .attr('cx', toX).attr('cy', toY)
+          .attr('r', 5)
+          .attr('fill', '#013D5B')
+          .attr('stroke', '#FFFFFF')
+          .attr('stroke-width', 2);
+
+        const crossEdge = flowData.crossPhaseEdges[i];
+        const isHappy = crossEdge && crossEdge.isHappyPath;
+        const isAction = crossEdge && crossEdge.style === 'action';
+        const actionLabel = crossEdge ? crossEdge.label : '';
+
+        if (isAction && actionLabel) {
+          // Draw line segments with action pill in the middle
+          const pillW = Math.max(actionLabel.length * 7 + 36, 100);
+          const pillH = 24;
+          const pillX = midX - pillW / 2;
+          const pillY = fromY - pillH / 2;
+
+          // Line from source port to pill
+          edgesG.append('path')
+            .attr('d', `M ${fromX + 6} ${fromY} H ${pillX}`)
+            .attr('stroke', isHappy ? '#7A9A01' : '#013D5B')
+            .attr('stroke-width', isHappy ? 2.5 : 2)
+            .attr('fill', 'none');
+
+          // Line from pill to target port
+          edgesG.append('path')
+            .attr('d', `M ${pillX + pillW} ${fromY} H ${toX - 6}`)
+            .attr('stroke', isHappy ? '#7A9A01' : '#013D5B')
+            .attr('stroke-width', isHappy ? 2.5 : 2)
+            .attr('fill', 'none')
+            .attr('marker-end', isHappy ? 'url(#arrow-happy)' : 'url(#arrow-default)');
+
+          // Action pill
+          const pillG = edgesG.append('g').attr('class', 'action-pill');
+          pillG.append('rect')
+            .attr('x', pillX).attr('y', pillY)
+            .attr('width', pillW).attr('height', pillH)
+            .attr('rx', 20).attr('ry', 20)
+            .attr('fill', '#013D5B');
+          // Zap icon in pill
+          pillG.append('text')
+            .attr('x', pillX + 12).attr('y', fromY + 1)
+            .attr('font-size', '10px')
+            .attr('fill', '#FFFFFF')
+            .attr('dominant-baseline', 'central')
+            .text('\u26A1');
+          pillG.append('text')
+            .attr('x', pillX + 24).attr('y', fromY + 1)
+            .attr('font-size', '11px')
+            .attr('font-weight', 500)
+            .attr('fill', '#FFFFFF')
+            .attr('dominant-baseline', 'central')
+            .text(actionLabel);
+        } else {
+          // Simple line
+          edgesG.append('path')
+            .attr('d', `M ${fromX + 6} ${fromY} H ${toX - 6}`)
+            .attr('stroke', isHappy ? '#7A9A01' : '#E0DCD3')
+            .attr('stroke-width', isHappy ? 2.5 : 1)
+            .attr('stroke-dasharray', (crossEdge && crossEdge.style === 'dashed') ? '6,4' : 'none')
+            .attr('fill', 'none')
+            .attr('marker-end', isHappy ? 'url(#arrow-happy)' : 'url(#arrow-default)');
+        }
+      }
+
+      // Skip connection (Welcome -> Dashboard) as a curved path below
+      const skipEdge = flowData.crossPhaseEdges.find(e => e.label === 'Skip');
+      if (skipEdge) {
+        const fromPhase = flowData.phases[0];
+        const toPhase = flowData.phases[4];
+        const fromX = fromPhase.x;
+        const toX = toPhase.x;
+        const fromY = fromPhase.y + cardH / 2;
+        const toY = toPhase.y + cardH / 2;
+        const dropY = fromY + 80;
+
+        edgesG.append('circle')
+          .attr('cx', fromX).attr('cy', fromY)
+          .attr('r', 5)
+          .attr('fill', '#013D5B')
+          .attr('stroke', '#FFFFFF')
+          .attr('stroke-width', 2);
+
+        edgesG.append('circle')
+          .attr('cx', toX).attr('cy', toY)
+          .attr('r', 5)
+          .attr('fill', '#013D5B')
+          .attr('stroke', '#FFFFFF')
+          .attr('stroke-width', 2);
+
+        edgesG.append('path')
+          .attr('d', `M ${fromX} ${fromY + 6} V ${dropY} H ${toX} V ${toY + 6}`)
+          .attr('stroke', '#E0DCD3')
+          .attr('stroke-width', 1)
+          .attr('stroke-dasharray', '6,4')
+          .attr('fill', 'none')
+          .attr('marker-end', 'url(#arrow-default)');
+
+        edgesG.append('text')
+          .attr('x', (fromX + toX) / 2)
+          .attr('y', dropY - 6)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '10px')
+          .attr('fill', '#54514D')
+          .text('Skip Onboarding');
+      }
+
+      // Draw phase cards
+      const nodesG = container.append('g').attr('class', 'nodes');
+
+      flowData.phases.forEach((phase, i) => {
+        const g = nodesG.append('g')
+          .attr('class', 'phase-node')
+          .attr('transform', `translate(${phase.x - cardW / 2}, ${phase.y - cardH / 2})`)
+          .style('cursor', 'pointer')
+          .on('click', () => {
+            // Click feedback
+            g.transition().duration(75).style('opacity', 0.7)
+              .transition().duration(75).style('opacity', 1)
+              .on('end', () => goToLevel2(phase));
+          })
+          .on('mouseenter', function() {
+            d3.select(this).select('rect.card-bg')
+              .attr('stroke', '#D0CBC3')
+              .attr('fill', '#FAF8F5');
+            d3.select(this).attr('transform', `translate(${phase.x - cardW / 2}, ${phase.y - cardH / 2}) scale(1.02)`);
+          })
+          .on('mouseleave', function() {
+            d3.select(this).select('rect.card-bg')
+              .attr('stroke', '#E0DCD3')
+              .attr('fill', '#FFFFFF');
+            d3.select(this).attr('transform', `translate(${phase.x - cardW / 2}, ${phase.y - cardH / 2})`);
+          });
+
+        // Card shadow
+        g.append('rect')
+          .attr('x', 1).attr('y', 2)
+          .attr('width', cardW).attr('height', cardH)
+          .attr('rx', 12).attr('ry', 12)
+          .attr('fill', 'rgba(0,0,0,0.03)');
+
+        // Card background
+        g.append('rect')
+          .attr('class', 'card-bg')
+          .attr('width', cardW).attr('height', cardH)
+          .attr('rx', 12).attr('ry', 12)
+          .attr('fill', '#FFFFFF')
+          .attr('stroke', '#E0DCD3')
+          .attr('stroke-width', 1);
+
+        // Window dots
+        [12, 22, 32].forEach(dx => {
+          g.append('circle')
+            .attr('cx', dx).attr('cy', 14)
+            .attr('r', 3)
+            .attr('fill', '#D0CBC3');
+        });
+
+        // Step number badge
+        g.append('circle')
+          .attr('cx', cardW - 14).attr('cy', 14)
+          .attr('r', 10)
+          .attr('fill', '#FFFFFF')
+          .attr('stroke', phase.borderColor)
+          .attr('stroke-width', 2);
+        g.append('text')
+          .attr('x', cardW - 14).attr('y', 14)
+          .attr('text-anchor', 'middle')
+          .attr('dominant-baseline', 'central')
+          .attr('font-size', '10px')
+          .attr('font-weight', 600)
+          .attr('fill', '#1C1A17')
+          .text(i + 1);
+
+        // Phase label
+        g.append('text')
+          .attr('x', 16).attr('y', 44)
+          .attr('font-size', '14px')
+          .attr('font-weight', 600)
+          .attr('fill', '#1C1A17')
+          .text(phase.label);
+
+        // Phase description
+        g.append('text')
+          .attr('x', 16).attr('y', 62)
+          .attr('font-size', '11px')
+          .attr('fill', '#54514D')
+          .text(phase.description);
+
+        // Node count
+        const screenCount = phase.nodes.filter(n => n.type === 'screen').length;
+        g.append('text')
+          .attr('x', 16).attr('y', 82)
+          .attr('font-size', '10px')
+          .attr('fill', '#6B6760')
+          .text(`${screenCount} screen${screenCount > 1 ? 's' : ''} \u00B7 Click to explore`);
+      });
+
+      // Fade in
+      nodesG.style('opacity', 0).transition().duration(400).style('opacity', 1);
+      edgesG.style('opacity', 0).transition().duration(400).style('opacity', 1);
+
+      fitToContent();
+    }
+
+    // ─── Level 2: Phase Detail ───
+    function goToLevel2(phase) {
+      currentLevel = 2;
+      currentPhase = phase;
+      updateBreadcrumb(phase.label);
+      container.selectAll('*').remove();
+
+      const nodes = phase.nodes;
+      const edges = phase.edges;
+      const cardW = 220;
+      const spacing = 350;
+      const startX = 100;
+      const mainY = 180;
+
+      // Position nodes
+      const positions = {};
+      let col = 0;
+
+      // Arrange: first lay out linearly, then adjust for branches
+      nodes.forEach((node, i) => {
+        const h = getNodeHeight(node);
+        if (node.type === 'decision') {
+          positions[node.id] = { x: startX + col * spacing, y: mainY, w: 70, h: 70 };
+          col++;
+        } else if (node.type === 'start') {
+          positions[node.id] = { x: startX + col * spacing, y: mainY, w: 130, h: 36 };
+          col++;
+        } else if (node.type === 'end') {
+          positions[node.id] = { x: startX + col * spacing, y: mainY, w: 180, h: 36 };
+          col++;
+        } else if (node.type === 'external') {
+          positions[node.id] = { x: startX + col * spacing, y: mainY + 180, w: 180, h: 50 };
+          col++;
+        } else if (node.type === 'error') {
+          // Place errors below
+          positions[node.id] = { x: startX + (col - 1) * spacing, y: mainY + 200, w: 200, h: 50 };
+        } else {
+          positions[node.id] = { x: startX + col * spacing, y: mainY, w: cardW, h: h };
+          col++;
+        }
+      });
+
+      // Adjust positions for specific phases
+      if (phase.id === 'connect-account') {
+        // oauth-flow below and to the right of main screen
+        if (positions['oauth-flow']) {
+          positions['oauth-flow'] = { x: startX + 1 * spacing, y: mainY + 160, w: 180, h: 50 };
+        }
+        if (positions['connection-error']) {
+          positions['connection-error'] = { x: startX + 2 * spacing, y: mainY + 160, w: 200, h: 50 };
+        }
+      }
+
+      // Draw edges
+      const edgesG = container.append('g').attr('class', 'l2-edges');
+
+      edges.forEach(edge => {
+        const fromPos = positions[edge.from];
+        const toPos = positions[edge.to];
+        if (!fromPos || !toPos) return;
+
+        const fromNode = nodes.find(n => n.id === edge.from);
+        const toNode = nodes.find(n => n.id === edge.to);
+        const isHappy = edge.isHappyPath;
+        const isError = edge.isError;
+
+        let strokeColor = '#013D5B';
+        let strokeWidth = 2;
+        let dasharray = 'none';
+        let markerEnd = 'url(#arrow-default)';
+
+        if (isHappy) {
+          strokeColor = '#7A9A01';
+          strokeWidth = 2.5;
+          markerEnd = 'url(#arrow-happy)';
+        }
+        if (isError) {
+          strokeColor = '#CF6253';
+          strokeWidth = 1.5;
+          dasharray = '6,4';
+          markerEnd = 'url(#arrow-error)';
+        }
+
+        // Calculate exit/entry points
+        let fromX, fromY, toX, toY;
+
+        if (fromNode && fromNode.type === 'decision') {
+          // Diamond: exits from right (happy), bottom (error/alt), left (back)
+          const cx = fromPos.x + 35;
+          const cy = fromPos.y + 35;
+          if (isHappy || edge.label === 'Yes') {
+            fromX = cx + 35; fromY = cy; // right
+          } else if (isError || edge.label === 'No') {
+            // Go back left
+            fromX = cx - 35; fromY = cy;
+          } else {
+            fromX = cx; fromY = cy + 35; // bottom
+          }
+        } else {
+          fromX = fromPos.x + fromPos.w;
+          fromY = fromPos.y + fromPos.h / 2;
+        }
+
+        if (toNode && toNode.type === 'decision') {
+          const cx = toPos.x + 35;
+          const cy = toPos.y + 35;
+          toX = cx - 35; toY = cy; // enter from left
+        } else {
+          toX = toPos.x;
+          toY = toPos.y + toPos.h / 2;
+        }
+
+        // Special case: going back to same node (validation error loop)
+        if (edge.from === 'profile-validation' && edge.to === 'profile-setup-screen') {
+          const cx = fromPos.x + 35;
+          const cy = fromPos.y + 35;
+          fromX = cx - 35; fromY = cy;
+          toX = toPos.x + toPos.w / 2;
+          toY = toPos.y + toPos.h;
+
+          const dropY = cy + 80;
+          // Port dots
+          edgesG.append('circle').attr('cx', fromX).attr('cy', fromY).attr('r', 5).attr('fill', '#013D5B').attr('stroke', '#FFF').attr('stroke-width', 2);
+          edgesG.append('circle').attr('cx', toX).attr('cy', toY).attr('r', 5).attr('fill', '#013D5B').attr('stroke', '#FFF').attr('stroke-width', 2);
+
+          edgesG.append('path')
+            .attr('d', `M ${fromX} ${fromY} H ${fromX - 40} V ${dropY} H ${toX} V ${toY + 6}`)
+            .attr('stroke', strokeColor)
+            .attr('stroke-width', strokeWidth)
+            .attr('stroke-dasharray', dasharray)
+            .attr('fill', 'none')
+            .attr('marker-end', markerEnd);
+
+          // Label
+          if (edge.label) {
+            edgesG.append('text')
+              .attr('x', (fromX - 40 + toX) / 2)
+              .attr('y', dropY - 6)
+              .attr('text-anchor', 'middle')
+              .attr('font-size', '10px')
+              .attr('fill', '#54514D')
+              .text(edge.label);
+          }
+          return;
+        }
+
+        // Special: connections going down
+        if (toPos.y > fromPos.y + 50) {
+          // Going downward
+          const exitX = fromPos.x + fromPos.w / 2;
+          const exitY = fromPos.y + fromPos.h;
+          if (fromNode && fromNode.type === 'decision') {
+            // from bottom of diamond
+            const cx = fromPos.x + 35;
+            const cy = fromPos.y + 35;
+            fromX = cx; fromY = cy + 35;
+          } else {
+            fromX = exitX; fromY = exitY;
+          }
+          toX = toPos.x + toPos.w / 2;
+          toY = toPos.y;
+
+          edgesG.append('circle').attr('cx', fromX).attr('cy', fromY).attr('r', 5).attr('fill', '#013D5B').attr('stroke', '#FFF').attr('stroke-width', 2);
+          edgesG.append('circle').attr('cx', toX).attr('cy', toY).attr('r', 5).attr('fill', '#013D5B').attr('stroke', '#FFF').attr('stroke-width', 2);
+
+          edgesG.append('path')
+            .attr('d', `M ${fromX} ${fromY + 6} V ${(fromY + toY) / 2} H ${toX} V ${toY - 6}`)
+            .attr('stroke', strokeColor)
+            .attr('stroke-width', strokeWidth)
+            .attr('stroke-dasharray', dasharray)
+            .attr('fill', 'none')
+            .attr('marker-end', markerEnd);
+
+          if (edge.label) {
+            edgesG.append('text')
+              .attr('x', (fromX + toX) / 2 + 8)
+              .attr('y', (fromY + toY) / 2 - 4)
+              .attr('text-anchor', 'middle')
+              .attr('font-size', '10px')
+              .attr('fill', '#54514D')
+              .text(edge.label);
+          }
+          return;
+        }
+
+        // Special: returning from below (e.g., oauth success, connection-error retry)
+        if (fromPos.y > toPos.y + 50) {
+          fromX = fromPos.x;
+          fromY = fromPos.y + fromPos.h / 2;
+          toX = toPos.x + toPos.w / 2;
+          toY = toPos.y + toPos.h;
+
+          const loopX = fromPos.x - 40;
+
+          edgesG.append('circle').attr('cx', fromX).attr('cy', fromY).attr('r', 5).attr('fill', '#013D5B').attr('stroke', '#FFF').attr('stroke-width', 2);
+          edgesG.append('circle').attr('cx', toX).attr('cy', toY).attr('r', 5).attr('fill', '#013D5B').attr('stroke', '#FFF').attr('stroke-width', 2);
+
+          edgesG.append('path')
+            .attr('d', `M ${fromX - 6} ${fromY} H ${loopX} V ${toY + 30} H ${toX} V ${toY + 6}`)
+            .attr('stroke', strokeColor)
+            .attr('stroke-width', strokeWidth)
+            .attr('stroke-dasharray', dasharray)
+            .attr('fill', 'none')
+            .attr('marker-end', markerEnd);
+
+          if (edge.label) {
+            edgesG.append('text')
+              .attr('x', loopX - 4)
+              .attr('y', (fromY + toY) / 2)
+              .attr('text-anchor', 'end')
+              .attr('font-size', '10px')
+              .attr('fill', '#54514D')
+              .text(edge.label);
+          }
+          return;
+        }
+
+        // Standard horizontal connector with orthogonal routing
+        // Connection ports
+        edgesG.append('circle')
+          .attr('cx', fromX).attr('cy', fromY)
+          .attr('r', 5)
+          .attr('fill', '#013D5B')
+          .attr('stroke', '#FFFFFF')
+          .attr('stroke-width', 2);
+
+        edgesG.append('circle')
+          .attr('cx', toX).attr('cy', toY)
+          .attr('r', 5)
+          .attr('fill', '#013D5B')
+          .attr('stroke', '#FFFFFF')
+          .attr('stroke-width', 2);
+
+        const midX = (fromX + toX) / 2;
+
+        // Check if there's a label to show as action pill
+        if (edge.label && !isError && edge.isHappyPath) {
+          const pillW = Math.max(edge.label.length * 7 + 36, 100);
+          const pillH = 24;
+          const pillX = midX - pillW / 2;
+          const pillY = fromY - pillH / 2;
+
+          // Line to pill
+          edgesG.append('path')
+            .attr('d', `M ${fromX + 6} ${fromY} H ${pillX}`)
+            .attr('stroke', strokeColor)
+            .attr('stroke-width', strokeWidth)
+            .attr('fill', 'none');
+
+          // Line from pill
+          edgesG.append('path')
+            .attr('d', `M ${pillX + pillW} ${fromY} H ${toX - 6}`)
+            .attr('stroke', strokeColor)
+            .attr('stroke-width', strokeWidth)
+            .attr('fill', 'none')
+            .attr('marker-end', markerEnd);
+
+          // Pill
+          edgesG.append('rect')
+            .attr('x', pillX).attr('y', pillY)
+            .attr('width', pillW).attr('height', pillH)
+            .attr('rx', 20).attr('ry', 20)
+            .attr('fill', '#013D5B');
+          edgesG.append('text')
+            .attr('x', pillX + 12).attr('y', fromY + 1)
+            .attr('font-size', '10px')
+            .attr('fill', '#FFFFFF')
+            .attr('dominant-baseline', 'central')
+            .text('\u26A1');
+          edgesG.append('text')
+            .attr('x', pillX + 24).attr('y', fromY + 1)
+            .attr('font-size', '11px')
+            .attr('font-weight', 500)
+            .attr('fill', '#FFFFFF')
+            .attr('dominant-baseline', 'central')
+            .text(edge.label);
+        } else {
+          // Orthogonal path
+          let path;
+          if (Math.abs(fromY - toY) < 5) {
+            path = `M ${fromX + 6} ${fromY} H ${toX - 8}`;
+          } else {
+            path = `M ${fromX + 6} ${fromY} H ${midX} V ${toY} H ${toX - 8}`;
+          }
+          edgesG.append('path')
+            .attr('d', path)
+            .attr('stroke', strokeColor)
+            .attr('stroke-width', strokeWidth)
+            .attr('stroke-dasharray', dasharray)
+            .attr('fill', 'none')
+            .attr('marker-end', markerEnd);
+
+          // Edge label
+          if (edge.label) {
+            edgesG.append('text')
+              .attr('x', midX)
+              .attr('y', Math.min(fromY, toY) - 8)
+              .attr('text-anchor', 'middle')
+              .attr('font-size', '10px')
+              .attr('fill', '#54514D')
+              .text(edge.label);
+          }
+        }
+      });
+
+      // Draw nodes
+      const nodesG = container.append('g').attr('class', 'l2-nodes');
+
+      nodes.forEach(node => {
+        const pos = positions[node.id];
+        if (!pos) return;
+
+        if (node.type === 'start') {
+          renderStartNode(nodesG, node, pos);
+        } else if (node.type === 'end') {
+          renderEndNode(nodesG, node, pos);
+        } else if (node.type === 'decision') {
+          renderDecisionNode(nodesG, node, pos);
+        } else if (node.type === 'external') {
+          renderExternalNode(nodesG, node, pos);
+        } else if (node.type === 'error') {
+          renderErrorNode(nodesG, node, pos);
+        } else {
+          renderScreenNode(nodesG, node, pos);
+        }
+      });
+
+      // Fade in
+      edgesG.style('opacity', 0).transition().duration(400).style('opacity', 1);
+      nodesG.style('opacity', 0).transition().duration(400).style('opacity', 1);
+
+      fitToContent();
+    }
+
+    function getNodeHeight(node) {
+      if (node.type === 'start' || node.type === 'end') return 36;
+      if (node.type === 'decision') return 70;
+      if (node.type === 'external') return 50;
+      if (node.type === 'error') return 50;
+      let h = 72; // base
+      if (node.sections) h += node.sections.length * 16 + 8;
+      return Math.max(h, 80);
+    }
+
+    // ─── Node Renderers ───
+
+    function renderScreenNode(parent, node, pos) {
+      const g = parent.append('g')
+        .attr('transform', `translate(${pos.x}, ${pos.y})`)
+        .style('cursor', 'pointer')
+        .on('click', () => {
+          g.transition().duration(75).style('opacity', 0.7)
+            .transition().duration(75).style('opacity', 1)
+            .on('end', () => showDetail(node));
+        })
+        .on('mouseenter', function() {
+          d3.select(this).select('rect.card-bg')
+            .attr('stroke', '#D0CBC3').attr('fill', '#FAF8F5');
+          d3.select(this).attr('transform', `translate(${pos.x}, ${pos.y}) scale(1.02)`);
+        })
+        .on('mouseleave', function() {
+          d3.select(this).select('rect.card-bg')
+            .attr('stroke', '#E0DCD3').attr('fill', '#FFFFFF');
+          d3.select(this).attr('transform', `translate(${pos.x}, ${pos.y})`);
+        });
+
+      // Shadow
+      g.append('rect')
+        .attr('x', 1).attr('y', 2)
+        .attr('width', pos.w).attr('height', pos.h)
+        .attr('rx', 8).attr('ry', 8)
+        .attr('fill', 'rgba(0,0,0,0.03)');
+
+      // Card
+      g.append('rect')
+        .attr('class', 'card-bg')
+        .attr('width', pos.w).attr('height', pos.h)
+        .attr('rx', 8).attr('ry', 8)
+        .attr('fill', '#FFFFFF')
+        .attr('stroke', '#E0DCD3')
+        .attr('stroke-width', 1);
+
+      // Window dots
+      [12, 22, 32].forEach(dx => {
+        g.append('circle')
+          .attr('cx', dx).attr('cy', 14)
+          .attr('r', 2.5)
+          .attr('fill', '#D0CBC3');
+      });
+
+      // MoSCoW tag circle
+      const priorityColors = { green: '#7A9A01', blue: '#0C4A69', yellow: '#EBCE2D', red: '#CF6253' };
+      const priorityLetters = { green: 'M', blue: 'S', yellow: 'C', red: 'W' };
+      const pColor = priorityColors[node.priority || 'green'];
+      const pLetter = priorityLetters[node.priority || 'green'];
+
+      g.append('circle')
+        .attr('cx', pos.w - 10).attr('cy', 10)
+        .attr('r', 10)
+        .attr('fill', '#FFFFFF')
+        .attr('stroke', pColor)
+        .attr('stroke-width', 2);
+      g.append('text')
+        .attr('x', pos.w - 10).attr('y', 10)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'central')
+        .attr('font-size', '9px')
+        .attr('font-weight', 600)
+        .attr('fill', '#1C1A17')
+        .text(pLetter);
+
+      // Screen icon + label
+      g.append('text')
+        .attr('x', 14).attr('y', 38)
+        .attr('font-size', '14px')
+        .attr('font-weight', 600)
+        .attr('fill', '#1C1A17')
+        .text(node.label);
+
+      // Subtitle
+      if (node.subtitle) {
+        g.append('text')
+          .attr('x', 14).attr('y', 54)
+          .attr('font-size', '11px')
+          .attr('fill', '#54514D')
+          .text(node.subtitle);
+      }
+
+      // Sections
+      if (node.sections) {
+        let sy = 70;
+        // Divider line
+        g.append('line')
+          .attr('x1', 10).attr('y1', sy - 4)
+          .attr('x2', pos.w - 10).attr('y2', sy - 4)
+          .attr('stroke', '#EBE6DD').attr('stroke-width', 1);
+
+        node.sections.forEach((section, si) => {
+          if (si < 4) { // Show max 4 items
+            g.append('text')
+              .attr('x', 18).attr('y', sy + si * 16 + 4)
+              .attr('font-size', '10px')
+              .attr('fill', '#6B6760')
+              .text('\u2022 ' + section);
+          }
+        });
+        if (node.sections.length > 4) {
+          g.append('text')
+            .attr('x', 18).attr('y', sy + 4 * 16 + 4)
+            .attr('font-size', '10px')
+            .attr('fill', '#B0ABA2')
+            .text(`+ ${node.sections.length - 4} more`);
+        }
+      }
+    }
+
+    function renderDecisionNode(parent, node, pos) {
+      const g = parent.append('g')
+        .attr('transform', `translate(${pos.x + 35}, ${pos.y + 35})`)
+        .style('cursor', 'pointer')
+        .on('click', () => {
+          if (node.description) showDetail(node);
+        });
+
+      // Diamond (rotated square)
+      g.append('rect')
+        .attr('x', -30).attr('y', -30)
+        .attr('width', 60).attr('height', 60)
+        .attr('rx', 4).attr('ry', 4)
+        .attr('fill', '#EBCE2D')
+        .attr('stroke', '#D4B925')
+        .attr('stroke-width', 1)
+        .attr('transform', 'rotate(45)');
+
+      g.append('text')
+        .attr('x', 0).attr('y', 2)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'central')
+        .attr('font-size', '12px')
+        .attr('font-weight', 600)
+        .attr('fill', '#1C1A17')
+        .text(node.label);
+    }
+
+    function renderStartNode(parent, node, pos) {
+      const g = parent.append('g')
+        .attr('transform', `translate(${pos.x}, ${pos.y})`);
+
+      g.append('rect')
+        .attr('width', pos.w).attr('height', pos.h)
+        .attr('rx', 18).attr('ry', 18)
+        .attr('fill', '#F4FAEB')
+        .attr('stroke', '#7A9A01')
+        .attr('stroke-width', 1.5);
+
+      g.append('text')
+        .attr('x', pos.w / 2).attr('y', pos.h / 2 + 1)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'central')
+        .attr('font-size', '12px')
+        .attr('font-weight', 600)
+        .attr('fill', '#62800B')
+        .text(node.label);
+    }
+
+    function renderEndNode(parent, node, pos) {
+      const g = parent.append('g')
+        .attr('transform', `translate(${pos.x}, ${pos.y})`);
+
+      g.append('rect')
+        .attr('width', pos.w).attr('height', pos.h)
+        .attr('rx', 18).attr('ry', 18)
+        .attr('fill', '#7A9A01')
+        .attr('stroke', '#62800B')
+        .attr('stroke-width', 1);
+
+      // Check icon
+      g.append('text')
+        .attr('x', 16).attr('y', pos.h / 2 + 1)
+        .attr('dominant-baseline', 'central')
+        .attr('font-size', '14px')
+        .attr('fill', '#FFFFFF')
+        .text('\u2713');
+
+      g.append('text')
+        .attr('x', 32).attr('y', pos.h / 2 + 1)
+        .attr('dominant-baseline', 'central')
+        .attr('font-size', '12px')
+        .attr('font-weight', 600)
+        .attr('fill', '#FFFFFF')
+        .text(node.label);
+    }
+
+    function renderExternalNode(parent, node, pos) {
+      const g = parent.append('g')
+        .attr('transform', `translate(${pos.x}, ${pos.y})`)
+        .style('cursor', 'pointer')
+        .on('click', () => { if (node.description) showDetail(node); });
+
+      g.append('rect')
+        .attr('width', pos.w).attr('height', pos.h)
+        .attr('rx', 8).attr('ry', 8)
+        .attr('fill', '#F4F1EB')
+        .attr('stroke', '#D0CBC3')
+        .attr('stroke-width', 1)
+        .attr('stroke-dasharray', '6,3');
+
+      g.append('text')
+        .attr('x', pos.w / 2).attr('y', 20)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '10px')
+        .attr('font-weight', 600)
+        .attr('text-transform', 'uppercase')
+        .attr('fill', '#6B6760')
+        .text('EXTERNAL');
+
+      g.append('text')
+        .attr('x', pos.w / 2).attr('y', 38)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '12px')
+        .attr('fill', '#54514D')
+        .text(node.label);
+    }
+
+    function renderErrorNode(parent, node, pos) {
+      const g = parent.append('g')
+        .attr('transform', `translate(${pos.x}, ${pos.y})`)
+        .style('cursor', 'pointer')
+        .on('click', () => { if (node.description) showDetail(node); });
+
+      g.append('rect')
+        .attr('width', pos.w).attr('height', pos.h)
+        .attr('rx', 6).attr('ry', 6)
+        .attr('fill', '#FFEEEB')
+        .attr('stroke', '#E0DCD3')
+        .attr('stroke-width', 1);
+
+      // Left red accent bar
+      g.append('rect')
+        .attr('width', 3).attr('height', pos.h)
+        .attr('rx', 1.5).attr('ry', 1.5)
+        .attr('fill', '#CF6253');
+
+      // Red status dot
+      g.append('circle')
+        .attr('cx', pos.w - 12).attr('cy', 12)
+        .attr('r', 5)
+        .attr('fill', '#CF6253');
+
+      g.append('text')
+        .attr('x', 14).attr('y', pos.h / 2 + 1)
+        .attr('dominant-baseline', 'central')
+        .attr('font-size', '12px')
+        .attr('font-weight', 500)
+        .attr('fill', '#BF5547')
+        .text(node.label);
+    }
+
+    // ─── Level 3: Detail Panel ───
+    function showDetail(node) {
+      let html = '';
+
+      const typeLabel = node.screenType || node.type;
+      html += `<div class="detail-type">${typeLabel.toUpperCase()}</div>`;
+      html += `<div class="detail-title">${node.label}</div>`;
+      html += `<div class="detail-subtitle">${node.subtitle || node.description || ''}</div>`;
+
+      if (node.userAction) {
+        html += `<div class="section-heading">User Action</div>`;
+        html += `<div class="section-content">${node.userAction}</div>`;
+      }
+
+      if (node.description) {
+        html += `<div class="section-heading">Description</div>`;
+        html += `<div class="section-content">${node.description}</div>`;
+      }
+
+      if (node.sections && node.sections.length) {
+        html += `<div class="section-heading">Page Sections</div>`;
+        html += `<div class="section-content">`;
+        node.sections.forEach(s => {
+          html += `<div style="padding: 4px 0; display: flex; align-items: center; gap: 8px;">
+            <span style="width: 5px; height: 5px; border-radius: 50%; background: #013D5B; flex-shrink: 0;"></span>
+            ${s}
+          </div>`;
+        });
+        html += `</div>`;
+      }
+
+      if (node.edgeCases && node.edgeCases.length) {
+        html += `<div class="section-heading">Edge Cases</div>`;
+        node.edgeCases.forEach(ec => {
+          html += `<div class="edge-case-item"><div class="dot"></div><div>${ec}</div></div>`;
+        });
+      }
+
+      if (node.exits && node.exits.length) {
+        html += `<div class="section-heading">Exits</div>`;
+        node.exits.forEach(exit => {
+          html += `<div class="exit-item">
+            <span class="exit-label">${exit.label}</span>
+            <span class="exit-arrow">\u2192</span>
+            <span>${exit.to.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).replace(' Screen', '')}</span>
+          </div>`;
+        });
+      }
+
+      detailContent.innerHTML = html;
+      detailPanel.classList.add('open');
+      overlay.classList.add('open');
+    }
+
+    function closeDetail() {
+      detailPanel.classList.remove('open');
+      overlay.classList.remove('open');
+    }
+
+    detailClose.addEventListener('click', closeDetail);
+    overlay.addEventListener('click', closeDetail);
+
+    // ─── Navigation ───
+    function goToLevel1() {
+      closeDetail();
+      renderLevel1();
+    }
+
+    // ─── Initialize ───
+    renderLevel1();
+
+    // Handle resize
+    window.addEventListener('resize', () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight - 48;
+      svg.attr('width', w).attr('height', h);
+      fitToContent(200);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Classification Workflow — Prototype</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap">
+<style>
+  :root {
+    --sds-font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --sds-type-display: 28px; --sds-type-heading: 22px; --sds-type-subheading: 16px;
+    --sds-type-title: 15px; --sds-type-body: 14px; --sds-type-label: 13px;
+    --sds-type-caption: 12px; --sds-type-overline: 11px;
+    --sds-weight-regular: 400; --sds-weight-medium: 500;
+    --sds-weight-semibold: 600; --sds-weight-bold: 700;
+    --sds-leading-tight: 1.2; --sds-leading-normal: 1.5;
+    --sds-tracking-tight: -0.01em; --sds-tracking-wide: 0.5px;
+    --sds-space-050: 2px; --sds-space-100: 4px; --sds-space-150: 6px;
+    --sds-space-200: 8px; --sds-space-250: 10px; --sds-space-300: 12px;
+    --sds-space-400: 16px; --sds-space-500: 20px; --sds-space-600: 24px;
+    --sds-space-800: 32px; --sds-space-1000: 40px; --sds-space-1200: 48px;
+    --sds-color-warm-gray-025: #FAF8F5; --sds-color-warm-gray-050: #F4F1EB;
+    --sds-color-warm-gray-100: #EBE6DD; --sds-color-warm-gray-150: #E0DCD3;
+    --sds-color-warm-gray-200: #D0CBC3; --sds-color-warm-gray-300: #B0ABA2;
+    --sds-color-warm-gray-400: #948E85; --sds-color-warm-gray-500: #7A756F;
+    --sds-color-warm-gray-550: #6B6760; --sds-color-warm-gray-650: #54514D;
+    --sds-color-warm-gray-700: #47443F; --sds-color-warm-gray-900: #1C1A17;
+    --sds-color-blue-050: #EBF4F5; --sds-color-blue-100: #D9EBED;
+    --sds-color-blue-150: #C1DDE3; --sds-color-blue-450: #4F8AA0;
+    --sds-color-blue-700: #0C4A69; --sds-color-blue-750: #013D5B;
+    --sds-color-blue-800: #05314D;
+    --sds-color-red-050: #FFEEEB; --sds-color-red-500: #BF5547;
+    --sds-color-green-025: #F4FAEB; --sds-color-green-400: #7A9A01;
+    --sds-color-green-500: #62800B;
+    --sds-color-yellow-025: #FCF9D9; --sds-color-yellow-200: #EBCE2D;
+    --sds-color-yellow-500: #8A7515;
+    --sds-color-purple-550: #805AA1;
+    --sds-color-white: #FFFFFF;
+    --sds-bg-page: var(--sds-color-white); --sds-bg-surface: var(--sds-color-warm-gray-025);
+    --sds-bg-card: var(--sds-color-white); --sds-bg-subtle: var(--sds-color-warm-gray-050);
+    --sds-text-primary: var(--sds-color-warm-gray-900); --sds-text-secondary: var(--sds-color-warm-gray-650);
+    --sds-text-tertiary: var(--sds-color-warm-gray-550); --sds-text-disabled: var(--sds-color-warm-gray-300);
+    --sds-text-on-primary: var(--sds-color-white); --sds-text-link: var(--sds-color-blue-750);
+    --sds-border-default: var(--sds-color-warm-gray-150); --sds-border-subtle: var(--sds-color-warm-gray-100);
+    --sds-border-strong: var(--sds-color-warm-gray-200);
+    --sds-interactive-primary: var(--sds-color-blue-750);
+    --sds-interactive-primary-hover: var(--sds-color-blue-800);
+    --sds-nav-sidebar-bg: var(--sds-color-warm-gray-025);
+    --sds-nav-item-active-bg: var(--sds-color-blue-100);
+    --sds-nav-item-active-text: var(--sds-color-blue-750);
+    --sds-nav-item-text: var(--sds-color-warm-gray-650);
+    --sds-status-success-bg: var(--sds-color-green-025); --sds-status-success-text: var(--sds-color-green-500);
+    --sds-status-warning-bg: var(--sds-color-yellow-025); --sds-status-warning-text: var(--sds-color-yellow-500);
+    --sds-status-error-bg: var(--sds-color-red-050); --sds-status-error-text: var(--sds-color-red-500);
+    --sds-status-info-bg: var(--sds-color-blue-050); --sds-status-info-text: var(--sds-color-blue-700);
+    --sds-status-neutral-bg: var(--sds-color-warm-gray-100); --sds-status-neutral-text: var(--sds-color-warm-gray-650);
+    --sds-status-purple-bg: #F7EEFF; --sds-status-purple-text: var(--sds-color-purple-550);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sds-font-sans); background: var(--sds-bg-page); color: var(--sds-text-primary); line-height: var(--sds-leading-normal); font-size: var(--sds-type-body); display: flex; flex-direction: column; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+  /* Header */
+  .sds-header { display: flex; align-items: center; justify-content: space-between; height: 56px; padding: 0 var(--sds-space-500); background: var(--sds-bg-page); border-bottom: 1px solid var(--sds-border-subtle); flex-shrink: 0; z-index: 10; }
+  .sds-header-logo { display: flex; align-items: center; gap: var(--sds-space-250); }
+  .sds-header-logo-mark { width: 28px; height: 28px; border-radius: 6px; background: var(--sds-interactive-primary); display: flex; align-items: center; justify-content: center; }
+  .sds-header-logo-mark .material-symbols-outlined { font-size: 18px; color: var(--sds-text-on-primary); font-variation-settings: 'FILL' 1; }
+  .sds-header-logo-text { font-size: var(--sds-type-title); font-weight: var(--sds-weight-semibold); color: var(--sds-text-primary); }
+  .sds-header-actions { display: flex; align-items: center; gap: var(--sds-space-200); }
+  .sds-header-help { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--sds-color-warm-gray-300); background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--sds-text-tertiary); font-size: var(--sds-type-body); font-weight: var(--sds-weight-semibold); font-family: var(--sds-font-sans); transition: all 0.15s; }
+  .sds-header-help:hover { border-color: var(--sds-color-warm-gray-700); background: var(--sds-bg-subtle); }
+
+  /* Focus visible styles (Pass 1 fix: 2.4.7 Focus Visible) */
+  :focus-visible { outline: 2px solid var(--sds-interactive-primary); outline-offset: 2px; }
+  :focus:not(:focus-visible) { outline: none; }
+  /* Skip to main content (Pass 1 fix: 2.4.1 Skip Navigation) */
+  .skip-link { position: absolute; top: -100px; left: 16px; background: var(--sds-interactive-primary); color: var(--sds-text-on-primary); padding: 8px 16px; border-radius: 4px; z-index: 100; font-size: var(--sds-type-label); font-weight: var(--sds-weight-medium); text-decoration: none; }
+  .skip-link:focus { top: 8px; }
+  .sds-header-divider { width: 1px; height: 20px; background: var(--sds-border-default); margin: 0 var(--sds-space-100); }
+  .sds-header-profile { display: flex; align-items: center; gap: var(--sds-space-200); padding: 4px 8px 4px 4px; border-radius: 8px; cursor: pointer; border: none; background: transparent; font-family: inherit; transition: background 0.15s; }
+  .sds-header-profile:hover { background: var(--sds-bg-subtle); }
+  .sds-header-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--sds-interactive-primary); color: var(--sds-text-on-primary); display: flex; align-items: center; justify-content: center; font-size: var(--sds-type-caption); font-weight: var(--sds-weight-semibold); }
+
+  /* Layout */
+  .app-body { display: flex; flex: 1; overflow: hidden; }
+
+  /* Sidenav */
+  .sds-sidenav { width: 220px; min-width: 220px; background: var(--sds-nav-sidebar-bg); border-right: 1px solid var(--sds-border-default); display: flex; flex-direction: column; padding: var(--sds-space-400) var(--sds-space-300); user-select: none; overflow-y: auto; flex-shrink: 0; }
+  .sds-sidenav-item { display: flex; align-items: center; gap: var(--sds-space-250); padding: var(--sds-space-200) var(--sds-space-300); border-radius: 8px; font-size: var(--sds-type-body); font-weight: var(--sds-weight-regular); color: var(--sds-color-warm-gray-700); cursor: pointer; text-decoration: none; margin: var(--sds-space-050) 0; line-height: 1.3; transition: background 0.12s, color 0.12s; }
+  .sds-sidenav-item:hover { background: var(--sds-bg-subtle); color: var(--sds-text-primary); }
+  .sds-sidenav-item.active { background: var(--sds-nav-item-active-bg); color: var(--sds-nav-item-active-text); font-weight: var(--sds-weight-medium); }
+  .sds-sidenav-icon { width: 20px; height: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .sds-sidenav-icon .material-symbols-outlined { font-size: 20px; color: var(--sds-text-tertiary); font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20; transition: color 0.12s; }
+  .sds-sidenav-item:hover .material-symbols-outlined { color: var(--sds-color-warm-gray-700); }
+  .sds-sidenav-item.active .material-symbols-outlined { color: var(--sds-nav-item-active-text); }
+  .sds-sidenav-group-label { font-size: var(--sds-type-overline); font-weight: var(--sds-weight-semibold); color: var(--sds-color-warm-gray-400); text-transform: uppercase; letter-spacing: 0.4px; padding: var(--sds-space-500) var(--sds-space-300) var(--sds-space-150); }
+  .sds-sidenav-group-label:first-child { padding-top: var(--sds-space-200); }
+  .sds-sidenav-spacer { flex: 1; }
+  .sds-sidenav-badge { background: var(--sds-status-error-bg); color: var(--sds-status-error-text); font-size: 10px; font-weight: var(--sds-weight-semibold); padding: 1px 6px; border-radius: 10px; margin-left: auto; }
+
+  /* Main content */
+  .main-content { flex: 1; overflow-y: auto; background: var(--sds-bg-page); display: flex; flex-direction: column; }
+
+  /* Screen container */
+  .screen { display: none; flex-direction: column; flex: 1; }
+  .screen.active { display: flex; }
+
+  /* Page header */
+  .page-header { padding: var(--sds-space-600) var(--sds-space-800); border-bottom: 1px solid var(--sds-border-subtle); display: flex; justify-content: space-between; align-items: flex-start; flex-shrink: 0; }
+  .page-header h1 { font-size: var(--sds-type-heading); font-weight: var(--sds-weight-semibold); line-height: var(--sds-leading-tight); }
+  .page-header .page-desc { font-size: var(--sds-type-label); color: var(--sds-text-secondary); margin-top: 2px; }
+  .page-actions { display: flex; gap: var(--sds-space-200); align-items: center; }
+
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; font-size: var(--sds-type-label); font-weight: var(--sds-weight-medium); font-family: inherit; cursor: pointer; transition: all 0.15s; border: none; line-height: 1; white-space: nowrap; }
+  .btn-primary { background: var(--sds-interactive-primary); color: var(--sds-text-on-primary); }
+  .btn-primary:hover { background: var(--sds-interactive-primary-hover); }
+  .btn-secondary { background: var(--sds-bg-page); color: var(--sds-text-primary); border: 1px solid var(--sds-border-strong); }
+  .btn-secondary:hover { background: var(--sds-bg-subtle); }
+  .btn-ghost { background: transparent; color: var(--sds-text-secondary); border: none; }
+  .btn-ghost:hover { background: var(--sds-bg-subtle); color: var(--sds-text-primary); }
+  .btn .material-symbols-outlined { font-size: 16px; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20; }
+  .btn-sm { padding: 4px 10px; font-size: var(--sds-type-caption); }
+  .btn-success { background: var(--sds-color-green-400); color: white; }
+  .btn-success:hover { background: var(--sds-color-green-500); }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--sds-border-subtle); padding: 0 var(--sds-space-800); flex-shrink: 0; }
+  .tab { padding: 12px 16px; font-size: var(--sds-type-label); font-weight: var(--sds-weight-medium); color: var(--sds-text-secondary); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; position: relative; top: 1px; }
+  .tab:hover { color: var(--sds-text-primary); }
+  .tab.active { color: var(--sds-interactive-primary); border-bottom-color: var(--sds-interactive-primary); }
+  .tab-badge { background: var(--sds-status-neutral-bg); color: var(--sds-status-neutral-text); font-size: 10px; padding: 1px 6px; border-radius: 10px; margin-left: 6px; font-weight: var(--sds-weight-semibold); }
+  .tab.active .tab-badge { background: var(--sds-color-blue-100); color: var(--sds-interactive-primary); }
+
+  /* Toggle tabs */
+  .toggle-tabs { display: inline-flex; background: var(--sds-bg-subtle); border-radius: 6px; padding: 2px; gap: 2px; }
+  .toggle-tab { padding: 5px 12px; border-radius: 4px; font-size: var(--sds-type-caption); font-weight: var(--sds-weight-medium); color: var(--sds-text-secondary); cursor: pointer; transition: all 0.15s; border: none; background: transparent; font-family: inherit; }
+  .toggle-tab.active { background: var(--sds-bg-card); color: var(--sds-text-primary); box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+
+  /* Stats bar */
+  .stats-bar { display: flex; gap: var(--sds-space-600); padding: var(--sds-space-400) var(--sds-space-800); background: var(--sds-bg-surface); border-bottom: 1px solid var(--sds-border-subtle); flex-shrink: 0; }
+  .stat-item { display: flex; flex-direction: column; }
+  .stat-value { font-size: var(--sds-type-subheading); font-weight: var(--sds-weight-semibold); color: var(--sds-text-primary); }
+  .stat-label { font-size: var(--sds-type-caption); color: var(--sds-text-tertiary); }
+
+  /* Toolbar */
+  .toolbar { display: flex; align-items: center; gap: var(--sds-space-300); padding: var(--sds-space-300) var(--sds-space-800); border-bottom: 1px solid var(--sds-border-subtle); flex-shrink: 0; }
+  .toolbar-search { display: flex; align-items: center; gap: 6px; background: var(--sds-bg-surface); border: 1px solid var(--sds-border-default); border-radius: 6px; padding: 6px 10px; flex: 1; max-width: 320px; }
+  .toolbar-search input { border: none; background: transparent; font-size: var(--sds-type-label); color: var(--sds-text-primary); outline: none; width: 100%; font-family: inherit; }
+  .toolbar-search .material-symbols-outlined { font-size: 18px; color: var(--sds-text-tertiary); font-variation-settings: 'FILL' 0, 'wght' 300; }
+  .filter-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 14px; font-size: var(--sds-type-caption); font-weight: var(--sds-weight-medium); cursor: pointer; border: 1px solid var(--sds-border-default); background: var(--sds-bg-card); color: var(--sds-text-secondary); transition: all 0.15s; }
+  .filter-chip:hover { border-color: var(--sds-interactive-primary); color: var(--sds-text-primary); }
+  .filter-chip.active { background: var(--sds-color-blue-100); border-color: var(--sds-interactive-primary); color: var(--sds-interactive-primary); }
+  .filter-chip .material-symbols-outlined { font-size: 14px; }
+
+  /* Bulk action bar */
+  .bulk-bar { display: none; align-items: center; gap: var(--sds-space-300); padding: var(--sds-space-200) var(--sds-space-800); background: var(--sds-color-blue-050); border-bottom: 1px solid var(--sds-color-blue-150); flex-shrink: 0; }
+  .bulk-bar.visible { display: flex; }
+  .bulk-bar-count { font-size: var(--sds-type-label); font-weight: var(--sds-weight-semibold); color: var(--sds-interactive-primary); }
+  .bulk-bar-sep { width: 1px; height: 20px; background: var(--sds-color-blue-150); }
+
+  /* Data table */
+  .data-table-wrapper { flex: 1; overflow-y: auto; padding: 0; }
+  table.data-table { width: 100%; border-collapse: collapse; font-size: var(--sds-type-label); }
+  table.data-table th { position: sticky; top: 0; z-index: 2; background: var(--sds-bg-surface); text-align: left; font-weight: var(--sds-weight-semibold); font-size: var(--sds-type-caption); color: var(--sds-text-tertiary); text-transform: uppercase; letter-spacing: 0.3px; padding: var(--sds-space-200) var(--sds-space-300); border-bottom: 1px solid var(--sds-border-strong); white-space: nowrap; }
+  table.data-table th:first-child { padding-left: var(--sds-space-800); }
+  table.data-table td { padding: var(--sds-space-250) var(--sds-space-300); border-bottom: 1px solid var(--sds-border-subtle); color: var(--sds-text-secondary); vertical-align: middle; }
+  table.data-table td:first-child { padding-left: var(--sds-space-800); }
+  table.data-table tr:hover td { background: var(--sds-bg-subtle); }
+  table.data-table tr.selected td { background: var(--sds-color-blue-050); }
+
+  /* Checkbox */
+  .checkbox { width: 16px; height: 16px; border: 1.5px solid var(--sds-color-warm-gray-300); border-radius: 3px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; background: var(--sds-bg-card); }
+  .checkbox.checked { background: var(--sds-interactive-primary); border-color: var(--sds-interactive-primary); }
+  .checkbox.checked::after { content: ''; display: block; width: 4px; height: 8px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); margin-top: -2px; }
+
+  /* Tags */
+  .tag { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: var(--sds-weight-medium); line-height: 1.6; white-space: nowrap; }
+  .tag-pii { background: var(--sds-status-error-bg); color: var(--sds-status-error-text); }
+  .tag-financial { background: var(--sds-status-warning-bg); color: var(--sds-status-warning-text); }
+  .tag-health { background: var(--sds-status-purple-bg); color: var(--sds-status-purple-text); }
+  .tag-public { background: var(--sds-status-success-bg); color: var(--sds-status-success-text); }
+  .tag-unclassified { background: var(--sds-status-neutral-bg); color: var(--sds-status-neutral-text); }
+  .tag-internal { background: var(--sds-status-info-bg); color: var(--sds-status-info-text); }
+
+  /* Confidence bar */
+  .confidence-bar { display: flex; align-items: center; gap: 6px; }
+  .confidence-track { width: 48px; height: 4px; background: var(--sds-color-warm-gray-100); border-radius: 2px; overflow: hidden; }
+  .confidence-fill { height: 100%; border-radius: 2px; }
+  .confidence-fill.high { background: var(--sds-color-green-400); }
+  .confidence-fill.medium { background: var(--sds-color-yellow-200); }
+  .confidence-fill.low { background: var(--sds-color-red-500); }
+  .confidence-label { font-size: 11px; color: var(--sds-text-tertiary); min-width: 28px; }
+
+  /* Field name styling */
+  .field-name { font-weight: var(--sds-weight-medium); color: var(--sds-text-primary); }
+  .source-name { font-size: 11px; color: var(--sds-text-tertiary); }
+
+  /* Inline classification dropdown */
+  .classify-select { font-size: var(--sds-type-caption); padding: 3px 8px; border: 1px solid var(--sds-border-default); border-radius: 4px; background: var(--sds-bg-card); color: var(--sds-text-primary); cursor: pointer; font-family: inherit; }
+  .classify-select:focus { outline: 2px solid var(--sds-interactive-primary); outline-offset: 1px; }
+
+  /* Explainability panel */
+  .explain-toggle { font-size: 11px; color: var(--sds-text-link); cursor: pointer; text-decoration: underline; }
+  .explain-panel { display: none; background: var(--sds-bg-surface); border: 1px solid var(--sds-border-subtle); border-radius: 6px; padding: 10px 14px; margin-top: 6px; font-size: 12px; color: var(--sds-text-secondary); }
+  .explain-panel.open { display: block; }
+  .sample-values { font-family: monospace; font-size: 11px; color: var(--sds-color-warm-gray-700); background: var(--sds-color-warm-gray-050); padding: 4px 8px; border-radius: 4px; margin-top: 4px; }
+
+  /* Review flag */
+  .flag-btn { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; color: var(--sds-text-tertiary); cursor: pointer; padding: 2px 6px; border-radius: 4px; transition: all 0.15s; border: none; background: transparent; font-family: inherit; }
+  .flag-btn:hover { background: var(--sds-status-warning-bg); color: var(--sds-status-warning-text); }
+  .flag-btn.flagged { background: var(--sds-status-warning-bg); color: var(--sds-status-warning-text); }
+  .flag-btn .material-symbols-outlined { font-size: 14px; }
+
+  /* Dashboard cards */
+  .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--sds-space-400); padding: var(--sds-space-600) var(--sds-space-800); }
+  .dash-card { background: var(--sds-bg-card); border: 1px solid var(--sds-border-default); border-radius: 8px; padding: var(--sds-space-500); }
+  .dash-card-title { font-size: var(--sds-type-caption); font-weight: var(--sds-weight-semibold); color: var(--sds-text-tertiary); text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: var(--sds-space-300); }
+  .dash-card-value { font-size: 36px; font-weight: var(--sds-weight-semibold); color: var(--sds-text-primary); }
+  .dash-card-sub { font-size: var(--sds-type-caption); color: var(--sds-text-tertiary); margin-top: 2px; }
+  .progress-bar-container { margin-top: var(--sds-space-300); }
+  .progress-bar-track { height: 8px; background: var(--sds-color-warm-gray-100); border-radius: 4px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+
+  /* Coverage bar (stacked) */
+  .stacked-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin-top: var(--sds-space-200); }
+  .stacked-segment { height: 100%; }
+
+  /* Source list */
+  .source-list { list-style: none; padding: 0; }
+  .source-list li { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--sds-border-subtle); font-size: var(--sds-type-label); }
+  .source-list li:last-child { border-bottom: none; }
+
+  /* Empty state */
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--sds-space-1200) var(--sds-space-800); text-align: center; flex: 1; }
+  .empty-state .material-symbols-outlined { font-size: 48px; color: var(--sds-color-warm-gray-200); margin-bottom: var(--sds-space-400); font-variation-settings: 'FILL' 0, 'wght' 200; }
+  .empty-state h3 { font-size: var(--sds-type-title); font-weight: var(--sds-weight-semibold); margin-bottom: var(--sds-space-100); }
+  .empty-state p { font-size: var(--sds-type-label); color: var(--sds-text-secondary); max-width: 380px; margin-bottom: var(--sds-space-500); }
+
+  /* Error banner */
+  .error-banner { display: none; align-items: center; gap: var(--sds-space-200); padding: var(--sds-space-300) var(--sds-space-800); background: var(--sds-status-error-bg); border-bottom: 1px solid #F2BDB6; font-size: var(--sds-type-label); color: var(--sds-status-error-text); flex-shrink: 0; }
+  .error-banner.visible { display: flex; }
+  .error-banner .material-symbols-outlined { font-size: 18px; }
+
+  /* Toast notification */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--sds-color-warm-gray-900); color: white; padding: 12px 20px; border-radius: 8px; font-size: var(--sds-type-label); display: none; align-items: center; gap: 8px; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .toast.visible { display: flex; }
+  .toast .material-symbols-outlined { font-size: 18px; }
+  .toast-undo { color: var(--sds-color-blue-150); cursor: pointer; text-decoration: underline; font-weight: var(--sds-weight-medium); margin-left: 8px; }
+
+  /* Scroll area */
+  .scroll-content { flex: 1; overflow-y: auto; }
+</style>
+</head>
+<body>
+
+<!-- Skip to main content (Pass 1 fix: WCAG 2.4.1) -->
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<!-- Header -->
+<header class="sds-header" role="banner">
+  <div class="sds-header-logo">
+    <div class="sds-header-logo-mark"><span class="material-symbols-outlined">shield</span></div>
+    <span class="sds-header-logo-text">DataGuard</span>
+  </div>
+  <div class="sds-header-actions">
+    <button class="sds-header-help" aria-label="Help">?</button>
+    <div class="sds-header-divider"></div>
+    <button class="sds-header-profile" aria-label="User profile">
+      <div class="sds-header-avatar">MS</div>
+      <span style="font-size:var(--sds-type-label);font-weight:var(--sds-weight-medium);color:var(--sds-text-primary);">Maria Santos</span>
+    </button>
+  </div>
+</header>
+
+<div class="app-body">
+  <!-- Side Navigation -->
+  <nav class="sds-sidenav" role="navigation" aria-label="Main navigation">
+    <div class="sds-sidenav-group-label">Classification</div>
+    <a class="sds-sidenav-item active" data-screen="classify" onclick="showScreen('classify', this)" role="link" tabindex="0" aria-current="page">
+      <span class="sds-sidenav-icon"><span class="material-symbols-outlined">label</span></span>
+      Classify fields
+    </a>
+    <a class="sds-sidenav-item" data-screen="cross-source" onclick="showScreen('cross-source', this)">
+      <span class="sds-sidenav-icon"><span class="material-symbols-outlined">hub</span></span>
+      Cross-source groups
+    </a>
+    <a class="sds-sidenav-item" data-screen="review-queue" onclick="showScreen('review-queue', this)">
+      <span class="sds-sidenav-icon"><span class="material-symbols-outlined">rate_review</span></span>
+      Review queue
+      <span class="sds-sidenav-badge">3</span>
+    </a>
+
+    <div class="sds-sidenav-group-label">Governance</div>
+    <a class="sds-sidenav-item" data-screen="dashboard" onclick="showScreen('dashboard', this)">
+      <span class="sds-sidenav-icon"><span class="material-symbols-outlined">dashboard</span></span>
+      Coverage dashboard
+    </a>
+    <a class="sds-sidenav-item" data-screen="policies" onclick="showScreen('policies', this)">
+      <span class="sds-sidenav-icon"><span class="material-symbols-outlined">policy</span></span>
+      Protection policies
+    </a>
+
+    <div class="sds-sidenav-group-label">Data Sources</div>
+    <a class="sds-sidenav-item" data-screen="sources" onclick="showScreen('sources', this)">
+      <span class="sds-sidenav-icon"><span class="material-symbols-outlined">storage</span></span>
+      Data sources
+    </a>
+
+    <div class="sds-sidenav-spacer"></div>
+    <a class="sds-sidenav-item" data-screen="activity" onclick="showScreen('activity', this)">
+      <span class="sds-sidenav-icon"><span class="material-symbols-outlined">history</span></span>
+      Activity log
+    </a>
+  </nav>
+
+  <!-- Main Content (Pass 1 fix: add id for skip link target) -->
+  <main class="main-content" id="main-content">
+
+    <!-- ========== SCREEN: Classify Fields (Happy Path) ========== -->
+    <div class="screen active" id="screen-classify">
+      <div class="page-header">
+        <div>
+          <h1>Classify fields</h1>
+          <p class="page-desc">Review AI-suggested classifications and apply tags across your data sources.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" onclick="document.getElementById('error-banner').classList.toggle('visible')">
+            <span class="material-symbols-outlined">sync</span> Re-scan
+          </button>
+          <button class="btn btn-primary" onclick="bulkApproveHigh()">
+            <span class="material-symbols-outlined">done_all</span> Approve all high confidence
+          </button>
+        </div>
+      </div>
+
+      <!-- Error banner (hidden by default) -->
+      <div class="error-banner" id="error-banner" role="alert" aria-live="assertive">
+        <span class="material-symbols-outlined">error</span>
+        <span>Scan failed for <strong>CRM Database</strong> &mdash; connection timed out. <a href="#" style="color:inherit;font-weight:600;">Retry</a> or <a href="#" style="color:inherit;font-weight:600;">check connection settings</a>.</span>
+        <button class="btn-ghost btn-sm" style="margin-left:auto;" onclick="this.parentElement.classList.remove('visible')" aria-label="Dismiss error">
+          <span class="material-symbols-outlined" style="font-size:16px;">close</span>
+        </button>
+      </div>
+
+      <!-- Stats bar -->
+      <div class="stats-bar">
+        <div class="stat-item">
+          <span class="stat-value">2,847</span>
+          <span class="stat-label">Total fields</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" style="color:var(--sds-color-green-400);">1,923</span>
+          <span class="stat-label">Classified</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" style="color:var(--sds-status-warning-text);">612</span>
+          <span class="stat-label">Needs review</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" style="color:var(--sds-status-error-text);">312</span>
+          <span class="stat-label">Unclassified</span>
+        </div>
+      </div>
+
+      <!-- Tabs (Pass 2 fix: ARIA tab roles) -->
+      <div class="tabs" role="tablist" aria-label="Field classification filters">
+        <div class="tab active" role="tab" aria-selected="true" tabindex="0">All fields<span class="tab-badge">2,847</span></div>
+        <div class="tab" role="tab" aria-selected="false" tabindex="0">Needs review<span class="tab-badge">612</span></div>
+        <div class="tab" role="tab" aria-selected="false" tabindex="0">Unclassified<span class="tab-badge">312</span></div>
+        <div class="tab" role="tab" aria-selected="false" tabindex="0">Flagged<span class="tab-badge">8</span></div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="toolbar-search">
+          <span class="material-symbols-outlined">search</span>
+          <input type="text" placeholder="Search fields, sources, or classifications..." aria-label="Search fields">
+        </div>
+        <div class="filter-chip active" tabindex="0">
+          <span class="material-symbols-outlined">filter_list</span> Confidence: Low first
+        </div>
+        <div class="filter-chip" tabindex="0">Source: All</div>
+        <div class="filter-chip" tabindex="0">Sensitivity: All</div>
+        <div style="margin-left:auto;">
+          <div class="toggle-tabs">
+            <button class="toggle-tab active">By source</button>
+            <button class="toggle-tab">Cross-source</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bulk action bar -->
+      <div class="bulk-bar" id="bulk-bar" role="toolbar" aria-label="Bulk actions">
+        <span class="bulk-bar-count" id="bulk-count">3 selected</span>
+        <span class="bulk-bar-sep"></span>
+        <button class="btn btn-sm btn-primary" onclick="showToast('3 fields classified as PII')">Classify as...</button>
+        <button class="btn btn-sm btn-success" onclick="showToast('3 fields approved')">Approve</button>
+        <button class="btn btn-sm btn-secondary" onclick="showToast('3 fields flagged for review')">
+          <span class="material-symbols-outlined">flag</span> Flag for review
+        </button>
+        <button class="btn btn-sm btn-ghost" onclick="clearSelection()">Clear selection</button>
+      </div>
+
+      <!-- Data table -->
+      <div class="data-table-wrapper">
+        <table class="data-table" role="grid" aria-label="Field classification table">
+          <thead>
+            <tr>
+              <th style="width:40px;"><div class="checkbox" id="select-all" onclick="toggleSelectAll()" role="checkbox" aria-label="Select all" tabindex="0"></div></th>
+              <th>Field name</th>
+              <th>Data source</th>
+              <th>AI suggestion</th>
+              <th>Confidence</th>
+              <th>Classification</th>
+              <th>Status</th>
+              <th style="width:80px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="fields-tbody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ========== SCREEN: Cross-source Groups ========== -->
+    <div class="screen" id="screen-cross-source">
+      <div class="page-header">
+        <div>
+          <h1>Cross-source groups</h1>
+          <p class="page-desc">Fields grouped by semantic similarity across data sources. Classify once, apply everywhere.</p>
+        </div>
+      </div>
+      <div class="scroll-content" style="padding: var(--sds-space-600) var(--sds-space-800);">
+        <div class="card" style="background:var(--sds-bg-card);border:1px solid var(--sds-border-default);border-radius:8px;padding:var(--sds-space-500);margin-bottom:var(--sds-space-400);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div>
+              <div style="font-weight:var(--sds-weight-semibold);font-size:var(--sds-type-title);">Email address fields</div>
+              <div style="font-size:var(--sds-type-caption);color:var(--sds-text-tertiary);">23 fields across 8 sources &mdash; AI confidence: 97%</div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <span class="tag tag-pii">PII</span>
+              <button class="btn btn-sm btn-success" onclick="showToast('23 email fields classified as PII')">Approve all</button>
+            </div>
+          </div>
+          <div style="font-size:var(--sds-type-caption);color:var(--sds-text-secondary);">
+            <strong>Fields:</strong> email, user_email, contact_email, email_address, customer_email, login_email, primary_email ...
+          </div>
+          <div style="font-size:var(--sds-type-caption);color:var(--sds-text-tertiary);margin-top:4px;">
+            <strong>Sources:</strong> CRM Database, Marketing Platform, Support Tickets, User Auth DB, Analytics, Billing System, HR Portal, Customer Portal
+          </div>
+        </div>
+
+        <div class="card" style="background:var(--sds-bg-card);border:1px solid var(--sds-border-default);border-radius:8px;padding:var(--sds-space-500);margin-bottom:var(--sds-space-400);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div>
+              <div style="font-weight:var(--sds-weight-semibold);font-size:var(--sds-type-title);">Phone number fields</div>
+              <div style="font-size:var(--sds-type-caption);color:var(--sds-text-tertiary);">15 fields across 6 sources &mdash; AI confidence: 94%</div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <span class="tag tag-pii">PII</span>
+              <button class="btn btn-sm btn-success" onclick="showToast('15 phone fields classified as PII')">Approve all</button>
+            </div>
+          </div>
+          <div style="font-size:var(--sds-type-caption);color:var(--sds-text-secondary);">
+            <strong>Fields:</strong> phone, phone_number, mobile, contact_phone, cell_number, work_phone ...
+          </div>
+          <div style="font-size:var(--sds-type-caption);color:var(--sds-text-tertiary);margin-top:4px;">
+            <strong>Sources:</strong> CRM Database, Support Tickets, User Auth DB, Billing System, HR Portal, Customer Portal
+          </div>
+        </div>
+
+        <div class="card" style="background:var(--sds-bg-card);border:1px solid var(--sds-border-default);border-radius:8px;padding:var(--sds-space-500);margin-bottom:var(--sds-space-400);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div>
+              <div style="font-weight:var(--sds-weight-semibold);font-size:var(--sds-type-title);">Financial account fields</div>
+              <div style="font-size:var(--sds-type-caption);color:var(--sds-text-tertiary);">9 fields across 3 sources &mdash; AI confidence: 72%</div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <span class="tag tag-financial">Financial</span>
+              <button class="btn btn-sm btn-secondary">Review individually</button>
+            </div>
+          </div>
+          <div style="font-size:var(--sds-type-caption);color:var(--sds-text-secondary);">
+            <strong>Fields:</strong> account_number, acct_id, bank_account, payment_ref, billing_account ...
+          </div>
+          <div style="font-size:var(--sds-type-caption);color:var(--sds-text-tertiary);margin-top:4px;">
+            <strong>Sources:</strong> Billing System, Payment Gateway, Accounting DB
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== SCREEN: Review Queue ========== -->
+    <div class="screen" id="screen-review-queue">
+      <div class="page-header">
+        <div>
+          <h1>Review queue</h1>
+          <p class="page-desc">Fields flagged for security admin review. Approve, reject, or reclassify.</p>
+        </div>
+      </div>
+      <div class="scroll-content" style="padding: var(--sds-space-600) var(--sds-space-800);">
+        <div class="card" style="background:var(--sds-bg-card);border:1px solid var(--sds-border-default);border-radius:8px;padding:var(--sds-space-500);margin-bottom:var(--sds-space-400);">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-weight:var(--sds-weight-semibold);">patient_diagnosis_code</div>
+              <div style="font-size:var(--sds-type-caption);color:var(--sds-text-tertiary);">Healthcare DB &mdash; Flagged by Maria Santos</div>
+              <div style="font-size:var(--sds-type-caption);color:var(--sds-text-secondary);margin-top:4px;">"Unsure if this is PHI or just a medical reference code. Sample values look like ICD-10 codes."</div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-sm btn-success" onclick="showToast('Approved as Health / PHI')">Approve as PHI</button>
+              <button class="btn btn-sm btn-secondary">Reclassify</button>
+              <button class="btn btn-sm btn-ghost" onclick="showToast('Marked as non-sensitive')">Not sensitive</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="background:var(--sds-bg-card);border:1px solid var(--sds-border-default);border-radius:8px;padding:var(--sds-space-500);margin-bottom:var(--sds-space-400);">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-weight:var(--sds-weight-semibold);">internal_reference_id</div>
+              <div style="font-size:var(--sds-type-caption);color:var(--sds-text-tertiary);">CRM Database &mdash; Flagged by Maria Santos</div>
+              <div style="font-size:var(--sds-type-caption);color:var(--sds-text-secondary);margin-top:4px;">"AI flagged as PII but these look like internal UUIDs, not personally identifiable."</div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-sm btn-secondary">Reclassify</button>
+              <button class="btn btn-sm btn-ghost" onclick="showToast('Marked as internal / non-sensitive')">Not sensitive</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="background:var(--sds-bg-card);border:1px solid var(--sds-border-default);border-radius:8px;padding:var(--sds-space-500);margin-bottom:var(--sds-space-400);">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-weight:var(--sds-weight-semibold);">user_preferences_json</div>
+              <div style="font-size:var(--sds-type-caption);color:var(--sds-text-tertiary);">Analytics Platform &mdash; Flagged by System (auto)</div>
+              <div style="font-size:var(--sds-type-caption);color:var(--sds-text-secondary);margin-top:4px;">Auto-flagged: JSON blob may contain embedded PII (email, location). Needs manual inspection.</div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-sm btn-primary">Inspect samples</button>
+              <button class="btn btn-sm btn-secondary">Reclassify</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== SCREEN: Coverage Dashboard ========== -->
+    <div class="screen" id="screen-dashboard">
+      <div class="page-header">
+        <div>
+          <h1>Coverage dashboard</h1>
+          <p class="page-desc">Classification and protection coverage across all data sources.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary"><span class="material-symbols-outlined">download</span> Export report</button>
+        </div>
+      </div>
+      <div class="dashboard-grid" style="overflow-y:auto;flex:1;">
+        <div class="dash-card">
+          <div class="dash-card-title">Overall classification coverage</div>
+          <div class="dash-card-value">67.5%</div>
+          <div class="dash-card-sub">1,923 of 2,847 fields classified</div>
+          <div class="progress-bar-container">
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" style="width:67.5%;background:var(--sds-color-green-400);"></div>
+            </div>
+          </div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-title">Protection coverage</div>
+          <div class="dash-card-value">52.1%</div>
+          <div class="dash-card-sub">1,002 of 1,923 classified fields have protection policies</div>
+          <div class="progress-bar-container">
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" style="width:52.1%;background:var(--sds-color-blue-450);"></div>
+            </div>
+          </div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-title">Sensitive data at risk</div>
+          <div class="dash-card-value" style="color:var(--sds-status-error-text);">247</div>
+          <div class="dash-card-sub">Classified as sensitive but no protection policy applied</div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-title">Pending reviews</div>
+          <div class="dash-card-value" style="color:var(--sds-status-warning-text);">8</div>
+          <div class="dash-card-sub">Fields awaiting security admin approval</div>
+        </div>
+        <div class="dash-card" style="grid-column: span 2;">
+          <div class="dash-card-title">Coverage by sensitivity level</div>
+          <div style="display:flex;gap:24px;margin-top:12px;">
+            <div style="flex:1;">
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+                <span>PII</span><span style="color:var(--sds-text-tertiary);">412 / 489 (84%)</span>
+              </div>
+              <div class="progress-bar-track"><div class="progress-bar-fill" style="width:84%;background:var(--sds-color-red-500);"></div></div>
+            </div>
+            <div style="flex:1;">
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+                <span>Financial</span><span style="color:var(--sds-text-tertiary);">198 / 256 (77%)</span>
+              </div>
+              <div class="progress-bar-track"><div class="progress-bar-fill" style="width:77%;background:var(--sds-color-yellow-200);"></div></div>
+            </div>
+            <div style="flex:1;">
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+                <span>Health / PHI</span><span style="color:var(--sds-text-tertiary);">87 / 134 (65%)</span>
+              </div>
+              <div class="progress-bar-track"><div class="progress-bar-fill" style="width:65%;background:var(--sds-color-purple-550);"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="dash-card" style="grid-column: span 2;">
+          <div class="dash-card-title">Coverage by data source</div>
+          <ul class="source-list">
+            <li><span>CRM Database</span><div style="display:flex;align-items:center;gap:8px;"><div class="progress-bar-track" style="width:100px;"><div class="progress-bar-fill" style="width:92%;background:var(--sds-color-green-400);"></div></div><span style="font-size:11px;color:var(--sds-text-tertiary);">92%</span></div></li>
+            <li><span>User Auth DB</span><div style="display:flex;align-items:center;gap:8px;"><div class="progress-bar-track" style="width:100px;"><div class="progress-bar-fill" style="width:85%;background:var(--sds-color-green-400);"></div></div><span style="font-size:11px;color:var(--sds-text-tertiary);">85%</span></div></li>
+            <li><span>Billing System</span><div style="display:flex;align-items:center;gap:8px;"><div class="progress-bar-track" style="width:100px;"><div class="progress-bar-fill" style="width:71%;background:var(--sds-color-yellow-200);"></div></div><span style="font-size:11px;color:var(--sds-text-tertiary);">71%</span></div></li>
+            <li><span>Healthcare DB</span><div style="display:flex;align-items:center;gap:8px;"><div class="progress-bar-track" style="width:100px;"><div class="progress-bar-fill" style="width:45%;background:var(--sds-color-red-500);"></div></div><span style="font-size:11px;color:var(--sds-text-tertiary);">45%</span></div></li>
+            <li><span>Analytics Platform</span><div style="display:flex;align-items:center;gap:8px;"><div class="progress-bar-track" style="width:100px;"><div class="progress-bar-fill" style="width:38%;background:var(--sds-color-red-500);"></div></div><span style="font-size:11px;color:var(--sds-text-tertiary);">38%</span></div></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== SCREEN: Policies ========== -->
+    <div class="screen" id="screen-policies">
+      <div class="page-header">
+        <div>
+          <h1>Protection policies</h1>
+          <p class="page-desc">Map classification tags to protection actions (encryption, masking, access control).</p>
+        </div>
+        <div class="page-actions"><button class="btn btn-primary"><span class="material-symbols-outlined">add</span> Create policy</button></div>
+      </div>
+      <div class="scroll-content" style="padding: var(--sds-space-600) var(--sds-space-800);">
+        <div class="card" style="background:var(--sds-bg-card);border:1px solid var(--sds-border-default);border-radius:8px;padding:var(--sds-space-500);margin-bottom:var(--sds-space-400);">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-weight:var(--sds-weight-semibold);">PII Encryption Policy</div>
+              <div style="font-size:var(--sds-type-caption);color:var(--sds-text-tertiary);">All fields classified as PII must be encrypted at rest and in transit</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span class="tag tag-pii">PII</span>
+              <span style="font-size:11px;color:var(--sds-status-success-text);">412 fields covered</span>
+              <span style="font-size:11px;color:var(--sds-status-error-text);">77 unprotected</span>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="background:var(--sds-bg-card);border:1px solid var(--sds-border-default);border-radius:8px;padding:var(--sds-space-500);margin-bottom:var(--sds-space-400);">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-weight:var(--sds-weight-semibold);">Financial Data Masking</div>
+              <div style="font-size:var(--sds-type-caption);color:var(--sds-text-tertiary);">Financial fields masked in non-production environments</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span class="tag tag-financial">Financial</span>
+              <span style="font-size:11px;color:var(--sds-status-success-text);">198 fields covered</span>
+              <span style="font-size:11px;color:var(--sds-status-warning-text);">58 partial</span>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="background:var(--sds-bg-card);border:1px solid var(--sds-border-default);border-radius:8px;padding:var(--sds-space-500);margin-bottom:var(--sds-space-400);">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-weight:var(--sds-weight-semibold);">HIPAA PHI Access Control</div>
+              <div style="font-size:var(--sds-type-caption);color:var(--sds-text-tertiary);">Health data restricted to authorized roles only</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span class="tag tag-health">Health / PHI</span>
+              <span style="font-size:11px;color:var(--sds-status-success-text);">87 fields covered</span>
+              <span style="font-size:11px;color:var(--sds-status-error-text);">47 unprotected</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== SCREEN: Data Sources (Empty State) ========== -->
+    <div class="screen" id="screen-sources">
+      <div class="page-header">
+        <div>
+          <h1>Data sources</h1>
+          <p class="page-desc">Connect and manage data sources for classification scanning.</p>
+        </div>
+        <div class="page-actions"><button class="btn btn-primary"><span class="material-symbols-outlined">add</span> Add source</button></div>
+      </div>
+      <div class="scroll-content" style="padding: var(--sds-space-600) var(--sds-space-800);">
+        <div class="card" style="background:var(--sds-bg-card);border:1px solid var(--sds-border-default);border-radius:8px;padding:var(--sds-space-400);margin-bottom:var(--sds-space-300);display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span class="material-symbols-outlined" style="font-size:24px;color:var(--sds-interactive-primary);">database</span>
+            <div>
+              <div style="font-weight:var(--sds-weight-semibold);">CRM Database</div>
+              <div style="font-size:11px;color:var(--sds-text-tertiary);">PostgreSQL &mdash; 487 fields &mdash; Last scanned 2h ago</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:11px;color:var(--sds-status-success-text);">Connected</span>
+            <div style="width:6px;height:6px;border-radius:50%;background:var(--sds-color-green-400);"></div>
+          </div>
+        </div>
+        <div class="card" style="background:var(--sds-bg-card);border:1px solid var(--sds-border-default);border-radius:8px;padding:var(--sds-space-400);margin-bottom:var(--sds-space-300);display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span class="material-symbols-outlined" style="font-size:24px;color:var(--sds-interactive-primary);">database</span>
+            <div>
+              <div style="font-weight:var(--sds-weight-semibold);">Healthcare DB</div>
+              <div style="font-size:11px;color:var(--sds-text-tertiary);">MySQL &mdash; 892 fields &mdash; Last scanned 1d ago</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:11px;color:var(--sds-status-success-text);">Connected</span>
+            <div style="width:6px;height:6px;border-radius:50%;background:var(--sds-color-green-400);"></div>
+          </div>
+        </div>
+        <div class="card" style="background:var(--sds-bg-card);border:1px solid var(--sds-border-default);border-radius:8px;padding:var(--sds-space-400);margin-bottom:var(--sds-space-300);display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span class="material-symbols-outlined" style="font-size:24px;color:var(--sds-status-error-text);">cloud_off</span>
+            <div>
+              <div style="font-weight:var(--sds-weight-semibold);">Analytics Platform</div>
+              <div style="font-size:11px;color:var(--sds-text-tertiary);">Snowflake &mdash; 1,204 fields &mdash; Connection failed</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:11px;color:var(--sds-status-error-text);">Disconnected</span>
+            <button class="btn btn-sm btn-secondary">Reconnect</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== SCREEN: Activity Log ========== -->
+    <div class="screen" id="screen-activity">
+      <div class="page-header">
+        <div>
+          <h1>Activity log</h1>
+          <p class="page-desc">Audit trail of all classification actions, approvals, and changes.</p>
+        </div>
+      </div>
+      <div class="data-table-wrapper">
+        <table class="data-table" role="grid" aria-label="Activity log">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>User</th>
+              <th>Action</th>
+              <th>Field</th>
+              <th>Source</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>2026-03-20 14:32</td><td>Maria Santos</td><td>Classified</td><td>customer_email</td><td>CRM Database</td><td>Classified as PII (was unclassified)</td></tr>
+            <tr><td>2026-03-20 14:30</td><td>Maria Santos</td><td>Bulk approved</td><td>23 fields</td><td>Multiple</td><td>Approved email group as PII (confidence &gt; 95%)</td></tr>
+            <tr><td>2026-03-20 13:45</td><td>James Kim</td><td>Approved</td><td>patient_diagnosis_code</td><td>Healthcare DB</td><td>Approved as Health / PHI</td></tr>
+            <tr><td>2026-03-20 13:20</td><td>System</td><td>Auto-flagged</td><td>user_preferences_json</td><td>Analytics</td><td>JSON blob may contain embedded PII</td></tr>
+            <tr><td>2026-03-20 12:00</td><td>System</td><td>Scan completed</td><td>&mdash;</td><td>CRM Database</td><td>487 fields scanned, 12 new fields detected</td></tr>
+            <tr><td>2026-03-20 11:15</td><td>Maria Santos</td><td>Flagged</td><td>internal_reference_id</td><td>CRM Database</td><td>Flagged for security admin review</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span class="material-symbols-outlined">check_circle</span>
+  <span id="toast-msg"></span>
+  <span class="toast-undo" onclick="hideToast()">Undo</span>
+</div>
+
+<script>
+// Field data
+const fields = [
+  { name: 'customer_ssn', source: 'CRM Database', suggestion: 'PII', confidence: 98, classification: 'PII', status: 'classified', samples: '***-**-1234, ***-**-5678' },
+  { name: 'user_email', source: 'User Auth DB', suggestion: 'PII', confidence: 97, classification: 'PII', status: 'classified', samples: 'j***@example.com, m***@corp.net' },
+  { name: 'credit_card_number', source: 'Billing System', suggestion: 'Financial', confidence: 96, classification: 'Financial', status: 'classified', samples: '****-****-****-4242' },
+  { name: 'patient_name', source: 'Healthcare DB', suggestion: 'Health / PHI', confidence: 94, classification: 'Health / PHI', status: 'classified', samples: 'J*** D***, M*** S***' },
+  { name: 'home_address', source: 'CRM Database', suggestion: 'PII', confidence: 91, classification: 'PII', status: 'needs-review', samples: '123 M*** St, 456 O*** Ave' },
+  { name: 'account_balance', source: 'Billing System', suggestion: 'Financial', confidence: 72, classification: '', status: 'needs-review', samples: '1234.56, 7890.12' },
+  { name: 'internal_user_id', source: 'Analytics', suggestion: 'PII', confidence: 45, classification: '', status: 'needs-review', samples: 'uuid-a1b2c3, uuid-d4e5f6' },
+  { name: 'diagnosis_code', source: 'Healthcare DB', suggestion: 'Health / PHI', confidence: 38, classification: '', status: 'needs-review', samples: 'Z00.00, J06.9, M54.5' },
+  { name: 'page_view_count', source: 'Analytics', suggestion: 'Public', confidence: 95, classification: 'Public', status: 'classified', samples: '142, 2847, 56' },
+  { name: 'product_sku', source: 'Billing System', suggestion: 'Internal', confidence: 88, classification: 'Internal', status: 'classified', samples: 'SKU-001, SKU-002' },
+  { name: 'session_token', source: 'User Auth DB', suggestion: 'PII', confidence: 55, classification: '', status: 'needs-review', samples: 'eyJhbGciOiJIUz...' },
+  { name: 'ip_address', source: 'Analytics', suggestion: 'PII', confidence: 82, classification: 'PII', status: 'needs-review', samples: '192.168.*.*' },
+];
+
+const tagMap = { 'PII': 'tag-pii', 'Financial': 'tag-financial', 'Health / PHI': 'tag-health', 'Public': 'tag-public', 'Internal': 'tag-internal' };
+const statusMap = { 'classified': '<span class="tag" style="background:var(--sds-status-success-bg);color:var(--sds-status-success-text);">Classified</span>', 'needs-review': '<span class="tag" style="background:var(--sds-status-warning-bg);color:var(--sds-status-warning-text);">Needs review</span>', 'unclassified': '<span class="tag tag-unclassified">Unclassified</span>' };
+let selectedRows = new Set();
+
+function renderTable() {
+  const tbody = document.getElementById('fields-tbody');
+  tbody.innerHTML = '';
+  fields.forEach((f, i) => {
+    const confClass = f.confidence >= 80 ? 'high' : f.confidence >= 50 ? 'medium' : 'low';
+    const tagClass = tagMap[f.suggestion] || 'tag-unclassified';
+    const classTag = f.classification ? `<span class="tag ${tagMap[f.classification] || 'tag-unclassified'}">${f.classification}</span>` : '<span style="color:var(--sds-text-disabled);">&mdash;</span>';
+    const isSelected = selectedRows.has(i);
+
+    const tr = document.createElement('tr');
+    tr.className = isSelected ? 'selected' : '';
+    tr.innerHTML = `
+      <td><div class="checkbox ${isSelected ? 'checked' : ''}" onclick="toggleRow(${i})" role="checkbox" aria-checked="${isSelected}" aria-label="Select ${f.name}" tabindex="0"></div></td>
+      <td>
+        <div class="field-name">${f.name}</div>
+        <div class="source-name">${f.source}</div>
+        <span class="explain-toggle" onclick="toggleExplain(${i})">Why this suggestion?</span>
+        <div class="explain-panel" id="explain-${i}">
+          <strong>AI reasoning:</strong> Pattern match on field name "${f.name}" + data type analysis.<br>
+          <strong>Similar classified fields:</strong> ${f.suggestion === 'PII' ? 'customer_email (97%), user_phone (94%)' : f.suggestion === 'Financial' ? 'credit_card_number (96%), billing_amount (89%)' : 'patient_name (94%), medical_record_id (91%)'}<br>
+          <strong>Sample values:</strong>
+          <div class="sample-values">${f.samples}</div>
+        </div>
+      </td>
+      <td><span style="font-size:12px;color:var(--sds-text-tertiary);">${f.source}</span></td>
+      <td><span class="tag ${tagClass}">${f.suggestion}</span></td>
+      <td>
+        <div class="confidence-bar">
+          <div class="confidence-track"><div class="confidence-fill ${confClass}" style="width:${f.confidence}%;"></div></div>
+          <span class="confidence-label">${f.confidence}%</span>
+        </div>
+      </td>
+      <td>${classTag}</td>
+      <td>${statusMap[f.status]}</td>
+      <td>
+        <div style="display:flex;gap:4px;">
+          <button class="flag-btn" onclick="showToast('Field flagged for review')" aria-label="Flag for review"><span class="material-symbols-outlined">flag</span></button>
+          <button class="btn-ghost btn-sm" onclick="showToast('Classification approved')" aria-label="Approve" style="padding:2px 6px;border:none;background:transparent;cursor:pointer;"><span class="material-symbols-outlined" style="font-size:16px;color:var(--sds-color-green-400);">check</span></button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function toggleRow(i) {
+  if (selectedRows.has(i)) selectedRows.delete(i); else selectedRows.add(i);
+  renderTable();
+  updateBulkBar();
+}
+
+function toggleSelectAll() {
+  if (selectedRows.size === fields.length) { selectedRows.clear(); } else { fields.forEach((_, i) => selectedRows.add(i)); }
+  renderTable();
+  updateBulkBar();
+  const sa = document.getElementById('select-all');
+  sa.className = selectedRows.size === fields.length ? 'checkbox checked' : 'checkbox';
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulk-bar');
+  const count = document.getElementById('bulk-count');
+  if (selectedRows.size > 0) {
+    bar.classList.add('visible');
+    count.textContent = selectedRows.size + ' selected';
+  } else {
+    bar.classList.remove('visible');
+  }
+}
+
+function clearSelection() {
+  selectedRows.clear();
+  renderTable();
+  updateBulkBar();
+  document.getElementById('select-all').className = 'checkbox';
+}
+
+function toggleExplain(i) {
+  const panel = document.getElementById('explain-' + i);
+  panel.classList.toggle('open');
+}
+
+function bulkApproveHigh() {
+  const highConf = fields.filter(f => f.confidence >= 80).length;
+  showToast(highConf + ' high-confidence fields approved');
+}
+
+// Screen navigation
+function showScreen(screenId, navItem) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + screenId).classList.add('active');
+  document.querySelectorAll('.sds-sidenav-item').forEach(i => i.classList.remove('active'));
+  if (navItem) navItem.classList.add('active');
+}
+
+// Toast
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  toast.classList.add('visible');
+  setTimeout(() => toast.classList.remove('visible'), 4000);
+}
+function hideToast() { document.getElementById('toast').classList.remove('visible'); }
+
+// Keyboard support for sidenav items (Pass 1 fix: 2.1.1 Keyboard)
+document.querySelectorAll('.sds-sidenav-item').forEach(item => {
+  item.setAttribute('tabindex', '0');
+  item.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); item.click(); }
+  });
+});
+
+// Keyboard support for checkboxes (Pass 1 fix: 2.1.1 Keyboard)
+document.addEventListener('keydown', (e) => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('checkbox')) {
+    e.preventDefault(); e.target.click();
+  }
+});
+
+// Keyboard support for filter chips (Pass 2 fix: 2.1.1)
+document.querySelectorAll('.filter-chip').forEach(chip => {
+  chip.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); chip.classList.toggle('active'); }
+  });
+});
+
+// Keyboard support for tabs (Pass 2 fix: ARIA tabs pattern)
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.setAttribute('role', 'tab');
+  tab.setAttribute('tabindex', '0');
+  tab.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tab.click(); }
+  });
+  tab.addEventListener('click', () => {
+    tab.parentElement.querySelectorAll('.tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+    tab.classList.add('active');
+    tab.setAttribute('aria-selected', 'true');
+  });
+});
+
+// Toggle tab keyboard support (Pass 2 fix)
+document.querySelectorAll('.toggle-tab').forEach(tab => {
+  tab.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tab.click(); }
+  });
+  tab.addEventListener('click', () => {
+    tab.parentElement.querySelectorAll('.toggle-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+  });
+});
+
+// Screen navigation: update aria-current (Pass 2 fix: consistency)
+const origShowScreen = showScreen;
+showScreen = function(screenId, navItem) {
+  origShowScreen(screenId, navItem);
+  document.querySelectorAll('.sds-sidenav-item').forEach(i => i.removeAttribute('aria-current'));
+  if (navItem) navItem.setAttribute('aria-current', 'page');
+};
+
+// Init
+renderTable();
+</script>
+</body>
+</html>

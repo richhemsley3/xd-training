@@ -1,0 +1,47 @@
+{
+  "eval_name": "ecommerce-journey",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "HTML file exists",
+      "passed": true,
+      "evidence": "Found: journey-map.html exists in outputs directory"
+    },
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": true,
+      "evidence": "Found: 'd3@7' in output"
+    },
+    {
+      "text": "Has 5 phases",
+      "passed": true,
+      "evidence": "Found: 'Browse' in output"
+    },
+    {
+      "text": "Role badges present",
+      "passed": true,
+      "evidence": "Found: 'Marketing' in output"
+    },
+    {
+      "text": "Touchpoints present",
+      "passed": true,
+      "evidence": "Found: 'touchpoint' in output"
+    },
+    {
+      "text": "Emotion/sentiment curve",
+      "passed": true,
+      "evidence": "Found: 'curve' in output"
+    },
+    {
+      "text": "Pain points for checkout",
+      "passed": true,
+      "evidence": "Found: 'checkout' in output"
+    },
+    {
+      "text": "Pain points for delivery",
+      "passed": true,
+      "evidence": "Found: 'delay' in output"
+    }
+  ],
+  "pass_rate": 1.0
+}

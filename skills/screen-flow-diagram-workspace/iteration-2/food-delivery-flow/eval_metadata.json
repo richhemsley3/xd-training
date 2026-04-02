@@ -1,0 +1,62 @@
+{
+  "prompt": "Create an interactive screen flow diagram for a mobile food delivery app: Home Feed (list of restaurants) \u2192 Restaurant Detail (menu items) \u2192 Cart (order summary) \u2192 Checkout Form (address + payment) \u2192 Order Confirmation. Show the wireframe mockups for each screen with appropriate content (cards for the feed, hero image for detail, form fields for checkout). Include back navigation on each screen.",
+  "expected_output": "A standalone HTML file with D3.js rendering 5 mobile screen mockups as wireframes connected by green action pills. Each screen should show type-appropriate wireframe content. Back navigation arrows should be present. Screens should have rounded corners, drop shadows, and green connector lines.",
+  "assertions": [
+    {
+      "type": "file_exists",
+      "name": "HTML file exists",
+      "pattern": "*.html"
+    },
+    {
+      "type": "contains",
+      "name": "Uses D3.js from CDN",
+      "text": "d3@7"
+    },
+    {
+      "type": "contains",
+      "name": "All 5 screens present",
+      "text": "Home Feed",
+      "also_contains": [
+        "Restaurant Detail",
+        "Cart",
+        "Checkout",
+        "Confirmation"
+      ]
+    },
+    {
+      "type": "contains",
+      "name": "SDS interactive-primary color",
+      "text": "#013D5B"
+    },
+    {
+      "type": "contains",
+      "name": "Mobile screen proportions",
+      "text": "280"
+    },
+    {
+      "type": "contains",
+      "name": "Wireframe content elements",
+      "text": "rect"
+    },
+    {
+      "type": "contains",
+      "name": "Action labels on connectors",
+      "text": "pill"
+    },
+    {
+      "type": "contains",
+      "name": "SVG rendering",
+      "text": "<svg"
+    },
+    {
+      "type": "contains",
+      "name": "Back navigation",
+      "text": "back"
+    },
+    {
+      "type": "contains",
+      "name": "Warm canvas background",
+      "text": "#FAF8F5"
+    }
+  ]
+}

@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Access Request Portal — Information Architecture</title>
+<style>
+  :root {
+    --sds-font-sans: 'Proxima Nova', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --sds-color-warm-gray-025: #FAF8F5;
+    --sds-color-warm-gray-050: #F4F1EB;
+    --sds-color-warm-gray-100: #EBE6DD;
+    --sds-color-warm-gray-150: #E0DCD3;
+    --sds-color-warm-gray-200: #D0CBC3;
+    --sds-color-warm-gray-300: #B0ABA2;
+    --sds-color-warm-gray-400: #948E85;
+    --sds-color-warm-gray-550: #6B6760;
+    --sds-color-warm-gray-650: #54514D;
+    --sds-color-warm-gray-700: #47443F;
+    --sds-color-warm-gray-900: #1C1A17;
+    --sds-color-blue-050: #EBF4F5;
+    --sds-color-blue-100: #D9EBED;
+    --sds-color-blue-450: #4F8AA0;
+    --sds-color-blue-700: #0C4A69;
+    --sds-color-blue-750: #013D5B;
+    --sds-color-red-050: #FFEEEB;
+    --sds-color-red-500: #BF5547;
+    --sds-color-green-025: #F4FAEB;
+    --sds-color-green-400: #7A9A01;
+    --sds-color-green-500: #62800B;
+    --sds-color-yellow-025: #FCF9D9;
+    --sds-color-yellow-200: #EBCE2D;
+    --sds-color-yellow-500: #8A7515;
+    --sds-color-purple-550: #805AA1;
+    --sds-color-white: #FFFFFF;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sds-font-sans);
+    background: var(--sds-color-warm-gray-025);
+    color: var(--sds-color-warm-gray-900);
+    line-height: 1.5;
+    font-size: 14px;
+    padding: 32px 40px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1 { font-size: 28px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.01em; }
+  .subtitle { font-size: 14px; color: var(--sds-color-warm-gray-550); margin-bottom: 32px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 8px; }
+  h3 { font-size: 14px; font-weight: 600; margin: 24px 0 12px; color: var(--sds-color-warm-gray-700); }
+  .desc { font-size: 13px; color: var(--sds-color-warm-gray-550); margin-bottom: 20px; max-width: 860px; }
+  .section-divider { border: none; border-top: 1px solid var(--sds-color-warm-gray-150); margin: 40px 0; }
+
+  /* Site map tree */
+  .tree-container {
+    background: var(--sds-color-white);
+    border: 1px solid var(--sds-color-warm-gray-150);
+    border-radius: 12px;
+    padding: 24px;
+    overflow-x: auto;
+  }
+
+  .sitemap {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    font-size: 13px;
+  }
+
+  .sitemap-root {
+    background: var(--sds-color-blue-750);
+    color: var(--sds-color-white);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    display: inline-block;
+    margin-bottom: 16px;
+  }
+
+  .sitemap-level {
+    padding-left: 24px;
+    border-left: 2px solid var(--sds-color-warm-gray-150);
+    margin-left: 12px;
+  }
+
+  .sitemap-item {
+    position: relative;
+    padding: 6px 14px;
+    margin: 4px 0;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--sds-color-warm-gray-700);
+  }
+  .sitemap-item::before {
+    content: '';
+    position: absolute;
+    left: -24px;
+    top: 50%;
+    width: 24px;
+    height: 2px;
+    background: var(--sds-color-warm-gray-150);
+  }
+  .sitemap-item--section {
+    background: var(--sds-color-blue-050);
+    color: var(--sds-color-blue-750);
+    font-weight: 600;
+    padding: 8px 16px;
+  }
+  .sitemap-item--page {
+    background: var(--sds-color-white);
+    border: 1px solid var(--sds-color-warm-gray-150);
+  }
+  .sitemap-item--state {
+    background: var(--sds-color-warm-gray-050);
+    font-size: 12px;
+    color: var(--sds-color-warm-gray-550);
+  }
+
+  .persona-badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 4px;
+  }
+  .persona-badge--de { background: #EBF4F5; color: var(--sds-color-blue-750); }
+  .persona-badge--do { background: var(--sds-color-green-025); color: var(--sds-color-green-500); }
+  .persona-badge--sa { background: #F7EEFF; color: var(--sds-color-purple-550); }
+
+  /* Flow diagrams */
+  .flow-container {
+    background: var(--sds-color-white);
+    border: 1px solid var(--sds-color-warm-gray-150);
+    border-radius: 12px;
+    padding: 24px;
+    overflow-x: auto;
+    margin-bottom: 16px;
+  }
+
+  .flow-label {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.4px; color: var(--sds-color-warm-gray-400);
+    margin-bottom: 12px;
+  }
+
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: nowrap;
+    min-width: max-content;
+  }
+
+  .flow-node {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 120px;
+    flex-shrink: 0;
+  }
+  .flow-node--start {
+    background: var(--sds-color-blue-750);
+    color: white;
+    border-radius: 20px;
+  }
+  .flow-node--action {
+    background: var(--sds-color-white);
+    border: 1px solid var(--sds-color-warm-gray-200);
+    color: var(--sds-color-warm-gray-700);
+  }
+  .flow-node--decision {
+    background: var(--sds-color-yellow-025);
+    border: 1px solid var(--sds-color-yellow-200);
+    color: var(--sds-color-yellow-500);
+    transform: rotate(0deg);
+    font-weight: 600;
+  }
+  .flow-node--success {
+    background: var(--sds-color-green-025);
+    border: 1px solid var(--sds-color-green-400);
+    color: var(--sds-color-green-500);
+    border-radius: 20px;
+  }
+  .flow-node--error {
+    background: var(--sds-color-red-050);
+    border: 1px solid var(--sds-color-red-500);
+    color: var(--sds-color-red-500);
+    border-radius: 20px;
+  }
+  .flow-node--system {
+    background: #F7EEFF;
+    border: 1px solid var(--sds-color-purple-550);
+    color: var(--sds-color-purple-550);
+  }
+
+  .flow-arrow {
+    color: var(--sds-color-warm-gray-300);
+    font-size: 16px;
+    padding: 0 6px;
+    flex-shrink: 0;
+  }
+  .flow-arrow-label {
+    font-size: 10px;
+    color: var(--sds-color-warm-gray-400);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 0 4px;
+  }
+
+  /* Tag */
+  .tag {
+    display: inline-block;
+    padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;
+    margin-right: 4px; margin-bottom: 4px;
+  }
+  .tag--happy { background: var(--sds-color-green-025); color: var(--sds-color-green-500); }
+  .tag--edge { background: var(--sds-color-yellow-025); color: var(--sds-color-yellow-500); }
+  .tag--error { background: var(--sds-color-red-050); color: var(--sds-color-red-500); }
+  .tag--fringe { background: #F7EEFF; color: var(--sds-color-purple-550); }
+</style>
+</head>
+<body>
+
+<h1>Access Request Portal &mdash; Information Architecture</h1>
+<p class="subtitle">Site map, navigation structure, and user flows &middot; Based on research report and journey maps</p>
+
+<!-- ======= SITE MAP ======= -->
+<h2>Site Map</h2>
+<p class="desc">Primary navigation structure for the access request portal. Each section is tagged with the persona(s) who primarily use it.</p>
+
+<div class="tree-container">
+  <div class="sitemap">
+    <div class="sitemap-root">Access Request Portal</div>
+    <div class="sitemap-level">
+      <div class="sitemap-item sitemap-item--section">My Requests <span class="persona-badge persona-badge--de">DE</span></div>
+      <div class="sitemap-level">
+        <div class="sitemap-item sitemap-item--page">Request List (active, completed, denied)</div>
+        <div class="sitemap-item sitemap-item--page">Request Detail (status timeline, comments)</div>
+        <div class="sitemap-item sitemap-item--page">New Request Form</div>
+        <div class="sitemap-item sitemap-item--state">Duplicate Detection Warning</div>
+      </div>
+
+      <div class="sitemap-item sitemap-item--section">Approvals <span class="persona-badge persona-badge--do">DO</span></div>
+      <div class="sitemap-level">
+        <div class="sitemap-item sitemap-item--page">Approval Queue (pending, completed)</div>
+        <div class="sitemap-item sitemap-item--page">Request Review (context, risk, actions)</div>
+        <div class="sitemap-item sitemap-item--state">Batch Approval Mode</div>
+      </div>
+
+      <div class="sitemap-item sitemap-item--section">Data Catalog <span class="persona-badge persona-badge--de">DE</span><span class="persona-badge persona-badge--do">DO</span></div>
+      <div class="sitemap-level">
+        <div class="sitemap-item sitemap-item--page">Browse Datasets (search, filter)</div>
+        <div class="sitemap-item sitemap-item--page">Dataset Detail (schema, owner, sensitivity)</div>
+        <div class="sitemap-item sitemap-item--state">Request Access (inline from catalog)</div>
+      </div>
+
+      <div class="sitemap-item sitemap-item--section">Audit &amp; Compliance <span class="persona-badge persona-badge--sa">SA</span></div>
+      <div class="sitemap-level">
+        <div class="sitemap-item sitemap-item--page">Audit Log (filterable, exportable)</div>
+        <div class="sitemap-item sitemap-item--page">Access Review (periodic certification)</div>
+        <div class="sitemap-item sitemap-item--page">Policy Management</div>
+        <div class="sitemap-item sitemap-item--page">Compliance Reports</div>
+      </div>
+
+      <div class="sitemap-item sitemap-item--section">Settings <span class="persona-badge persona-badge--sa">SA</span><span class="persona-badge persona-badge--do">DO</span></div>
+      <div class="sitemap-level">
+        <div class="sitemap-item sitemap-item--page">Routing Rules</div>
+        <div class="sitemap-item sitemap-item--page">Auto-Approval Policies</div>
+        <div class="sitemap-item sitemap-item--page">Notification Preferences</div>
+        <div class="sitemap-item sitemap-item--page">Integrations (Slack, email, SSO)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ======= USER FLOWS ======= -->
+<h2>User Flows</h2>
+<p class="desc">All proposed flows organized by type: happy path, edge case, error state, and fringe scenario.</p>
+
+<!-- FLOW 1: Happy Path — Submit Request -->
+<h3>Flow 1: Submit Access Request <span class="tag tag--happy">Happy Path</span></h3>
+<p class="desc">Data Engineer submits a new access request that is automatically routed to the correct approver.</p>
+
+<div class="flow-container">
+  <div class="flow-label">Data Engineer Flow</div>
+  <div class="flow-row">
+    <div class="flow-node flow-node--start">Browse Catalog</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--action">Select Dataset</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--action">Click "Request Access"</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--action">Fill Justification</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--system">Auto-Route to Owner</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--action">Track Status</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--success">Access Granted</div>
+  </div>
+</div>
+
+<!-- FLOW 2: Happy Path — Approve Request -->
+<h3>Flow 2: Approve Access Request <span class="tag tag--happy">Happy Path</span></h3>
+<p class="desc">Data Owner reviews and approves a request from their approval queue.</p>
+
+<div class="flow-container">
+  <div class="flow-label">Data Owner Flow</div>
+  <div class="flow-row">
+    <div class="flow-node flow-node--start">Notification</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--action">Open Approval Queue</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--action">Review Request Context</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--decision">Approve or Deny?</div>
+    <div class="flow-arrow-label">&darr; Approve</div>
+    <div class="flow-node flow-node--action">Add Conditions (optional)</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--system">Auto-Provision</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--success">Done</div>
+  </div>
+</div>
+
+<!-- FLOW 3: Edge Case — Duplicate Request -->
+<h3>Flow 3: Duplicate Request Detection <span class="tag tag--edge">Edge Case</span></h3>
+<p class="desc">System detects a matching pending request and surfaces it instead of creating a duplicate.</p>
+
+<div class="flow-container">
+  <div class="flow-label">Data Engineer Flow</div>
+  <div class="flow-row">
+    <div class="flow-node flow-node--start">New Request Form</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--action">Select Dataset</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--system">Duplicate Check</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--decision">Match Found?</div>
+    <div class="flow-arrow-label">&darr; Yes</div>
+    <div class="flow-node flow-node--action">Show Existing Request</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--success">View Status</div>
+  </div>
+</div>
+
+<!-- FLOW 4: Edge Case — Batch Approval -->
+<h3>Flow 4: Batch Approval <span class="tag tag--edge">Edge Case</span></h3>
+<p class="desc">Data Owner with many pending low-risk requests can batch-approve them with guardrails.</p>
+
+<div class="flow-container">
+  <div class="flow-label">Data Owner Flow</div>
+  <div class="flow-row">
+    <div class="flow-node flow-node--start">Approval Queue</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--action">Filter: Low Risk</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--action">Select All</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--decision">Confirm Batch?</div>
+    <div class="flow-arrow-label">&darr; Confirm</div>
+    <div class="flow-node flow-node--system">Validate Policies</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--system">Auto-Provision All</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--success">All Granted</div>
+  </div>
+</div>
+
+<!-- FLOW 5: Error State — Denial -->
+<h3>Flow 5: Request Denied <span class="tag tag--error">Error State</span></h3>
+<p class="desc">Data Owner denies a request with a reason. Requestor can amend and resubmit.</p>
+
+<div class="flow-container">
+  <div class="flow-label">Cross-Persona Flow</div>
+  <div class="flow-row">
+    <div class="flow-node flow-node--start">Review Request</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--decision">Approve or Deny?</div>
+    <div class="flow-arrow-label">&darr; Deny</div>
+    <div class="flow-node flow-node--action">Provide Reason</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--error">Request Denied</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--action">Requestor Notified</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--action">Amend &amp; Resubmit</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--system">Re-Route</div>
+  </div>
+</div>
+
+<!-- FLOW 6: Error State — Routing Failure -->
+<h3>Flow 6: No Approver Found <span class="tag tag--error">Error State</span></h3>
+<p class="desc">Auto-routing cannot determine the correct approver. Falls back to admin escalation.</p>
+
+<div class="flow-container">
+  <div class="flow-label">System Flow</div>
+  <div class="flow-row">
+    <div class="flow-node flow-node--start">Request Submitted</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--system">Auto-Route</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--decision">Owner Found?</div>
+    <div class="flow-arrow-label">&darr; No</div>
+    <div class="flow-node flow-node--error">No Owner Match</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--system">Escalate to Admin</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--action">Admin Assigns</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--action">Resume Flow</div>
+  </div>
+</div>
+
+<!-- FLOW 7: Fringe — Auto-Approval -->
+<h3>Flow 7: Policy-Based Auto-Approval <span class="tag tag--fringe">Fringe</span></h3>
+<p class="desc">Low-sensitivity dataset with matching role policy triggers automatic approval with no human review.</p>
+
+<div class="flow-container">
+  <div class="flow-label">System Flow</div>
+  <div class="flow-row">
+    <div class="flow-node flow-node--start">Request Submitted</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--system">Check Policies</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--decision">Auto-Approve?</div>
+    <div class="flow-arrow-label">&darr; Yes</div>
+    <div class="flow-node flow-node--system">Validate Role</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--system">Auto-Provision</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--success">Access Granted</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--action">Audit Log Entry</div>
+  </div>
+</div>
+
+<!-- FLOW 8: Fringe — Access Review -->
+<h3>Flow 8: Periodic Access Review <span class="tag tag--fringe">Fringe</span></h3>
+<p class="desc">Security Admin triggers a review cycle to certify or revoke existing access grants.</p>
+
+<div class="flow-container">
+  <div class="flow-label">Security Admin Flow</div>
+  <div class="flow-row">
+    <div class="flow-node flow-node--start">Start Review</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--action">Select Scope</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--system">Generate Review List</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--action">Send to Owners</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--action">Owners Certify/Revoke</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--system">Execute Revocations</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node flow-node--success">Review Complete</div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ======= FLOW SUMMARY ======= -->
+<h2>Flow Summary</h2>
+<p class="desc">All proposed flows with their type, primary persona, and research backing.</p>
+
+<div class="flow-container">
+  <table style="width:100%;border-collapse:collapse;font-size:13px;">
+    <thead>
+      <tr style="border-bottom:2px solid var(--sds-color-warm-gray-150);">
+        <th style="text-align:left;padding:8px 12px;font-size:12px;font-weight:600;color:var(--sds-color-warm-gray-550);">Flow</th>
+        <th style="text-align:left;padding:8px 12px;font-size:12px;font-weight:600;color:var(--sds-color-warm-gray-550);">Type</th>
+        <th style="text-align:left;padding:8px 12px;font-size:12px;font-weight:600;color:var(--sds-color-warm-gray-550);">Persona</th>
+        <th style="text-align:left;padding:8px 12px;font-size:12px;font-weight:600;color:var(--sds-color-warm-gray-550);">Research Backing</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid var(--sds-color-warm-gray-100);">
+        <td style="padding:8px 12px;font-weight:500;">Submit Access Request</td>
+        <td style="padding:8px 12px;"><span class="tag tag--happy">Happy Path</span></td>
+        <td style="padding:8px 12px;">Data Engineer</td>
+        <td style="padding:8px 12px;color:var(--sds-color-warm-gray-550);">40% time on workflows, no standard form</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--sds-color-warm-gray-100);">
+        <td style="padding:8px 12px;font-weight:500;">Approve Access Request</td>
+        <td style="padding:8px 12px;"><span class="tag tag--happy">Happy Path</span></td>
+        <td style="padding:8px 12px;">Data Owner</td>
+        <td style="padding:8px 12px;color:var(--sds-color-warm-gray-550);">3-5 handoffs, requests lack context</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--sds-color-warm-gray-100);">
+        <td style="padding:8px 12px;font-weight:500;">Duplicate Detection</td>
+        <td style="padding:8px 12px;"><span class="tag tag--edge">Edge Case</span></td>
+        <td style="padding:8px 12px;">Data Engineer</td>
+        <td style="padding:8px 12px;color:var(--sds-color-warm-gray-550);">~30% duplicate request rate</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--sds-color-warm-gray-100);">
+        <td style="padding:8px 12px;font-weight:500;">Batch Approval</td>
+        <td style="padding:8px 12px;"><span class="tag tag--edge">Edge Case</span></td>
+        <td style="padding:8px 12px;">Data Owner</td>
+        <td style="padding:8px 12px;color:var(--sds-color-warm-gray-550);">Batch approver pattern, overwhelmed owners</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--sds-color-warm-gray-100);">
+        <td style="padding:8px 12px;font-weight:500;">Request Denied</td>
+        <td style="padding:8px 12px;"><span class="tag tag--error">Error State</span></td>
+        <td style="padding:8px 12px;">Cross-persona</td>
+        <td style="padding:8px 12px;color:var(--sds-color-warm-gray-550);">No feedback loop for denied requests</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--sds-color-warm-gray-100);">
+        <td style="padding:8px 12px;font-weight:500;">No Approver Found</td>
+        <td style="padding:8px 12px;"><span class="tag tag--error">Error State</span></td>
+        <td style="padding:8px 12px;">System</td>
+        <td style="padding:8px 12px;color:var(--sds-color-warm-gray-550);">Approvals getting lost, unclear ownership</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--sds-color-warm-gray-100);">
+        <td style="padding:8px 12px;font-weight:500;">Auto-Approval</td>
+        <td style="padding:8px 12px;"><span class="tag tag--fringe">Fringe</span></td>
+        <td style="padding:8px 12px;">System</td>
+        <td style="padding:8px 12px;color:var(--sds-color-warm-gray-550);">Inconsistent policies, over-permissioning</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;font-weight:500;">Periodic Access Review</td>
+        <td style="padding:8px 12px;"><span class="tag tag--fringe">Fringe</span></td>
+        <td style="padding:8px 12px;">Security Admin</td>
+        <td style="padding:8px 12px;color:var(--sds-color-warm-gray-550);">Audit fire drill pattern, no audit trail</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p style="margin-top:24px;font-size:12px;color:var(--sds-color-warm-gray-400);">
+  [CHECKPOINT] Stage 4 complete &mdash; would pause here for user confirmation on flows before proceeding to product design.
+</p>
+
+</body>
+</html>

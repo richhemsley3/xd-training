@@ -1,0 +1,62 @@
+{
+  "eval_id": 2,
+  "eval_name": "guided-mode-new-research",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "Asked about running mode (guided vs automated)",
+      "passed": false,
+      "evidence": "The assistant did not explicitly ask the user 'Do you want to run this guided or automated?' as the skill instructs. It jumped to 'I now have enough context. Let me set up the task tracking and create the output directory, then start producing all the pipeline outputs.' It did operate in guided mode with CHECKPOINT pauses, but the question was never posed — the eval harness told it to default to guided, so it skipped the question entirely."
+    },
+    {
+      "text": "Correctly identified user needs NEW research (not existing)",
+      "passed": true,
+      "evidence": "The assistant proceeded directly to conducting new market research (Stage 1) rather than asking for existing research. The market research output file (01-market-research.md) confirms new research was generated covering competitive analysis, market sizing, and trend analysis. The user's prompt explicitly stated 'I don't have any research yet' and the assistant correctly acted on this."
+    },
+    {
+      "text": "Routed to market research methods (competitive analysis, market sizing) not user interviews",
+      "passed": true,
+      "evidence": "The market research file (01-market-research.md) header reads 'Research Type: Market Research (Competitive Analysis, Market Sizing, Trend Analysis)'. Content includes TAM/SAM/SOM market sizing, competitive landscape with tiered competitor tables (Collibra, Informatica, Alation, etc.), and trend analysis. No user interviews or interview-based methods were used."
+    },
+    {
+      "text": "Market research includes competitor landscape analysis",
+      "passed": true,
+      "evidence": "01-market-research.md contains a detailed 'Competitive Landscape' section with Tier 1 (Enterprise Governance Platforms: Collibra, Informatica, Alation) and Tier 2 (Modern Cloud-Native Platforms) competitor tables with columns for Target Market, Key Differentiator, and Lineage UX."
+    },
+    {
+      "text": "Research report built with SDS components as HTML",
+      "passed": true,
+      "evidence": "02-research-report.html exists and contains 335 matches for SDS-related patterns (sds-, .sds-header, .sds-sidenav, Design System Lab). The transcript shows the assistant read the data-management-report/index.html as a reference and replicated the SDS component patterns including .sds-header, .sds-sidenav, .sds-stat-card, .sds-table, and SDS color tokens."
+    },
+    {
+      "text": "Journey map only fills research-supported rows",
+      "passed": true,
+      "evidence": "The journey map (03-journey-map.html) includes Phases, Steps, Emotions, Needs, Pain Points, Opportunities, and Touchpoints — all of which are grounded in the market research findings. The dimensions present (emotions, needs, pain points, opportunities) are all supported by the competitive analysis and market research. The summary confirms '5 phases, 14 steps, 5 roles'. No unsupported dimensions like 'Channels' or generic 'Tools Used' rows appear to be force-filled."
+    },
+    {
+      "text": "IA proposes flows including edge and error states",
+      "passed": true,
+      "evidence": "04-information-architecture.md contains 8 flows: Flow 1-2 are happy paths, Flow 3 is happy path (incident investigation), Flow 4 is 'Edge Case — Empty State (No Connections Yet)', Flow 5 is 'Edge Case — Large Graph (10,000+ Assets)', Flow 6 is 'Fringe Case — Concurrent Lineage Scan During Investigation', Flow 7 is 'Error State — Failed Lineage Scan', and Flow 8 is 'Error State — Missing Lineage for Protected Asset'."
+    },
+    {
+      "text": "Product design self-challenge step present",
+      "passed": true,
+      "evidence": "At line 139 of the transcript, the assistant explicitly states: 'Let me now do the self-challenge step before moving to Stage 6. Self-Challenge Review: I reviewed the research report, journey map, and IA against the prototype. The design addresses the primary differentiator (security-aware lineage with classification badges and protection status dots on nodes), serves all three personas...' with documented reasoning."
+    },
+    {
+      "text": "Critique/heuristics ran 3 passes",
+      "passed": true,
+      "evidence": "06-critique-heuristics-findings.md contains a summary table with Pass 1, Pass 2, Pass 3 columns showing 11, 3, and 1 issues respectively (15 total). Detailed sections document 'Pass 1 Findings (11 issues)', 'Pass 2 Findings (3 issues)', and 'Pass 3 Findings (1 issue)' with specific issues and fixes for each pass."
+    },
+    {
+      "text": "Accessibility ran 3 passes",
+      "passed": true,
+      "evidence": "07-accessibility-findings.md documents 'Passes: 3' in the header and contains three sections: 'Pass 1: Initial Audit (7 failures found and fixed)', 'Pass 2: Re-audit (2 additional failures found and fixed)', and 'Pass 3: Final Audit (0 failures)'. Total of 9 failures found and fixed across all 3 passes."
+    },
+    {
+      "text": "Component gap report produced",
+      "passed": true,
+      "evidence": "09-component-gap-report.md exists and documents 15 missing components. It lists components used from Software DS (Header, Side Navigation, Color Tokens) and missing components including Page Tabs, Filter Chip / Toggle Chip, and others with columns for Where Used, Description, Closest Existing Component, and Specification."
+    }
+  ]
+}

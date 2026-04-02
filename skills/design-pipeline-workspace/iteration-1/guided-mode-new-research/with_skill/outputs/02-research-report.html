@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Lineage Visualization — Market Research Report</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap">
+<style>
+  /* ============================================================
+     Design System Lab — Inline Tokens
+     ============================================================ */
+  @font-face { font-family: 'Proxima Nova'; src: local('Proxima Nova'); font-weight: 300; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'Proxima Nova'; src: local('Proxima Nova'); font-weight: 400; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'Proxima Nova'; src: local('Proxima Nova'); font-weight: 600; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'Proxima Nova'; src: local('Proxima Nova'); font-weight: 700; font-style: normal; font-display: swap; }
+
+  :root {
+    --sds-font-sans: 'Proxima Nova', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --sds-font-mono: 'SF Mono', SFMono-Regular, Consolas, monospace;
+    --sds-type-display: 28px;
+    --sds-type-heading: 22px;
+    --sds-type-subheading: 16px;
+    --sds-type-title: 15px;
+    --sds-type-body: 14px;
+    --sds-type-label: 13px;
+    --sds-type-caption: 12px;
+    --sds-type-overline: 11px;
+    --sds-weight-light: 300;
+    --sds-weight-regular: 400;
+    --sds-weight-medium: 500;
+    --sds-weight-semibold: 600;
+    --sds-weight-bold: 700;
+    --sds-leading-tight: 1.2;
+    --sds-leading-snug: 1.35;
+    --sds-leading-normal: 1.5;
+    --sds-leading-relaxed: 1.6;
+    --sds-tracking-tight: -0.01em;
+    --sds-tracking-normal: 0em;
+    --sds-tracking-wide: 0.5px;
+    --sds-space-0: 0px;
+    --sds-space-050: 2px;
+    --sds-space-100: 4px;
+    --sds-space-150: 6px;
+    --sds-space-200: 8px;
+    --sds-space-250: 10px;
+    --sds-space-300: 12px;
+    --sds-space-400: 16px;
+    --sds-space-500: 20px;
+    --sds-space-600: 24px;
+    --sds-space-800: 32px;
+    --sds-space-1000: 40px;
+    --sds-space-1200: 48px;
+    --sds-space-1600: 64px;
+    --sds-color-warm-gray-025: #FAF8F5;
+    --sds-color-warm-gray-050: #F4F1EB;
+    --sds-color-warm-gray-100: #EBE6DD;
+    --sds-color-warm-gray-150: #E0DCD3;
+    --sds-color-warm-gray-200: #D0CBC3;
+    --sds-color-warm-gray-300: #B0ABA2;
+    --sds-color-warm-gray-400: #948E85;
+    --sds-color-warm-gray-500: #7A756F;
+    --sds-color-warm-gray-550: #6B6760;
+    --sds-color-warm-gray-650: #54514D;
+    --sds-color-warm-gray-700: #47443F;
+    --sds-color-warm-gray-900: #1C1A17;
+    --sds-color-blue-050: #EBF4F5;
+    --sds-color-blue-100: #D9EBED;
+    --sds-color-blue-150: #C1DDE3;
+    --sds-color-blue-200: #A6CBD6;
+    --sds-color-blue-700: #0C4A69;
+    --sds-color-blue-750: #013D5B;
+    --sds-color-blue-800: #05314D;
+    --sds-color-red-050: #FFEEEB;
+    --sds-color-red-500: #BF5547;
+    --sds-color-green-025: #F4FAEB;
+    --sds-color-green-400: #7A9A01;
+    --sds-color-green-500: #62800B;
+    --sds-color-green-700: #374A1E;
+    --sds-color-yellow-025: #FCF9D9;
+    --sds-color-yellow-200: #EBCE2D;
+    --sds-color-yellow-500: #8A7515;
+    --sds-color-purple-550: #805AA1;
+    --sds-color-white: #FFFFFF;
+    --sds-bg-page: var(--sds-color-white);
+    --sds-bg-surface: var(--sds-color-warm-gray-025);
+    --sds-bg-card: var(--sds-color-white);
+    --sds-bg-subtle: var(--sds-color-warm-gray-050);
+    --sds-text-primary: var(--sds-color-warm-gray-900);
+    --sds-text-secondary: var(--sds-color-warm-gray-650);
+    --sds-text-tertiary: var(--sds-color-warm-gray-550);
+    --sds-text-on-primary: var(--sds-color-white);
+    --sds-text-link: var(--sds-color-blue-750);
+    --sds-border-default: var(--sds-color-warm-gray-150);
+    --sds-border-subtle: var(--sds-color-warm-gray-100);
+    --sds-border-strong: var(--sds-color-warm-gray-200);
+    --sds-interactive-primary: var(--sds-color-blue-750);
+    --sds-interactive-primary-hover: var(--sds-color-blue-800);
+    --sds-nav-sidebar-bg: var(--sds-color-warm-gray-025);
+    --sds-nav-item-active-bg: var(--sds-color-blue-100);
+    --sds-nav-item-active-text: var(--sds-color-blue-750);
+    --sds-nav-item-text: var(--sds-color-warm-gray-650);
+    --sds-nav-section-header: var(--sds-color-warm-gray-550);
+    --sds-status-success-bg: var(--sds-color-green-025);
+    --sds-status-success-text: var(--sds-color-green-500);
+    --sds-status-warning-bg: var(--sds-color-yellow-025);
+    --sds-status-warning-text: var(--sds-color-yellow-500);
+    --sds-status-error-bg: var(--sds-color-red-050);
+    --sds-status-error-text: var(--sds-color-red-500);
+    --sds-status-info-bg: var(--sds-color-blue-050);
+    --sds-status-info-text: var(--sds-color-blue-700);
+    --sds-status-neutral-bg: var(--sds-color-warm-gray-100);
+    --sds-status-neutral-text: var(--sds-color-warm-gray-650);
+    --sds-status-purple-bg: #F7EEFF;
+    --sds-status-purple-text: var(--sds-color-purple-550);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sds-font-sans);
+    background: var(--sds-bg-page);
+    color: var(--sds-text-primary);
+    line-height: var(--sds-leading-normal);
+    font-size: var(--sds-type-body);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Header */
+  .sds-header {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px; padding: 0 var(--sds-space-500);
+    background: var(--sds-bg-page); border-bottom: 1px solid var(--sds-border-subtle);
+    flex-shrink: 0; z-index: 10;
+  }
+  .sds-header-logo { display: flex; align-items: center; gap: var(--sds-space-250); height: 28px; }
+  .sds-header-logo-mark {
+    width: 28px; height: 28px; border-radius: 6px; background: var(--sds-interactive-primary);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .sds-header-logo-mark .material-symbols-outlined { font-size: 16px; color: var(--sds-color-white); font-variation-settings: 'FILL' 1, 'wght' 400; }
+  .sds-header-logo-text {
+    font-size: var(--sds-type-title); font-weight: var(--sds-weight-semibold);
+    color: var(--sds-text-primary); letter-spacing: -0.2px;
+  }
+  .sds-header-actions { display: flex; align-items: center; gap: var(--sds-space-200); }
+  .sds-header-help {
+    width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--sds-color-warm-gray-300);
+    background: transparent; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--sds-text-tertiary); font-size: var(--sds-type-body);
+    font-weight: var(--sds-weight-semibold); font-family: var(--sds-font-sans); line-height: 1;
+  }
+  .sds-header-divider { width: 1px; height: 20px; background: var(--sds-border-default); margin: 0 var(--sds-space-100); }
+  .sds-header-avatar {
+    width: 28px; height: 28px; border-radius: 50%; background: var(--sds-interactive-primary);
+    color: var(--sds-text-on-primary); display: flex; align-items: center; justify-content: center;
+    font-size: var(--sds-type-caption); font-weight: var(--sds-weight-semibold);
+  }
+
+  /* Layout */
+  .app-body { display: flex; flex: 1; overflow: hidden; }
+
+  /* Side Navigation */
+  .sds-sidenav {
+    width: 220px; min-width: 220px; background: var(--sds-nav-sidebar-bg);
+    border-right: 1px solid var(--sds-border-default); display: flex;
+    flex-direction: column; padding: var(--sds-space-400) var(--sds-space-300);
+    user-select: none; overflow-y: auto; flex-shrink: 0;
+  }
+  .sds-sidenav-item {
+    display: flex; align-items: center; gap: var(--sds-space-250);
+    padding: var(--sds-space-200) var(--sds-space-300); border-radius: 8px;
+    font-size: var(--sds-type-body); font-weight: var(--sds-weight-regular);
+    color: var(--sds-color-warm-gray-700); cursor: pointer; text-decoration: none;
+    margin: var(--sds-space-050) 0; line-height: 1.3;
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+  .sds-sidenav-item:hover { background: var(--sds-bg-subtle); color: var(--sds-text-primary); }
+  .sds-sidenav-item.active { background: var(--sds-nav-item-active-bg); color: var(--sds-nav-item-active-text); font-weight: var(--sds-weight-medium); }
+  .sds-sidenav-icon { width: 20px; height: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .sds-sidenav-icon .material-symbols-outlined {
+    font-size: 20px; color: var(--sds-text-tertiary);
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+  }
+  .sds-sidenav-item.active .sds-sidenav-icon .material-symbols-outlined { color: var(--sds-nav-item-active-text); }
+  .sds-sidenav-group-label {
+    font-size: var(--sds-type-overline); font-weight: var(--sds-weight-semibold);
+    color: var(--sds-color-warm-gray-400); text-transform: uppercase;
+    letter-spacing: 0.4px; padding: var(--sds-space-500) var(--sds-space-300) var(--sds-space-150);
+  }
+  .sds-sidenav-group-label:first-child { padding-top: var(--sds-space-200); }
+  .sds-sidenav-spacer { flex: 1; }
+
+  /* Main Content */
+  .main-content {
+    flex: 1; overflow-y: auto; background: var(--sds-bg-page);
+    padding: var(--sds-space-800) var(--sds-space-1000) var(--sds-space-1600);
+    max-height: 100vh;
+  }
+  .main-content > .section p,
+  .main-content > .section .callout,
+  .main-content > .section > ul,
+  .main-content > .section > ol { max-width: 860px; }
+
+  /* Scroll progress */
+  .scroll-progress {
+    position: sticky; top: calc(-1 * var(--sds-space-800)); left: 0; right: 0; z-index: 5;
+    padding-top: var(--sds-space-800);
+    margin: calc(-1 * var(--sds-space-800)) calc(-1 * var(--sds-space-1000)) var(--sds-space-800);
+    background: var(--sds-bg-page);
+  }
+  .scroll-progress-track { height: 3px; background: var(--sds-border-subtle); border-radius: 2px; }
+  .scroll-progress-bar { height: 100%; width: 0%; background: #4F8AA0; border-radius: 2px; transition: width 0.1s ease; }
+
+  /* Page header */
+  .page-header {
+    margin-bottom: var(--sds-space-800);
+    padding-bottom: var(--sds-space-600);
+    border-bottom: 1px solid var(--sds-border-default);
+  }
+  .page-header h1 {
+    font-size: var(--sds-type-display); font-weight: var(--sds-weight-semibold);
+    margin-bottom: var(--sds-space-100); letter-spacing: var(--sds-tracking-tight);
+    line-height: var(--sds-leading-tight);
+  }
+  .page-header .page-desc {
+    font-size: var(--sds-type-body); color: var(--sds-text-secondary);
+    line-height: var(--sds-leading-normal);
+  }
+  .page-header .page-meta {
+    display: flex; gap: var(--sds-space-400); margin-top: var(--sds-space-300);
+    font-size: var(--sds-type-caption); color: var(--sds-text-tertiary);
+  }
+
+  /* Section */
+  .section { margin-bottom: var(--sds-space-1200); }
+  .section h2 {
+    font-size: var(--sds-type-heading); font-weight: var(--sds-weight-semibold);
+    margin-bottom: var(--sds-space-150); line-height: var(--sds-leading-tight);
+  }
+  .section .section-desc {
+    font-size: var(--sds-type-label); color: var(--sds-text-secondary);
+    margin-bottom: var(--sds-space-500); line-height: var(--sds-leading-normal);
+  }
+  .section h3 {
+    font-size: var(--sds-type-body); font-weight: var(--sds-weight-semibold);
+    color: var(--sds-color-warm-gray-700); margin: var(--sds-space-600) 0 var(--sds-space-300);
+  }
+  .section p {
+    color: var(--sds-text-secondary); font-size: var(--sds-type-label);
+    line-height: var(--sds-leading-relaxed); margin-bottom: var(--sds-space-300);
+  }
+  .section-divider {
+    border: none; border-top: 1px solid var(--sds-border-default);
+    margin: var(--sds-space-1200) 0;
+  }
+
+  /* Stat Cards */
+  .stat-row { display: flex; gap: var(--sds-space-300); flex-wrap: wrap; margin-bottom: var(--sds-space-600); }
+  .sds-stat-card {
+    background: var(--sds-color-white); border: 1px solid var(--sds-color-warm-gray-150);
+    border-radius: 8px; padding: var(--sds-space-500) var(--sds-space-600);
+    display: flex; flex-direction: column; gap: var(--sds-space-050);
+    flex: 1; min-width: 120px; text-align: center;
+  }
+  .sds-stat-card__label {
+    font-size: var(--sds-type-caption); color: var(--sds-color-warm-gray-500);
+    font-weight: var(--sds-weight-medium); text-transform: uppercase;
+    letter-spacing: var(--sds-tracking-wide); margin: 0; line-height: 1;
+  }
+  .sds-stat-card__value {
+    font-size: var(--sds-type-display); font-weight: var(--sds-weight-semibold);
+    color: var(--sds-interactive-primary); margin-top: var(--sds-space-150); line-height: 1.1;
+  }
+  .sds-stat-card__note {
+    font-size: var(--sds-type-overline); color: var(--sds-text-tertiary); margin-top: var(--sds-space-050);
+  }
+
+  /* Cards */
+  .card {
+    background: var(--sds-bg-card); border: 1px solid var(--sds-border-default);
+    border-radius: 8px; padding: var(--sds-space-600); margin-bottom: var(--sds-space-400);
+  }
+  .card h3 {
+    font-size: var(--sds-type-subheading); font-weight: var(--sds-weight-semibold);
+    margin: 0 0 var(--sds-space-200); color: var(--sds-text-primary);
+  }
+  .card h4 {
+    font-size: var(--sds-type-caption); font-weight: var(--sds-weight-semibold);
+    color: var(--sds-color-warm-gray-400); text-transform: uppercase;
+    letter-spacing: 0.4px; margin: var(--sds-space-400) 0 var(--sds-space-150);
+  }
+  .card p, .card li {
+    color: var(--sds-text-secondary); font-size: var(--sds-type-label);
+    line-height: var(--sds-leading-relaxed);
+  }
+  .card ul { padding-left: 18px; margin-top: var(--sds-space-100); }
+  .card li { margin-bottom: var(--sds-space-100); }
+
+  /* Grids */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sds-space-400); }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--sds-space-400); }
+  @media (max-width: 900px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  /* Tags */
+  .sds-tag {
+    display: inline-flex; align-items: center; gap: var(--sds-space-100);
+    padding: var(--sds-space-050) var(--sds-space-200);
+    font-family: inherit; font-size: var(--sds-type-overline);
+    font-weight: var(--sds-weight-semibold); line-height: var(--sds-leading-normal);
+    border-radius: 4px; white-space: nowrap; vertical-align: middle;
+    margin-right: var(--sds-space-100); margin-bottom: var(--sds-space-100);
+  }
+  .sds-tag--info { background: var(--sds-status-info-bg); color: var(--sds-status-info-text); }
+  .sds-tag--success { background: var(--sds-status-success-bg); color: var(--sds-status-success-text); }
+  .sds-tag--warning { background: var(--sds-status-warning-bg); color: var(--sds-status-warning-text); }
+  .sds-tag--error { background: var(--sds-status-error-bg); color: var(--sds-status-error-text); }
+  .sds-tag--purple { background: var(--sds-status-purple-bg); color: var(--sds-status-purple-text); }
+  .sds-tag--neutral { background: var(--sds-status-neutral-bg); color: var(--sds-status-neutral-text); }
+
+  /* Callout */
+  .callout {
+    border-left: 4px solid var(--sds-interactive-primary); background: var(--sds-status-info-bg);
+    padding: var(--sds-space-400) var(--sds-space-500); border-radius: 0 8px 8px 0;
+    margin: var(--sds-space-500) 0;
+  }
+  .callout.callout-green { border-left-color: var(--sds-color-green-400); background: var(--sds-status-success-bg); }
+  .callout.callout-yellow { border-left-color: var(--sds-color-yellow-200); background: var(--sds-status-warning-bg); }
+  .callout.callout-red { border-left-color: var(--sds-color-red-500); background: var(--sds-status-error-bg); }
+  .callout strong { color: var(--sds-text-primary); }
+  .callout p { color: var(--sds-text-secondary); font-size: var(--sds-type-label); margin: 0; line-height: var(--sds-leading-normal); }
+
+  /* Tables */
+  .sds-table-container {
+    background: var(--sds-color-white); border: 1px solid var(--sds-color-warm-gray-150);
+    border-radius: 8px; overflow: hidden; overflow-x: auto; margin: var(--sds-space-300) 0;
+  }
+  .sds-table { width: 100%; border-collapse: collapse; font-size: var(--sds-type-label); }
+  .sds-table th {
+    background: var(--sds-color-warm-gray-025); border-bottom: 1px solid var(--sds-color-warm-gray-150);
+    padding: var(--sds-space-250) var(--sds-space-400); text-align: left;
+    font-size: var(--sds-type-caption); font-weight: var(--sds-weight-semibold);
+    color: var(--sds-color-warm-gray-550); white-space: nowrap;
+  }
+  .sds-table td {
+    padding: var(--sds-space-250) var(--sds-space-400); color: var(--sds-color-warm-gray-700);
+    border-bottom: 1px solid var(--sds-color-warm-gray-100); vertical-align: top;
+  }
+  .sds-table tbody tr:last-child td { border-bottom: none; }
+  .sds-table td:first-child { font-weight: var(--sds-weight-medium); color: var(--sds-text-primary); }
+
+  /* Persona card */
+  .persona-card { display: flex; gap: var(--sds-space-500); align-items: flex-start; }
+  .persona-icon {
+    width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center;
+    justify-content: center; font-size: 18px; flex-shrink: 0; color: white;
+    font-weight: var(--sds-weight-bold);
+  }
+
+  /* Flow strip */
+  .flow-strip {
+    display: flex; align-items: center; gap: 0; overflow-x: auto;
+    padding: var(--sds-space-300) 0; margin: var(--sds-space-300) 0;
+  }
+  .flow-step {
+    background: var(--sds-bg-card); border: 1px solid var(--sds-border-default);
+    border-radius: 8px; padding: var(--sds-space-300) var(--sds-space-400);
+    min-width: 140px; text-align: center; flex-shrink: 0;
+  }
+  .flow-step .step-num {
+    font-size: var(--sds-type-overline); font-weight: var(--sds-weight-semibold);
+    color: var(--sds-interactive-primary); text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  .flow-step .step-name { font-size: var(--sds-type-label); font-weight: var(--sds-weight-medium); margin-top: var(--sds-space-050); }
+  .flow-arrow { font-size: var(--sds-type-subheading); color: var(--sds-color-warm-gray-300); padding: 0 var(--sds-space-150); flex-shrink: 0; }
+
+  /* Opportunity card */
+  .opp-card {
+    background: var(--sds-status-success-bg); border: 1px solid var(--sds-color-green-400);
+    border-radius: 8px; padding: var(--sds-space-500); margin-bottom: var(--sds-space-300);
+  }
+  .opp-card h4 { color: var(--sds-color-green-700); margin: 0 0 var(--sds-space-100); text-transform: none; font-size: var(--sds-type-body); }
+  .opp-card p { color: var(--sds-color-green-700); font-size: var(--sds-type-label); margin: 0; opacity: 0.85; }
+
+  .gap-card {
+    background: var(--sds-status-warning-bg); border: 1px solid var(--sds-color-yellow-200);
+    border-radius: 8px; padding: var(--sds-space-500); margin-bottom: var(--sds-space-300);
+  }
+  .gap-card h4 { color: var(--sds-color-yellow-500); margin: 0 0 var(--sds-space-100); text-transform: none; font-size: var(--sds-type-body); }
+  .gap-card p { color: var(--sds-color-yellow-500); font-size: var(--sds-type-label); margin: 0; opacity: 0.85; }
+
+  @media (max-width: 768px) {
+    .sds-sidenav { display: none; }
+    .main-content { padding: var(--sds-space-500); }
+  }
+</style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="sds-header">
+    <div class="sds-header-logo">
+      <div class="sds-header-logo-mark"><span class="material-symbols-outlined">shield</span></div>
+      <span class="sds-header-logo-text">DataShield</span>
+    </div>
+    <div class="sds-header-actions">
+      <button class="sds-header-help" aria-label="Help">?</button>
+      <div class="sds-header-divider"></div>
+      <div class="sds-header-avatar" aria-label="User profile">RH</div>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <!-- Side Navigation -->
+    <nav class="sds-sidenav" aria-label="Report navigation">
+      <div class="sds-sidenav-group-label">Report</div>
+      <a class="sds-sidenav-item active" href="#executive-summary" data-section="executive-summary">
+        <span class="sds-sidenav-icon"><span class="material-symbols-outlined">summarize</span></span>
+        Executive summary
+      </a>
+      <a class="sds-sidenav-item" href="#market-sizing" data-section="market-sizing">
+        <span class="sds-sidenav-icon"><span class="material-symbols-outlined">monitoring</span></span>
+        Market sizing
+      </a>
+      <a class="sds-sidenav-item" href="#competitive-landscape" data-section="competitive-landscape">
+        <span class="sds-sidenav-icon"><span class="material-symbols-outlined">groups</span></span>
+        Competitive landscape
+      </a>
+      <a class="sds-sidenav-item" href="#ux-patterns" data-section="ux-patterns">
+        <span class="sds-sidenav-icon"><span class="material-symbols-outlined">design_services</span></span>
+        UX patterns
+      </a>
+
+      <div class="sds-sidenav-group-label">Insights</div>
+      <a class="sds-sidenav-item" href="#key-insights" data-section="key-insights">
+        <span class="sds-sidenav-icon"><span class="material-symbols-outlined">lightbulb</span></span>
+        Key insights
+      </a>
+      <a class="sds-sidenav-item" href="#personas" data-section="personas">
+        <span class="sds-sidenav-icon"><span class="material-symbols-outlined">person</span></span>
+        Personas
+      </a>
+      <a class="sds-sidenav-item" href="#opportunities" data-section="opportunities">
+        <span class="sds-sidenav-icon"><span class="material-symbols-outlined">trending_up</span></span>
+        Opportunities
+      </a>
+      <a class="sds-sidenav-item" href="#recommendations" data-section="recommendations">
+        <span class="sds-sidenav-icon"><span class="material-symbols-outlined">task_alt</span></span>
+        Recommendations
+      </a>
+
+      <div class="sds-sidenav-spacer"></div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+      <div class="scroll-progress">
+        <div class="scroll-progress-track">
+          <div class="scroll-progress-bar" id="progress-bar"></div>
+        </div>
+      </div>
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <h1>Data Lineage Visualization</h1>
+        <p class="page-desc">Market research report for adding data lineage visualization to the data security product. Focused on the data observability and governance market for mid-to-large enterprises.</p>
+        <div class="page-meta">
+          <span>Market Research</span>
+          <span>March 2026</span>
+          <span>Data Observability &amp; Governance</span>
+        </div>
+      </div>
+
+      <!-- Executive Summary -->
+      <section class="section" id="executive-summary">
+        <h2>Executive summary</h2>
+        <p class="section-desc">The data lineage market is growing rapidly, driven by AI workloads, compliance mandates, and cloud migration. A clear differentiation opportunity exists at the intersection of data security and lineage visualization.</p>
+
+        <div class="stat-row">
+          <div class="sds-stat-card">
+            <p class="sds-stat-card__label">Market Size (2025)</p>
+            <p class="sds-stat-card__value">$3.15B</p>
+            <p class="sds-stat-card__note">Data Observability</p>
+          </div>
+          <div class="sds-stat-card">
+            <p class="sds-stat-card__label">Growth Rate</p>
+            <p class="sds-stat-card__value">12-15%</p>
+            <p class="sds-stat-card__note">CAGR through 2030</p>
+          </div>
+          <div class="sds-stat-card">
+            <p class="sds-stat-card__label">Enterprise Adoption</p>
+            <p class="sds-stat-card__value">50%</p>
+            <p class="sds-stat-card__note">By 2026 (up from 20%)</p>
+          </div>
+          <div class="sds-stat-card">
+            <p class="sds-stat-card__label">Security + Lineage Gap</p>
+            <p class="sds-stat-card__value">0</p>
+            <p class="sds-stat-card__note">Competitors combining both</p>
+          </div>
+        </div>
+
+        <div class="callout callout-green">
+          <p><strong>Primary opportunity:</strong> No major competitor overlays data security policies directly on lineage graphs. Building "security-aware lineage" creates a unique market position that leverages existing product strengths.</p>
+        </div>
+      </section>
+
+      <hr class="section-divider">
+
+      <!-- Market Sizing -->
+      <section class="section" id="market-sizing">
+        <h2>Market sizing</h2>
+        <p class="section-desc">The data observability and governance market is substantial and growing at double-digit rates, driven by regulatory pressure, AI workloads, and the increasing cost of data quality failures.</p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>Data Observability</h3>
+            <h4>Market Estimates</h4>
+            <ul>
+              <li><strong>2025:</strong> USD 1.5-3.15 billion (varies by scope)</li>
+              <li><strong>2030:</strong> USD 4.7-6.9 billion projected</li>
+              <li><strong>CAGR:</strong> 12-15% through 2030</li>
+            </ul>
+            <h4>Enterprise Share</h4>
+            <p>Large enterprises represent 78-84% of demand. Cloud-native deployment is the fastest-growing segment.</p>
+          </div>
+          <div class="card">
+            <h3>Data Security Observability</h3>
+            <h4>Market Estimates</h4>
+            <ul>
+              <li><strong>2025:</strong> USD 361.5 million</li>
+              <li><strong>2035:</strong> USD 3.18 billion projected</li>
+              <li><strong>CAGR:</strong> 24.3% (fastest growing segment)</li>
+            </ul>
+            <h4>Our Sweet Spot</h4>
+            <p>The intersection of security and observability is the fastest-growing sub-segment, validating our product direction.</p>
+          </div>
+        </div>
+
+        <h3>Growth drivers</h3>
+        <div class="sds-table-container">
+          <table class="sds-table">
+            <thead>
+              <tr>
+                <th>Driver</th>
+                <th>Evidence</th>
+                <th>Impact</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>AI/ML workloads</td>
+                <td>Avg USD 12.9M enterprise losses from undetected data errors (2024)</td>
+                <td><span class="sds-tag sds-tag--error">High</span></td>
+              </tr>
+              <tr>
+                <td>Compliance mandates</td>
+                <td>EU AI Act, GDPR, SOX, HIPAA requiring data traceability</td>
+                <td><span class="sds-tag sds-tag--error">High</span></td>
+              </tr>
+              <tr>
+                <td>Cloud migration</td>
+                <td>Heterogeneous data estates needing unified visibility</td>
+                <td><span class="sds-tag sds-tag--warning">Medium</span></td>
+              </tr>
+              <tr>
+                <td>Data leader priorities</td>
+                <td>92% say observability will be central to strategy within 1-3 years</td>
+                <td><span class="sds-tag sds-tag--error">High</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <hr class="section-divider">
+
+      <!-- Competitive Landscape -->
+      <section class="section" id="competitive-landscape">
+        <h2>Competitive landscape</h2>
+        <p class="section-desc">The market is organized in tiers: enterprise governance platforms, modern cloud-native tools, specialized/open-source, and cloud provider built-ins.</p>
+
+        <h3>Tier 1: Enterprise governance platforms</h3>
+        <div class="grid-3">
+          <div class="card">
+            <h3>Collibra</h3>
+            <span class="sds-tag sds-tag--purple">Governance Leader</span>
+            <h4>Strengths</h4>
+            <ul>
+              <li>Deep governance and compliance</li>
+              <li>Column-level lineage via QueryFlow</li>
+              <li>Trust scores integrated into views</li>
+            </ul>
+            <h4>Weaknesses</h4>
+            <ul>
+              <li>Months of deployment</li>
+              <li>Complex, heavy UI</li>
+              <li>Premium pricing (6-7 figures)</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Informatica</h3>
+            <span class="sds-tag sds-tag--info">Enterprise ETL</span>
+            <h4>Strengths</h4>
+            <ul>
+              <li>Enterprise Data Catalog</li>
+              <li>Strong technical lineage</li>
+              <li>PowerCenter integration</li>
+            </ul>
+            <h4>Weaknesses</h4>
+            <ul>
+              <li>Heavyweight deployment</li>
+              <li>Legacy UI patterns</li>
+              <li>Slow to modernize UX</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Alation</h3>
+            <span class="sds-tag sds-tag--info">Data Catalog</span>
+            <h4>Strengths</h4>
+            <ul>
+              <li>Strong catalog + collaboration</li>
+              <li>Behavioral analysis</li>
+              <li>Search-first interface</li>
+            </ul>
+            <h4>Weaknesses</h4>
+            <ul>
+              <li>Lineage not primary focus</li>
+              <li>Less technical depth</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Tier 2: Modern cloud-native platforms</h3>
+        <div class="grid-3">
+          <div class="card">
+            <h3>Atlan</h3>
+            <span class="sds-tag sds-tag--success">UX Leader</span>
+            <h4>Strengths</h4>
+            <ul>
+              <li>Consumer-grade, intuitive UI</li>
+              <li>Automated column-level lineage</li>
+              <li>Open APIs, fast deployment</li>
+              <li>Gartner MQ Leader (2025, 2026)</li>
+            </ul>
+            <h4>Weaknesses</h4>
+            <ul>
+              <li>Governance depth still growing</li>
+              <li>Organization-wide rollout challenges</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Monte Carlo</h3>
+            <span class="sds-tag sds-tag--warning">Observability Pioneer</span>
+            <h4>Strengths</h4>
+            <ul>
+              <li>Incident-focused lineage</li>
+              <li>Freshness/volume monitors</li>
+              <li>Strong data engineering adoption</li>
+            </ul>
+            <h4>Weaknesses</h4>
+            <ul>
+              <li>Limited business lineage</li>
+              <li>Engineering-focused UX</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Secoda</h3>
+            <span class="sds-tag sds-tag--info">AI-Powered</span>
+            <h4>Strengths</h4>
+            <ul>
+              <li>AI-powered search</li>
+              <li>80+ integrations</li>
+              <li>Natural language querying</li>
+            </ul>
+            <h4>Weaknesses</h4>
+            <ul>
+              <li>Newer entrant</li>
+              <li>Less enterprise traction</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Feature comparison</h3>
+        <div class="sds-table-container">
+          <table class="sds-table">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Collibra</th>
+                <th>Atlan</th>
+                <th>Monte Carlo</th>
+                <th>Us (Current)</th>
+                <th>Opportunity</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Column-level lineage</td>
+                <td>Full</td>
+                <td>Full</td>
+                <td>Partial</td>
+                <td>None</td>
+                <td><span class="sds-tag sds-tag--error">High</span></td>
+              </tr>
+              <tr>
+                <td>Impact analysis</td>
+                <td>Full</td>
+                <td>Full</td>
+                <td>Partial</td>
+                <td>None</td>
+                <td><span class="sds-tag sds-tag--error">High</span></td>
+              </tr>
+              <tr>
+                <td>Interactive graph</td>
+                <td>Full</td>
+                <td>Full</td>
+                <td>Partial</td>
+                <td>None</td>
+                <td><span class="sds-tag sds-tag--error">High</span></td>
+              </tr>
+              <tr>
+                <td>Security policy overlay</td>
+                <td>Partial</td>
+                <td>None</td>
+                <td>None</td>
+                <td>Full</td>
+                <td><span class="sds-tag sds-tag--success">Differentiator</span></td>
+              </tr>
+              <tr>
+                <td>Search-first UX</td>
+                <td>Partial</td>
+                <td>Full</td>
+                <td>Partial</td>
+                <td>N/A</td>
+                <td><span class="sds-tag sds-tag--error">High</span></td>
+              </tr>
+              <tr>
+                <td>Automated discovery</td>
+                <td>Full</td>
+                <td>Full</td>
+                <td>Full</td>
+                <td>N/A</td>
+                <td><span class="sds-tag sds-tag--error">High</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <hr class="section-divider">
+
+      <!-- UX Patterns -->
+      <section class="section" id="ux-patterns">
+        <h2>UX patterns in market</h2>
+        <p class="section-desc">Common visualization and interaction patterns used by leading data lineage tools.</p>
+
+        <h3>Dominant visualization patterns</h3>
+        <div class="grid-2">
+          <div class="card">
+            <h3>DAG (Directed Acyclic Graph)</h3>
+            <p>The universal pattern. Nodes represent data assets (tables, columns, reports), directed edges show data flow direction. Supports left-to-right and top-to-bottom layouts.</p>
+            <span class="sds-tag sds-tag--info">Industry Standard</span>
+          </div>
+          <div class="card">
+            <h3>Multi-level drill-down</h3>
+            <p>Business lineage (helicopter view across systems) vs. technical lineage (column-level transformations). Users toggle between abstraction levels.</p>
+            <span class="sds-tag sds-tag--success">High Adoption</span>
+          </div>
+          <div class="card">
+            <h3>Expandable/collapsible nodes</h3>
+            <p>Nodes contain grouped information and can expand to show internal details (columns, metadata, quality scores). Critical for managing visual complexity at scale.</p>
+            <span class="sds-tag sds-tag--success">High Adoption</span>
+          </div>
+          <div class="card">
+            <h3>Path highlighting</h3>
+            <p>Select a node to highlight its upstream sources and downstream consumers. Dimming non-relevant nodes focuses attention on the data path of interest.</p>
+            <span class="sds-tag sds-tag--success">High Adoption</span>
+          </div>
+          <div class="card">
+            <h3>Side panel details</h3>
+            <p>Click any node to open a detail panel showing metadata, quality scores, owners, classifications, and related assets. Keeps the graph clean while providing depth on demand.</p>
+            <span class="sds-tag sds-tag--info">Standard Pattern</span>
+          </div>
+          <div class="card">
+            <h3>Minimap + virtualization</h3>
+            <p>Overview minimap for navigation in large graphs. Virtualized rendering handles thousands of nodes without performance degradation.</p>
+            <span class="sds-tag sds-tag--warning">Advanced</span>
+          </div>
+        </div>
+
+        <h3>Technology stacks</h3>
+        <div class="sds-table-container">
+          <table class="sds-table">
+            <thead>
+              <tr>
+                <th>Technology</th>
+                <th>Used By</th>
+                <th>Best For</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>D3.js</td>
+                <td>UBS, custom enterprise tools</td>
+                <td>Custom, highly flexible visualizations</td>
+              </tr>
+              <tr>
+                <td>Cytoscape.js</td>
+                <td>LineageViewer, research tools</td>
+                <td>High-performance graph rendering, multiple layouts</td>
+              </tr>
+              <tr>
+                <td>React Flow</td>
+                <td>Modern SaaS tools</td>
+                <td>React-native node-based editors with built-in interactions</td>
+              </tr>
+              <tr>
+                <td>GoJS</td>
+                <td>Enterprise diagramming</td>
+                <td>Complex diagram features with commercial support</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <hr class="section-divider">
+
+      <!-- Key Insights -->
+      <section class="section" id="key-insights">
+        <h2>Key insights</h2>
+        <p class="section-desc">Critical findings from the competitive and market analysis that should guide product strategy and design.</p>
+
+        <div class="card">
+          <h3>1. Security + lineage is an unoccupied position</h3>
+          <p>No major competitor overlays data security policies, classifications, or protection status directly on lineage graphs. Governance tools show lineage; security tools show policies. Nobody connects them visually. This is the primary differentiation opportunity.</p>
+          <span class="sds-tag sds-tag--success">High Confidence</span>
+          <span class="sds-tag sds-tag--error">Strategic</span>
+        </div>
+        <div class="card">
+          <h3>2. UX quality is the competitive moat</h3>
+          <p>Atlan is winning market share primarily on UX quality, not feature depth. Enterprise buyers increasingly evaluate based on ease of adoption and time-to-value. Consumer-grade UX in an enterprise tool is a proven winning strategy.</p>
+          <span class="sds-tag sds-tag--success">High Confidence</span>
+        </div>
+        <div class="card">
+          <h3>3. Column-level lineage is table stakes</h3>
+          <p>Every major competitor and Gartner evaluations require column-level lineage. Table-level lineage alone will not be competitive in 2026. Must support drill-down from system to table to column level.</p>
+          <span class="sds-tag sds-tag--success">High Confidence</span>
+        </div>
+        <div class="card">
+          <h3>4. Deployment speed wins deals</h3>
+          <p>Collibra requires months; Atlan deploys in weeks. Embedding lineage into an existing product (ours) could deliver value in days. Speed-to-value is a critical competitive advantage, especially for security teams with urgent compliance deadlines.</p>
+          <span class="sds-tag sds-tag--warning">Medium Confidence</span>
+        </div>
+        <div class="card">
+          <h3>5. Three distinct persona needs</h3>
+          <p>Security teams need breach investigation and risk visualization. Governance teams need compliance proof and audit trails. Engineering teams need impact analysis and debugging. A successful lineage feature must serve all three, but can prioritize security first.</p>
+          <span class="sds-tag sds-tag--success">High Confidence</span>
+        </div>
+        <div class="card">
+          <h3>6. Scale is a make-or-break UX challenge</h3>
+          <p>Enterprise customers have thousands to millions of data assets. Visualization must handle scale through progressive loading, virtualization, search-first navigation, and smart filtering. Most tools struggle here.</p>
+          <span class="sds-tag sds-tag--warning">Medium Confidence</span>
+        </div>
+      </section>
+
+      <hr class="section-divider">
+
+      <!-- Personas -->
+      <section class="section" id="personas">
+        <h2>Personas</h2>
+        <p class="section-desc">Market-derived personas representing the three key user segments for data lineage visualization.</p>
+
+        <div class="card">
+          <div class="persona-card">
+            <div class="persona-icon" style="background: var(--sds-interactive-primary);">DG</div>
+            <div>
+              <h3>Diana &mdash; Data Governance Lead</h3>
+              <p><strong>Role:</strong> Data Governance Manager, Fortune 500 financial services</p>
+              <p><strong>Company:</strong> 15,000 employees, hybrid cloud (AWS + on-prem Oracle)</p>
+            </div>
+          </div>
+          <h4>Goals</h4>
+          <ul>
+            <li>Ensure compliance with GDPR, SOX, and internal data policies</li>
+            <li>Demonstrate data traceability to auditors</li>
+            <li>Reduce audit preparation time from weeks to hours</li>
+          </ul>
+          <h4>Pain Points</h4>
+          <ul>
+            <li>Cannot easily see which sensitive data flows through which pipelines</li>
+            <li>Security and governance managed in separate tools</li>
+            <li>Audit preparation takes weeks of manual work</li>
+          </ul>
+          <h4>Needs from Our Product</h4>
+          <ul>
+            <li><strong>Must have:</strong> Visual lineage of sensitive data flows with security policy status overlaid</li>
+            <li><strong>Should have:</strong> Audit-ready reports exportable for regulators</li>
+            <li><strong>Nice to have:</strong> Automated compliance scoring per data flow</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="persona-card">
+            <div class="persona-icon" style="background: #4A6E82;">ME</div>
+            <div>
+              <h3>Marcus &mdash; Platform Engineering Lead</h3>
+              <p><strong>Role:</strong> Senior Data Engineer / Platform Lead, mid-size SaaS</p>
+              <p><strong>Company:</strong> 2,000 employees, cloud-native (Snowflake, dbt, Airflow)</p>
+            </div>
+          </div>
+          <h4>Goals</h4>
+          <ul>
+            <li>Understand impact of schema changes across pipelines</li>
+            <li>Reduce data incidents caused by untracked dependencies</li>
+            <li>Enable self-service analytics without data quality risks</li>
+          </ul>
+          <h4>Pain Points</h4>
+          <ul>
+            <li>No visibility into security classifications from engineering tools</li>
+            <li>Schema changes break downstream reports without warning</li>
+            <li>No unified view of lineage + data sensitivity</li>
+          </ul>
+          <h4>Needs from Our Product</h4>
+          <ul>
+            <li><strong>Must have:</strong> Column-level lineage with classification labels</li>
+            <li><strong>Should have:</strong> Impact analysis before making schema changes</li>
+            <li><strong>Nice to have:</strong> API access for CI/CD pipeline integration</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="persona-card">
+            <div class="persona-icon" style="background: var(--sds-color-red-500);">SC</div>
+            <div>
+              <h3>Serena &mdash; Chief Information Security Officer</h3>
+              <p><strong>Role:</strong> CISO, healthcare organization</p>
+              <p><strong>Company:</strong> 8,000 employees, regulated (HIPAA, HITRUST), multi-cloud</p>
+            </div>
+          </div>
+          <h4>Goals</h4>
+          <ul>
+            <li>Understand data exposure risk across all systems</li>
+            <li>Ensure PHI is protected throughout its lifecycle</li>
+            <li>Reduce breach investigation time from days to minutes</li>
+          </ul>
+          <h4>Pain Points</h4>
+          <ul>
+            <li>Cannot visualize data flow across systems holistically</li>
+            <li>Breach investigations require manually tracing through multiple tools</li>
+            <li>No single view for data security posture</li>
+          </ul>
+          <h4>Needs from Our Product</h4>
+          <ul>
+            <li><strong>Must have:</strong> Security-focused lineage showing classification and protection status</li>
+            <li><strong>Should have:</strong> Breach investigation support with rapid path tracing</li>
+            <li><strong>Nice to have:</strong> Executive dashboard with risk scoring per data flow</li>
+          </ul>
+        </div>
+      </section>
+
+      <hr class="section-divider">
+
+      <!-- Opportunities -->
+      <section class="section" id="opportunities">
+        <h2>Market gaps &amp; opportunities</h2>
+        <p class="section-desc">Identified gaps in the competitive landscape where our product can differentiate.</p>
+
+        <div class="opp-card">
+          <h4>Gap 1: Security-aware lineage</h4>
+          <p>No major competitor overlays data security policies directly on lineage graphs. Lineage tools show data flow; security tools show protection. Combining both creates a unique market position.</p>
+        </div>
+        <div class="opp-card">
+          <h4>Gap 2: Compliance traceability</h4>
+          <p>Regulated enterprises need to demonstrate that sensitive data is properly protected throughout its lifecycle. Current tools show lineage OR compliance, rarely both in one view.</p>
+        </div>
+        <div class="gap-card">
+          <h4>Gap 3: Business-friendly lineage</h4>
+          <p>Most lineage tools are built for data engineers. Security teams and compliance officers need simplified views that answer concrete questions about sensitive data flows.</p>
+        </div>
+        <div class="opp-card">
+          <h4>Gap 4: Data security posture + lineage</h4>
+          <p>DSPM is growing at 24.3% CAGR. Adding lineage to security posture gives customers a visual, traceable answer to "What happens to my sensitive data?"</p>
+        </div>
+        <div class="gap-card">
+          <h4>Gap 5: Lightweight integration</h4>
+          <p>Enterprise lineage tools require months of deployment. A lineage feature embedded in an existing security product could deliver value in days or weeks, not months.</p>
+        </div>
+      </section>
+
+      <hr class="section-divider">
+
+      <!-- Recommendations -->
+      <section class="section" id="recommendations">
+        <h2>Recommendations</h2>
+        <p class="section-desc">Strategic recommendations based on the market research findings.</p>
+
+        <div class="flow-strip">
+          <div class="flow-step">
+            <div class="step-num">Step 1</div>
+            <div class="step-name">Security-first lineage</div>
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-step">
+            <div class="step-num">Step 2</div>
+            <div class="step-name">Consumer-grade UX</div>
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-step">
+            <div class="step-num">Step 3</div>
+            <div class="step-name">Column-level depth</div>
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-step">
+            <div class="step-num">Step 4</div>
+            <div class="step-name">Fast time-to-value</div>
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-step">
+            <div class="step-num">Step 5</div>
+            <div class="step-name">Multi-persona design</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>1. Position as "Security-Aware Data Lineage"</h3>
+          <p>Build lineage visualization that uniquely shows data flow WITH security and compliance context. Where data is classified, where policies are applied, where gaps exist. No competitor does this today.</p>
+        </div>
+        <div class="card">
+          <h3>2. Invest in consumer-grade UX</h3>
+          <p>Atlan's market success proves UX quality wins enterprise deals. Build interactive, responsive graph visualization with progressive disclosure, not a static diagram viewer.</p>
+        </div>
+        <div class="card">
+          <h3>3. Support column-level lineage</h3>
+          <p>Column-level lineage is a market expectation. Table-level alone is not competitive in 2026. Design for progressive drill-down: system &rarr; table &rarr; column.</p>
+        </div>
+        <div class="card">
+          <h3>4. Enable fast time-to-value</h3>
+          <p>Embed lineage into the existing product rather than requiring separate deployment. Leverage existing data connections and classification metadata to bootstrap lineage automatically.</p>
+        </div>
+        <div class="card">
+          <h3>5. Design for three personas</h3>
+          <p>Security teams (risk + breach investigation), governance teams (compliance + audits), and engineering teams (impact analysis + debugging). Prioritize security first, then expand.</p>
+        </div>
+
+        <div class="callout callout-yellow">
+          <p><strong>Next step:</strong> Conduct user research with 6-8 participants across the three persona segments to validate these market-derived insights with firsthand qualitative data before designing.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Scroll progress bar
+    const mainContent = document.getElementById('main-content');
+    const progressBar = document.getElementById('progress-bar');
+    mainContent.addEventListener('scroll', () => {
+      const scrollTop = mainContent.scrollTop;
+      const scrollHeight = mainContent.scrollHeight - mainContent.clientHeight;
+      const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+      progressBar.style.width = progress + '%';
+    });
+
+    // Active nav tracking
+    const navItems = document.querySelectorAll('.sds-sidenav-item');
+    const sections = document.querySelectorAll('.section');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          navItems.forEach(item => item.classList.remove('active'));
+          const activeNav = document.querySelector(`[data-section="${entry.target.id}"]`);
+          if (activeNav) activeNav.classList.add('active');
+        }
+      });
+    }, { root: mainContent, threshold: 0.3 });
+    sections.forEach(section => observer.observe(section));
+
+    // Smooth scroll nav
+    navItems.forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetId = item.getAttribute('data-section');
+        const target = document.getElementById(targetId);
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+  </script>
+</body>
+</html>

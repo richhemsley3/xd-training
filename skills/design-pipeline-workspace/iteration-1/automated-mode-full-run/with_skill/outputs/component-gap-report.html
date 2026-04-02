@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Component Gap Report — Software DS</title>
+<style>
+  :root {
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --text-primary: #1C1A17; --text-secondary: #54514D; --text-tertiary: #6B6760;
+    --bg-page: #FFFFFF; --bg-surface: #FAF8F5;
+    --border-default: #E0DCD3; --border-subtle: #EBE6DD;
+    --blue-750: #013D5B; --blue-050: #EBF4F5;
+    --green-025: #F4FAEB; --green-500: #62800B;
+    --yellow-025: #FCF9D9; --yellow-500: #8A7515;
+    --red-050: #FFEEEB; --red-500: #BF5547;
+    --purple-bg: #F7EEFF; --purple-text: #805AA1;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg-page); color: var(--text-primary); line-height: 1.5; font-size: 14px; max-width: 960px; margin: 0 auto; padding: 40px 32px; }
+  h1 { font-size: 28px; font-weight: 600; margin-bottom: 4px; }
+  .subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 32px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border-default); }
+  p { color: var(--text-secondary); margin-bottom: 12px; }
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+  .tag-exists { background: var(--green-025); color: var(--green-500); }
+  .tag-missing { background: var(--red-050); color: var(--red-500); }
+  .tag-partial { background: var(--yellow-025); color: var(--yellow-500); }
+  .tag-priority-high { background: var(--red-050); color: var(--red-500); }
+  .tag-priority-med { background: var(--yellow-025); color: var(--yellow-500); }
+  .tag-priority-low { background: var(--blue-050); color: var(--blue-750); }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 24px; font-size: 13px; }
+  th { text-align: left; font-weight: 600; font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.3px; padding: 8px 12px; border-bottom: 1px solid var(--border-default); }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--border-subtle); color: var(--text-secondary); vertical-align: top; }
+  td:first-child { font-weight: 500; color: var(--text-primary); }
+  .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0 32px; }
+  .summary-card { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 16px; text-align: center; }
+  .summary-card .value { font-size: 28px; font-weight: 600; }
+  .summary-card .label { font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.3px; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<h1>Component Gap Report</h1>
+<p class="subtitle">UI components used in the data classification prototype compared against Software DS component library. Identifies components that need to be built for the design system.</p>
+
+<div class="summary-grid">
+  <div class="summary-card">
+    <div class="value" style="color:var(--green-500);">2</div>
+    <div class="label">Existing components used</div>
+  </div>
+  <div class="summary-card">
+    <div class="value" style="color:var(--red-500);">14</div>
+    <div class="label">Missing components</div>
+  </div>
+  <div class="summary-card">
+    <div class="value" style="color:var(--yellow-500);">3</div>
+    <div class="label">High priority to build</div>
+  </div>
+</div>
+
+<h2>Existing Components Used</h2>
+<p>These components already exist in Software DS and were used in the prototype.</p>
+
+<table>
+  <thead><tr><th>Component</th><th>DS File</th><th>Where Used</th><th>Status</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Header</td>
+      <td>header.html</td>
+      <td>Global app header with logo, help button, profile menu</td>
+      <td><span class="tag tag-exists">Exists</span></td>
+    </tr>
+    <tr>
+      <td>Side Navigation</td>
+      <td>side-navigation.html</td>
+      <td>Primary navigation with groups, active states, badges, footer items</td>
+      <td><span class="tag tag-exists">Exists</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Missing Components</h2>
+<p>These components were needed in the prototype but do not exist in Software DS. Recommended for the design system team to build, prioritized by reusability and frequency of use.</p>
+
+<table>
+  <thead><tr><th>Component</th><th>Where Used</th><th>Description</th><th>Closest Existing</th><th>Priority</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Data Table</td>
+      <td>Classify fields, Activity log</td>
+      <td>Sortable, selectable data table with sticky headers, inline actions, checkbox selection, hover states, and bulk action integration. The most critical missing component -- used as the primary interface for field classification.</td>
+      <td>None</td>
+      <td><span class="tag tag-priority-high">High</span></td>
+    </tr>
+    <tr>
+      <td>Bulk Action Bar</td>
+      <td>Classify fields (appears on selection)</td>
+      <td>Contextual toolbar that appears when rows are selected in a data table. Shows selection count, action buttons, and clear selection. Should slide in/out with animation.</td>
+      <td>None</td>
+      <td><span class="tag tag-priority-high">High</span></td>
+    </tr>
+    <tr>
+      <td>Status Tag / Badge</td>
+      <td>All screens (PII, Financial, Health, classified, needs review, etc.)</td>
+      <td>Small pill-shaped label with semantic color variants (success, warning, error, info, neutral, purple). Used for classification tags, status indicators, and counts. Needs 6+ color variants.</td>
+      <td>None</td>
+      <td><span class="tag tag-priority-high">High</span></td>
+    </tr>
+    <tr>
+      <td>Button</td>
+      <td>All screens</td>
+      <td>Button component with variants: primary, secondary, ghost, success, small. Supports icon + text, icon-only, and disabled states. Needs focus-visible styles.</td>
+      <td>None</td>
+      <td><span class="tag tag-priority-med">Medium</span></td>
+    </tr>
+    <tr>
+      <td>Tabs</td>
+      <td>Classify fields (All / Needs review / Unclassified / Flagged)</td>
+      <td>Horizontal tab bar with underline active indicator. Supports badge counts. Needs ARIA tab roles and keyboard navigation.</td>
+      <td>None</td>
+      <td><span class="tag tag-priority-med">Medium</span></td>
+    </tr>
+    <tr>
+      <td>Toggle Tabs</td>
+      <td>Classify fields toolbar (By source / Cross-source)</td>
+      <td>Pill-style toggle for switching between 2-3 views of the same data. Compact, inline, with subtle background and active shadow.</td>
+      <td>None</td>
+      <td><span class="tag tag-priority-low">Low</span></td>
+    </tr>
+    <tr>
+      <td>Search Input</td>
+      <td>Classify fields toolbar</td>
+      <td>Search input with icon prefix, placeholder text, clear button. Styled to match the toolbar context.</td>
+      <td>None</td>
+      <td><span class="tag tag-priority-med">Medium</span></td>
+    </tr>
+    <tr>
+      <td>Filter Chip</td>
+      <td>Classify fields toolbar</td>
+      <td>Compact chip with icon, label, and active/inactive toggle. Used for filter controls in toolbars. Keyboard accessible.</td>
+      <td>None</td>
+      <td><span class="tag tag-priority-med">Medium</span></td>
+    </tr>
+    <tr>
+      <td>Toast Notification</td>
+      <td>All screens (action confirmations, undo)</td>
+      <td>Fixed-position notification at bottom-right. Dark background, white text, optional undo action. Auto-dismisses. Uses role="status" and aria-live.</td>
+      <td>None</td>
+      <td><span class="tag tag-priority-med">Medium</span></td>
+    </tr>
+    <tr>
+      <td>Error Banner</td>
+      <td>Classify fields (scan failure)</td>
+      <td>Full-width inline banner for error states. Red background tint, error icon, message with action links, dismiss button. Uses role="alert".</td>
+      <td>None</td>
+      <td><span class="tag tag-priority-med">Medium</span></td>
+    </tr>
+    <tr>
+      <td>Stat Card</td>
+      <td>Research report, Coverage dashboard</td>
+      <td>Compact card displaying a metric value with label. Used in stat rows and dashboard grids. Centered layout with large value and small label.</td>
+      <td>None</td>
+      <td><span class="tag tag-priority-low">Low</span></td>
+    </tr>
+    <tr>
+      <td>Progress Bar</td>
+      <td>Coverage dashboard (coverage by source, by sensitivity)</td>
+      <td>Horizontal bar with track and fill. Supports color variants for different statuses. Used with adjacent percentage text label.</td>
+      <td>None</td>
+      <td><span class="tag tag-priority-low">Low</span></td>
+    </tr>
+    <tr>
+      <td>Confidence Indicator</td>
+      <td>Classify fields table</td>
+      <td>Compact inline bar with percentage label showing AI confidence score. Color-coded: green (high), yellow (medium), red (low). Specific to classification workflow but pattern is reusable.</td>
+      <td>Progress Bar (if built)</td>
+      <td><span class="tag tag-priority-low">Low</span></td>
+    </tr>
+    <tr>
+      <td>Empty State</td>
+      <td>Data sources (when no sources connected)</td>
+      <td>Centered layout with large icon, heading, description, and primary CTA button. Used when a section has no data. Important for first-time experience.</td>
+      <td>None</td>
+      <td><span class="tag tag-priority-low">Low</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Recommended Build Order</h2>
+<p>Based on reusability across the product, frequency of use, and dependency relationships.</p>
+
+<ol style="padding-left:20px;color:var(--text-secondary);">
+  <li style="padding:4px 0;"><strong>Status Tag / Badge</strong> -- Used on every screen, in every table row, and on dashboard cards. Foundation component.</li>
+  <li style="padding:4px 0;"><strong>Button</strong> -- Used everywhere. Needs primary/secondary/ghost/success/small variants with icon support.</li>
+  <li style="padding:4px 0;"><strong>Data Table</strong> -- Primary interface component. Depends on Status Tag and Button being available.</li>
+  <li style="padding:4px 0;"><strong>Bulk Action Bar</strong> -- Companion to Data Table. Build together.</li>
+  <li style="padding:4px 0;"><strong>Tabs</strong> -- Secondary navigation pattern needed across many pages.</li>
+  <li style="padding:4px 0;"><strong>Toast Notification</strong> -- Global feedback mechanism.</li>
+  <li style="padding:4px 0;"><strong>Error Banner</strong> -- Error state pattern.</li>
+  <li style="padding:4px 0;"><strong>Search Input + Filter Chip</strong> -- Toolbar patterns, build together.</li>
+  <li style="padding:4px 0;"><strong>Stat Card + Progress Bar</strong> -- Dashboard patterns, build together.</li>
+  <li style="padding:4px 0;"><strong>Toggle Tabs, Confidence Indicator, Empty State</strong> -- Lower priority, build as needed.</li>
+</ol>
+
+<h2>Token Coverage</h2>
+<p>The prototype uses Software DS color tokens exclusively via CSS custom properties. All semantic tokens (--sds-bg-*, --sds-text-*, --sds-border-*, --sds-interactive-*, --sds-status-*, --sds-nav-*) are used correctly. No raw hex values bypass the token system. The color system is well-covered; the gap is in component patterns, not tokens.</p>
+
+</body>
+</html>

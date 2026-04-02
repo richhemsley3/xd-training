@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wireframes — Access Request Portal</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #F5F5F5;
+    color: #333;
+    padding: 48px 40px;
+    line-height: 1.5;
+  }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+  .page-subtitle { font-size: 14px; color: #888; margin-bottom: 48px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 48px 0 8px; color: #333; }
+  .wire-desc { font-size: 13px; color: #888; margin-bottom: 20px; }
+
+  /* Wireframe container */
+  .wireframe {
+    border: 2px solid #CCC;
+    border-radius: 8px;
+    background: #FFF;
+    overflow: hidden;
+    margin-bottom: 48px;
+  }
+
+  /* Wireframe header bar */
+  .wire-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 48px;
+    padding: 0 16px;
+    border-bottom: 1px solid #DDD;
+    background: #FAFAFA;
+  }
+  .wire-logo {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .wire-logo-box {
+    width: 24px; height: 24px; background: #999; border-radius: 4px;
+  }
+  .wire-logo-text { font-size: 13px; font-weight: 600; color: #666; }
+  .wire-header-actions {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .wire-avatar {
+    width: 24px; height: 24px; border-radius: 50%; background: #BBB;
+  }
+
+  /* Layout below header */
+  .wire-layout {
+    display: flex;
+    min-height: 500px;
+  }
+
+  /* Sidebar */
+  .wire-sidebar {
+    width: 180px;
+    min-width: 180px;
+    border-right: 1px solid #DDD;
+    padding: 12px 8px;
+    background: #FAFAFA;
+  }
+  .wire-nav-group {
+    font-size: 10px;
+    font-weight: 600;
+    color: #AAA;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px 10px 4px;
+  }
+  .wire-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #666;
+    margin: 1px 0;
+  }
+  .wire-nav-item.active {
+    background: #E0E0E0;
+    color: #333;
+    font-weight: 500;
+  }
+  .wire-nav-icon {
+    width: 16px; height: 16px; background: #CCC; border-radius: 3px; flex-shrink: 0;
+  }
+  .wire-nav-badge {
+    margin-left: auto;
+    font-size: 11px;
+    background: #D33;
+    color: white;
+    padding: 0 6px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+
+  /* Content area */
+  .wire-content {
+    flex: 1;
+    padding: 24px;
+  }
+
+  /* Breadcrumb */
+  .wire-breadcrumb {
+    font-size: 12px; color: #999; margin-bottom: 4px;
+  }
+
+  /* Page title row */
+  .wire-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .wire-page-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  /* Button styles */
+  .wire-btn-primary {
+    padding: 8px 16px;
+    background: #666;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .wire-btn-secondary {
+    padding: 8px 16px;
+    background: white;
+    color: #333;
+    border: 1px solid #CCC;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .wire-btn-sm {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+  .wire-btn-success {
+    padding: 6px 14px;
+    background: #5A5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .wire-btn-danger {
+    padding: 6px 14px;
+    background: #C55;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  /* Stats row */
+  .wire-stats {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .wire-stat-card {
+    flex: 1;
+    padding: 14px 16px;
+    border: 1px solid #DDD;
+    border-radius: 8px;
+    background: #FAFAFA;
+  }
+  .wire-stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #333;
+  }
+  .wire-stat-label {
+    font-size: 12px;
+    color: #999;
+    margin-top: 2px;
+  }
+
+  /* Tabs */
+  .wire-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid #DDD;
+    margin-bottom: 16px;
+  }
+  .wire-tab {
+    padding: 8px 14px;
+    font-size: 13px;
+    color: #999;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+  }
+  .wire-tab.active {
+    color: #333;
+    border-bottom-color: #333;
+    font-weight: 500;
+  }
+
+  /* Table */
+  .wire-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .wire-table th {
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 2px solid #DDD;
+    font-size: 11px;
+    font-weight: 600;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .wire-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #EEE;
+    color: #555;
+  }
+  .wire-table tr:hover { background: #F9F9F9; }
+
+  /* Status badges */
+  .wire-status {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .wire-status-pending { background: #FFF3CD; color: #856404; }
+  .wire-status-approved { background: #D4EDDA; color: #155724; }
+  .wire-status-denied { background: #F8D7DA; color: #721C24; }
+  .wire-status-active { background: #D1ECF1; color: #0C5460; }
+
+  /* Filter bar */
+  .wire-filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    align-items: center;
+  }
+  .wire-search {
+    padding: 6px 12px;
+    border: 1px solid #CCC;
+    border-radius: 6px;
+    font-size: 13px;
+    width: 240px;
+    background: white;
+  }
+  .wire-select {
+    padding: 6px 12px;
+    border: 1px solid #CCC;
+    border-radius: 6px;
+    font-size: 13px;
+    background: white;
+  }
+
+  /* Timeline */
+  .wire-timeline {
+    position: relative;
+    padding-left: 24px;
+    margin: 16px 0;
+  }
+  .wire-timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    background: #DDD;
+  }
+  .wire-timeline-item {
+    position: relative;
+    padding: 8px 0;
+  }
+  .wire-timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 14px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #CCC;
+    border: 2px solid white;
+  }
+  .wire-timeline-item.completed::before {
+    background: #5A5;
+  }
+  .wire-timeline-item.current::before {
+    background: #F90;
+  }
+  .wire-timeline-label {
+    font-size: 13px; font-weight: 500; color: #333;
+  }
+  .wire-timeline-meta {
+    font-size: 12px; color: #999;
+  }
+
+  /* Request card (for approval queue) */
+  .wire-request-card {
+    border: 1px solid #DDD;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    background: white;
+  }
+  .wire-request-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+  .wire-request-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+  }
+  .wire-request-card-meta {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 8px;
+  }
+  .wire-request-card-body {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: #F9F9F9;
+    border-radius: 6px;
+  }
+  .wire-request-card-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  /* Form fields */
+  .wire-form-group {
+    margin-bottom: 16px;
+  }
+  .wire-form-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 4px;
+    display: block;
+  }
+  .wire-form-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #CCC;
+    border-radius: 6px;
+    font-size: 13px;
+    background: white;
+  }
+  .wire-form-textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #CCC;
+    border-radius: 6px;
+    font-size: 13px;
+    min-height: 80px;
+    resize: vertical;
+    background: white;
+  }
+  .wire-form-hint {
+    font-size: 11px;
+    color: #999;
+    margin-top: 2px;
+  }
+
+  /* Warning banner */
+  .wire-warning {
+    padding: 10px 14px;
+    background: #FFF3CD;
+    border: 1px solid #FFEEBA;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #856404;
+    margin-bottom: 16px;
+  }
+
+  /* Metric cards for audit */
+  .wire-metric-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .wire-metric-card {
+    padding: 16px;
+    border: 1px solid #DDD;
+    border-radius: 8px;
+    text-align: center;
+  }
+  .wire-metric-value {
+    font-size: 28px; font-weight: 700; color: #333;
+  }
+  .wire-metric-label {
+    font-size: 12px; color: #999;
+  }
+  .wire-metric-card.alert {
+    border-color: #F5C6CB;
+    background: #FFF5F5;
+  }
+  .wire-metric-card.alert .wire-metric-value { color: #C55; }
+
+  /* Section label */
+  .screen-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #999;
+    margin-bottom: 12px;
+    padding-top: 8px;
+  }
+
+  /* Annotation */
+  .annotation {
+    background: #FFFDE7;
+    border-left: 3px solid #F90;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #666;
+    margin: 12px 0;
+    border-radius: 0 4px 4px 0;
+  }
+</style>
+</head>
+<body>
+
+<h1>Wireframes</h1>
+<p class="page-subtitle">Access Request Portal -- Low-fidelity layouts for validation</p>
+
+<!-- ================================================================ -->
+<!-- SCREEN 1: MY REQUESTS (Requestor Dashboard) -->
+<!-- ================================================================ -->
+<h2>Screen 1: My Requests</h2>
+<p class="wire-desc">Primary dashboard for Data Engineers. Shows all submitted requests with status filtering.</p>
+<div class="annotation">Persona: Data Engineer (Priya). This is the first screen she sees when navigating to Access Requests.</div>
+
+<div class="screen-label">Requestor Dashboard</div>
+<div class="wireframe">
+  <div class="wire-header">
+    <div class="wire-logo">
+      <div class="wire-logo-box"></div>
+      <span class="wire-logo-text">Beacon</span>
+    </div>
+    <div class="wire-header-actions">
+      <span style="font-size:12px;color:#999;">?</span>
+      <div class="wire-avatar"></div>
+    </div>
+  </div>
+  <div class="wire-layout">
+    <nav class="wire-sidebar">
+      <div class="wire-nav-item"><div class="wire-nav-icon"></div> Getting started</div>
+      <div class="wire-nav-group">Tokenization</div>
+      <div class="wire-nav-item"><div class="wire-nav-icon"></div> Data catalog</div>
+      <div class="wire-nav-item"><div class="wire-nav-icon"></div> Activity</div>
+      <div class="wire-nav-item"><div class="wire-nav-icon"></div> Protection policies</div>
+      <div class="wire-nav-group">Access</div>
+      <div class="wire-nav-item active"><div class="wire-nav-icon"></div> My Requests</div>
+      <div class="wire-nav-item"><div class="wire-nav-icon"></div> Approval Queue</div>
+      <div class="wire-nav-item"><div class="wire-nav-icon"></div> Access Audit</div>
+      <div class="wire-nav-group">Administration</div>
+      <div class="wire-nav-item"><div class="wire-nav-icon"></div> Connections</div>
+      <div class="wire-nav-item"><div class="wire-nav-icon"></div> Users</div>
+    </nav>
+    <div class="wire-content">
+      <div class="wire-breadcrumb">Access &gt; My Requests</div>
+      <div class="wire-title-row">
+        <div class="wire-page-title">My Requests</div>
+        <button class="wire-btn-primary">+ New Request</button>
+      </div>
+
+      <div class="wire-stats">
+        <div class="wire-stat-card">
+          <div class="wire-stat-value">3</div>
+          <div class="wire-stat-label">Pending Approval</div>
+        </div>
+        <div class="wire-stat-card">
+          <div class="wire-stat-value">12</div>
+          <div class="wire-stat-label">Active Grants</div>
+        </div>
+        <div class="wire-stat-card">
+          <div class="wire-stat-value">2</div>
+          <div class="wire-stat-label">Expiring Soon</div>
+        </div>
+        <div class="wire-stat-card">
+          <div class="wire-stat-value">18</div>
+          <div class="wire-stat-label">Total Requests</div>
+        </div>
+      </div>
+
+      <div class="wire-filter-bar">
+        <input class="wire-search" placeholder="Search requests..." />
+        <select class="wire-select">
+          <option>All statuses</option>
+          <option>Pending</option>
+          <option>Approved</option>
+          <option>Denied</option>
+        </select>
+        <select class="wire-select">
+          <option>All domains</option>
+          <option>Customer Analytics</option>
+          <option>Finance</option>
+        </select>
+      </div>
+
+      <table class="wire-table">
+        <thead>
+          <tr>
+            <th>Request</th>
+            <th>Data Asset</th>
+            <th>Access Level</th>
+            <th>Status</th>
+            <th>Approver</th>
+            <th>Submitted</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:500;color:#333;">REQ-0042</td>
+            <td>customer_events (prod)</td>
+            <td>Read</td>
+            <td><span class="wire-status wire-status-pending">Pending Approval</span></td>
+            <td>Marcus Chen</td>
+            <td>Mar 18, 2026</td>
+          </tr>
+          <tr>
+            <td style="font-weight:500;color:#333;">REQ-0041</td>
+            <td>payment_transactions (prod)</td>
+            <td>Read</td>
+            <td><span class="wire-status wire-status-pending">Pending Approval</span></td>
+            <td>Sarah Kim</td>
+            <td>Mar 17, 2026</td>
+          </tr>
+          <tr>
+            <td style="font-weight:500;color:#333;">REQ-0039</td>
+            <td>user_profiles (staging)</td>
+            <td>Write</td>
+            <td><span class="wire-status wire-status-approved">Approved</span></td>
+            <td>Marcus Chen</td>
+            <td>Mar 14, 2026</td>
+          </tr>
+          <tr>
+            <td style="font-weight:500;color:#333;">REQ-0036</td>
+            <td>marketing_campaigns</td>
+            <td>Read</td>
+            <td><span class="wire-status wire-status-active">Active</span></td>
+            <td>Alex Torres</td>
+            <td>Mar 10, 2026</td>
+          </tr>
+          <tr>
+            <td style="font-weight:500;color:#333;">REQ-0031</td>
+            <td>financial_reports (prod)</td>
+            <td>Read</td>
+            <td><span class="wire-status wire-status-denied">Denied</span></td>
+            <td>Sarah Kim</td>
+            <td>Mar 5, 2026</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- SCREEN 2: NEW REQUEST FORM -->
+<!-- ================================================================ -->
+<h2>Screen 2: New Request Form</h2>
+<p class="wire-desc">Structured form for submitting a new access request. Includes duplicate detection and auto-routing preview.</p>
+<div class="annotation">Key design decision: Show the auto-detected approver before submission so the requestor knows who will review.</div>
+
+<div class="screen-label">Request Submission</div>
+<div class="wireframe">
+  <div class="wire-header">
+    <div class="wire-logo">
+      <div class="wire-logo-box"></div>
+      <span class="wire-logo-text">Beacon</span>
+    </div>
+    <div class="wire-header-actions">
+      <div class="wire-avatar"></div>
+    </div>
+  </div>
+  <div class="wire-layout">
+    <nav class="wire-sidebar">
+      <div class="wire-nav-group">Access</div>
+      <div class="wire-nav-item active"><div class="wire-nav-icon"></div> My Requests</div>
+      <div class="wire-nav-item"><div class="wire-nav-icon"></div> Approval Queue</div>
+    </nav>
+    <div class="wire-content" style="max-width: 640px;">
+      <div class="wire-breadcrumb">Access &gt; My Requests &gt; New Request</div>
+      <div class="wire-page-title" style="margin-bottom: 24px;">New Access Request</div>
+
+      <div class="wire-warning">
+        You already have a pending request for <strong>customer_events</strong> (REQ-0042). Submitting a duplicate will be flagged.
+      </div>
+
+      <div class="wire-form-group">
+        <label class="wire-form-label">Data Asset</label>
+        <input class="wire-form-input" value="customer_events (prod)" />
+        <div class="wire-form-hint">Search by table name, schema, or domain</div>
+      </div>
+
+      <div class="wire-form-group">
+        <label class="wire-form-label">Access Level</label>
+        <select class="wire-select" style="width:100%;">
+          <option>Read</option>
+          <option>Write</option>
+          <option>Admin</option>
+        </select>
+      </div>
+
+      <div class="wire-form-group">
+        <label class="wire-form-label">Duration</label>
+        <select class="wire-select" style="width:100%;">
+          <option>30 days</option>
+          <option>90 days</option>
+          <option>Permanent</option>
+        </select>
+      </div>
+
+      <div class="wire-form-group">
+        <label class="wire-form-label">Business Justification</label>
+        <textarea class="wire-form-textarea" placeholder="Explain why you need access to this data..."></textarea>
+        <div class="wire-form-hint">Required. Include your project name and use case.</div>
+      </div>
+
+      <div style="padding: 12px 16px; background: #F0F7FF; border-radius: 8px; margin-bottom: 20px; border: 1px solid #C0D8F0;">
+        <div style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 4px;">Auto-Routing Preview</div>
+        <div style="font-size: 13px; color: #333;">This request will be routed to <strong>Marcus Chen</strong> (Customer Analytics domain owner)</div>
+      </div>
+
+      <div style="display: flex; gap: 8px;">
+        <button class="wire-btn-primary">Submit Request</button>
+        <button class="wire-btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- SCREEN 3: REQUEST DETAIL -->
+<!-- ================================================================ -->
+<h2>Screen 3: Request Detail</h2>
+<p class="wire-desc">Full detail view of a single request showing the status timeline and activity log.</p>
+<div class="annotation">The timeline is the core element -- directly addresses the "no visibility" pain point.</div>
+
+<div class="screen-label">Request Detail View</div>
+<div class="wireframe">
+  <div class="wire-header">
+    <div class="wire-logo">
+      <div class="wire-logo-box"></div>
+      <span class="wire-logo-text">Beacon</span>
+    </div>
+    <div class="wire-header-actions">
+      <div class="wire-avatar"></div>
+    </div>
+  </div>
+  <div class="wire-layout">
+    <nav class="wire-sidebar">
+      <div class="wire-nav-group">Access</div>
+      <div class="wire-nav-item active"><div class="wire-nav-icon"></div> My Requests</div>
+      <div class="wire-nav-item"><div class="wire-nav-icon"></div> Approval Queue</div>
+    </nav>
+    <div class="wire-content">
+      <div class="wire-breadcrumb">Access &gt; My Requests &gt; REQ-0042</div>
+      <div class="wire-title-row">
+        <div>
+          <div class="wire-page-title">REQ-0042</div>
+          <div style="font-size:13px;color:#999;">customer_events (prod) -- Read access</div>
+        </div>
+        <span class="wire-status wire-status-pending" style="font-size:13px;padding:4px 12px;">Pending Approval</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 280px;gap:24px;">
+        <!-- Main content -->
+        <div>
+          <h3 style="font-size:14px;font-weight:600;margin-bottom:12px;color:#333;">Request Timeline</h3>
+          <div class="wire-timeline">
+            <div class="wire-timeline-item completed">
+              <div class="wire-timeline-label">Submitted</div>
+              <div class="wire-timeline-meta">Mar 18, 2026 at 2:15 PM by Priya Mehta</div>
+            </div>
+            <div class="wire-timeline-item completed">
+              <div class="wire-timeline-label">Auto-Routed</div>
+              <div class="wire-timeline-meta">Mar 18, 2026 at 2:15 PM -- Sent to Marcus Chen (Customer Analytics)</div>
+            </div>
+            <div class="wire-timeline-item current">
+              <div class="wire-timeline-label">Pending Approval</div>
+              <div class="wire-timeline-meta">Waiting for Marcus Chen -- 2 days elapsed</div>
+            </div>
+            <div class="wire-timeline-item">
+              <div class="wire-timeline-label">Provisioning</div>
+              <div class="wire-timeline-meta">--</div>
+            </div>
+            <div class="wire-timeline-item">
+              <div class="wire-timeline-label">Active</div>
+              <div class="wire-timeline-meta">--</div>
+            </div>
+          </div>
+
+          <h3 style="font-size:14px;font-weight:600;margin:24px 0 12px;color:#333;">Activity</h3>
+          <div style="border:1px solid #EEE;border-radius:8px;overflow:hidden;">
+            <div style="padding:10px 14px;border-bottom:1px solid #EEE;">
+              <div style="font-size:12px;color:#999;">Mar 18, 2:15 PM</div>
+              <div style="font-size:13px;color:#555;">Priya Mehta submitted this request</div>
+            </div>
+            <div style="padding:10px 14px;border-bottom:1px solid #EEE;">
+              <div style="font-size:12px;color:#999;">Mar 18, 2:15 PM</div>
+              <div style="font-size:13px;color:#555;">Auto-routed to Marcus Chen (domain owner)</div>
+            </div>
+            <div style="padding:10px 14px;">
+              <div style="font-size:12px;color:#999;">Mar 19, 9:00 AM</div>
+              <div style="font-size:13px;color:#555;">Reminder sent to Marcus Chen</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar metadata -->
+        <div>
+          <div style="border:1px solid #DDD;border-radius:8px;padding:16px;">
+            <h3 style="font-size:12px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:12px;">Request Details</h3>
+            <div style="margin-bottom:10px;">
+              <div style="font-size:11px;color:#999;">Data Asset</div>
+              <div style="font-size:13px;color:#333;font-weight:500;">customer_events (prod)</div>
+            </div>
+            <div style="margin-bottom:10px;">
+              <div style="font-size:11px;color:#999;">Access Level</div>
+              <div style="font-size:13px;color:#333;">Read</div>
+            </div>
+            <div style="margin-bottom:10px;">
+              <div style="font-size:11px;color:#999;">Duration</div>
+              <div style="font-size:13px;color:#333;">90 days</div>
+            </div>
+            <div style="margin-bottom:10px;">
+              <div style="font-size:11px;color:#999;">Requestor</div>
+              <div style="font-size:13px;color:#333;">Priya Mehta</div>
+            </div>
+            <div style="margin-bottom:10px;">
+              <div style="font-size:11px;color:#999;">Approver</div>
+              <div style="font-size:13px;color:#333;">Marcus Chen</div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:#999;">Justification</div>
+              <div style="font-size:13px;color:#555;">Need read access to build customer journey analytics pipeline for Q2 product review.</div>
+            </div>
+          </div>
+          <div style="margin-top:12px;">
+            <button class="wire-btn-secondary" style="width:100%;">Cancel Request</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- SCREEN 4: APPROVAL QUEUE -->
+<!-- ================================================================ -->
+<h2>Screen 4: Approval Queue</h2>
+<p class="wire-desc">Data Owner view showing pending requests requiring action. Supports one-click approve/deny.</p>
+<div class="annotation">Persona: Data Owner (Marcus). Card-based layout gives context at a glance without clicking through.</div>
+
+<div class="screen-label">Approver Dashboard</div>
+<div class="wireframe">
+  <div class="wire-header">
+    <div class="wire-logo">
+      <div class="wire-logo-box"></div>
+      <span class="wire-logo-text">Beacon</span>
+    </div>
+    <div class="wire-header-actions">
+      <div class="wire-avatar"></div>
+    </div>
+  </div>
+  <div class="wire-layout">
+    <nav class="wire-sidebar">
+      <div class="wire-nav-group">Access</div>
+      <div class="wire-nav-item"><div class="wire-nav-icon"></div> My Requests</div>
+      <div class="wire-nav-item active">
+        <div class="wire-nav-icon"></div> Approval Queue
+        <span class="wire-nav-badge">5</span>
+      </div>
+      <div class="wire-nav-item"><div class="wire-nav-icon"></div> Access Audit</div>
+    </nav>
+    <div class="wire-content">
+      <div class="wire-breadcrumb">Access &gt; Approval Queue</div>
+      <div class="wire-title-row">
+        <div class="wire-page-title">Approval Queue</div>
+        <div style="display:flex;gap:8px;">
+          <button class="wire-btn-secondary wire-btn-sm">Approve Selected</button>
+          <button class="wire-btn-secondary wire-btn-sm">Deny Selected</button>
+        </div>
+      </div>
+
+      <div class="wire-tabs">
+        <div class="wire-tab active">Pending (5)</div>
+        <div class="wire-tab">Completed (23)</div>
+        <div class="wire-tab">All</div>
+      </div>
+
+      <!-- Request card 1 -->
+      <div class="wire-request-card">
+        <div class="wire-request-card-header">
+          <div>
+            <div class="wire-request-card-title">REQ-0042: customer_events (prod)</div>
+            <div class="wire-request-card-meta">Priya Mehta -- Read access -- 90 days -- Submitted Mar 18</div>
+          </div>
+          <input type="checkbox" />
+        </div>
+        <div class="wire-request-card-body">
+          Need read access to build customer journey analytics pipeline for Q2 product review.
+        </div>
+        <div class="wire-request-card-actions">
+          <button class="wire-btn-success">Approve</button>
+          <button class="wire-btn-danger">Deny</button>
+          <button class="wire-btn-secondary wire-btn-sm">Request Info</button>
+          <button class="wire-btn-secondary wire-btn-sm">Delegate</button>
+        </div>
+      </div>
+
+      <!-- Request card 2 -->
+      <div class="wire-request-card">
+        <div class="wire-request-card-header">
+          <div>
+            <div class="wire-request-card-title">REQ-0043: user_profiles (prod)</div>
+            <div class="wire-request-card-meta">James Wong -- Write access -- 30 days -- Submitted Mar 19</div>
+          </div>
+          <input type="checkbox" />
+        </div>
+        <div class="wire-request-card-body">
+          Updating user profile enrichment pipeline to include new demographic fields for segmentation.
+        </div>
+        <div class="wire-request-card-actions">
+          <button class="wire-btn-success">Approve</button>
+          <button class="wire-btn-danger">Deny</button>
+          <button class="wire-btn-secondary wire-btn-sm">Request Info</button>
+          <button class="wire-btn-secondary wire-btn-sm">Delegate</button>
+        </div>
+      </div>
+
+      <!-- Request card 3 -->
+      <div class="wire-request-card">
+        <div class="wire-request-card-header">
+          <div>
+            <div class="wire-request-card-title">REQ-0044: order_history (prod)</div>
+            <div class="wire-request-card-meta">Lisa Park -- Read access -- Permanent -- Submitted Mar 19</div>
+          </div>
+          <input type="checkbox" />
+        </div>
+        <div class="wire-request-card-body">
+          Ongoing reporting for executive dashboard requires permanent read access to order data.
+        </div>
+        <div class="wire-request-card-actions">
+          <button class="wire-btn-success">Approve</button>
+          <button class="wire-btn-danger">Deny</button>
+          <button class="wire-btn-secondary wire-btn-sm">Request Info</button>
+          <button class="wire-btn-secondary wire-btn-sm">Delegate</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- SCREEN 5: ACCESS AUDIT -->
+<!-- ================================================================ -->
+<h2>Screen 5: Access Audit</h2>
+<p class="wire-desc">Security Admin view for compliance monitoring and reporting.</p>
+<div class="annotation">Persona: Security Admin (Jordan). Metrics at top surface anomalies. Full audit log below for investigation.</div>
+
+<div class="screen-label">Audit Dashboard</div>
+<div class="wireframe">
+  <div class="wire-header">
+    <div class="wire-logo">
+      <div class="wire-logo-box"></div>
+      <span class="wire-logo-text">Beacon</span>
+    </div>
+    <div class="wire-header-actions">
+      <div class="wire-avatar"></div>
+    </div>
+  </div>
+  <div class="wire-layout">
+    <nav class="wire-sidebar">
+      <div class="wire-nav-group">Access</div>
+      <div class="wire-nav-item"><div class="wire-nav-icon"></div> My Requests</div>
+      <div class="wire-nav-item"><div class="wire-nav-icon"></div> Approval Queue</div>
+      <div class="wire-nav-item active"><div class="wire-nav-icon"></div> Access Audit</div>
+    </nav>
+    <div class="wire-content">
+      <div class="wire-breadcrumb">Access &gt; Access Audit</div>
+      <div class="wire-title-row">
+        <div class="wire-page-title">Access Audit</div>
+        <button class="wire-btn-secondary">Export Report</button>
+      </div>
+
+      <div class="wire-metric-row">
+        <div class="wire-metric-card">
+          <div class="wire-metric-value">47</div>
+          <div class="wire-metric-label">Active Grants</div>
+        </div>
+        <div class="wire-metric-card">
+          <div class="wire-metric-value">8</div>
+          <div class="wire-metric-label">Pending Review</div>
+        </div>
+        <div class="wire-metric-card alert">
+          <div class="wire-metric-value">3</div>
+          <div class="wire-metric-label">Policy Violations</div>
+        </div>
+        <div class="wire-metric-card">
+          <div class="wire-metric-value">12</div>
+          <div class="wire-metric-label">Expiring This Week</div>
+        </div>
+      </div>
+
+      <div class="wire-tabs">
+        <div class="wire-tab active">Audit Log</div>
+        <div class="wire-tab">Policy Violations</div>
+        <div class="wire-tab">Access Patterns</div>
+      </div>
+
+      <div class="wire-filter-bar">
+        <input class="wire-search" placeholder="Search audit log..." />
+        <select class="wire-select">
+          <option>All actions</option>
+          <option>Granted</option>
+          <option>Denied</option>
+          <option>Revoked</option>
+        </select>
+        <select class="wire-select">
+          <option>Last 30 days</option>
+          <option>Last 7 days</option>
+          <option>Last 90 days</option>
+        </select>
+      </div>
+
+      <table class="wire-table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Action</th>
+            <th>Requestor</th>
+            <th>Data Asset</th>
+            <th>Approver</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Mar 19, 3:15 PM</td>
+            <td><span class="wire-status wire-status-approved">Granted</span></td>
+            <td>James Wong</td>
+            <td>user_profiles (staging)</td>
+            <td>Marcus Chen</td>
+            <td style="font-size:12px;">Write, 30 days</td>
+          </tr>
+          <tr>
+            <td>Mar 18, 4:00 PM</td>
+            <td><span class="wire-status wire-status-denied">Denied</span></td>
+            <td>Lisa Park</td>
+            <td>financial_reports (prod)</td>
+            <td>Sarah Kim</td>
+            <td style="font-size:12px;">Read, permanent. Reason: No business justification.</td>
+          </tr>
+          <tr>
+            <td>Mar 17, 10:30 AM</td>
+            <td><span class="wire-status wire-status-approved">Granted</span></td>
+            <td>Priya Mehta</td>
+            <td>marketing_campaigns</td>
+            <td>Alex Torres</td>
+            <td style="font-size:12px;">Read, 90 days</td>
+          </tr>
+          <tr style="background:#FFF5F5;">
+            <td>Mar 16, 2:00 PM</td>
+            <td><span class="wire-status wire-status-denied" style="background:#F8D7DA;">Violation</span></td>
+            <td>System</td>
+            <td>customer_pii (prod)</td>
+            <td>--</td>
+            <td style="font-size:12px;color:#C55;">Permanent grant without expiry policy. Auto-flagged.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:60px;padding:20px;background:#F0F0F0;border-radius:8px;">
+  <h3 style="font-size:14px;font-weight:600;margin-bottom:8px;">GUIDED MODE PAUSE POINT</h3>
+  <p style="font-size:13px;color:#666;">Would pause here to validate wireframes with the team. Key questions: (1) Is the card-based approval queue better than a table view? (2) Should the request form be a modal or a full page? (3) Is the audit dashboard missing any critical metrics?</p>
+</div>
+
+</body>
+</html>

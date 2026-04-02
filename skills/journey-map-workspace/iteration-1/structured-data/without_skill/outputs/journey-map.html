@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>B2B Software Purchase Journey Map</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f5f5;
+      padding: 30px;
+      color: #333;
+    }
+    h1 { text-align: center; font-size: 22px; margin-bottom: 6px; }
+    .subtitle { text-align: center; color: #888; font-size: 14px; margin-bottom: 28px; }
+
+    .journey-table-wrapper { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      overflow: hidden;
+      min-width: 1000px;
+    }
+    th, td {
+      border: 1px solid #e0e0e0;
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+    }
+    th {
+      background: #fafafa;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #888;
+    }
+    .phase-hdr {
+      color: white;
+      font-weight: bold;
+      text-align: center;
+      font-size: 14px;
+    }
+    .pain { color: #c0392b; }
+    .opp { color: #27ae60; }
+    .emotion-val {
+      font-weight: 600;
+      text-align: center;
+    }
+    .chart-box {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-top: 24px;
+    }
+    .chart-box h3 { margin-bottom: 12px; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h1>B2B Software Purchase Journey Map</h1>
+  <div class="subtitle">Discovery → Evaluation → Purchase → Implementation</div>
+
+  <div class="journey-table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:100px;"></th>
+          <th colspan="3" class="phase-hdr" style="background:#8e44ad;">Discovery</th>
+          <th colspan="3" class="phase-hdr" style="background:#2980b9;">Evaluation</th>
+          <th colspan="3" class="phase-hdr" style="background:#16a085;">Purchase</th>
+          <th colspan="3" class="phase-hdr" style="background:#27ae60;">Implementation</th>
+        </tr>
+        <tr>
+          <th></th>
+          <th>Google Search</th><th>Read Reviews</th><th>Visit Website</th>
+          <th>Free Trial</th><th>Demo Call</th><th>Internal Discussion</th>
+          <th>Procurement</th><th>Contract</th><th>Payment</th>
+          <th>Setup</th><th>Training</th><th>Go-Live</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>Emotion</th>
+          <td class="emotion-val">😐 0.5</td><td class="emotion-val">😐 0.6</td><td class="emotion-val">😊 0.7</td>
+          <td class="emotion-val">😊 0.8</td><td class="emotion-val">😊 0.7</td><td class="emotion-val">😐 0.4</td>
+          <td class="emotion-val">😞 0.3</td><td class="emotion-val">😞 0.2</td><td class="emotion-val">😐 0.5</td>
+          <td class="emotion-val">😐 0.6</td><td class="emotion-val">😊 0.7</td><td class="emotion-val">😊 0.9</td>
+        </tr>
+        <tr>
+          <th>Pain Points</th>
+          <td class="pain">Too many options</td>
+          <td class="pain">Hard to trust reviews</td>
+          <td>—</td>
+          <td class="pain">Trial too short</td>
+          <td class="pain">Demo scheduling friction</td>
+          <td>—</td>
+          <td class="pain">Complex procurement process</td>
+          <td class="pain">Legal review delays</td>
+          <td>—</td>
+          <td class="pain">Integration complexity</td>
+          <td>—</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <th>Opportunities</th>
+          <td class="opp">Add comparison tool</td>
+          <td class="opp">Add comparison tool</td>
+          <td>—</td>
+          <td class="opp">Extend trial</td>
+          <td class="opp">Self-serve demo</td>
+          <td>—</td>
+          <td class="opp">Streamline contract templates</td>
+          <td class="opp">Streamline contract templates</td>
+          <td>—</td>
+          <td class="opp">Pre-built integrations</td>
+          <td>—</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="chart-box">
+    <h3>Emotion Curve</h3>
+    <div id="chart"></div>
+  </div>
+
+  <script>
+    const steps = [
+      "Google Search", "Read Reviews", "Visit Website",
+      "Free Trial", "Demo Call", "Internal Discussion",
+      "Procurement", "Contract", "Payment",
+      "Setup", "Training", "Go-Live"
+    ];
+    const scores = [0.5, 0.6, 0.7, 0.8, 0.7, 0.4, 0.3, 0.2, 0.5, 0.6, 0.7, 0.9];
+
+    const data = steps.map((s, i) => ({ step: s, score: scores[i] }));
+
+    const margin = { top: 20, right: 30, bottom: 80, left: 50 };
+    const width = 900 - margin.left - margin.right;
+    const height = 260 - margin.top - margin.bottom;
+
+    const svg = d3.select("#chart")
+      .append("svg")
+      .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+      .attr("width", "100%")
+      .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const x = d3.scalePoint()
+      .domain(data.map(d => d.step))
+      .range([0, width])
+      .padding(0.3);
+
+    const y = d3.scaleLinear().domain([0, 1]).range([height, 0]);
+
+    // Grid lines
+    svg.selectAll(".grid-line")
+      .data([0, 0.25, 0.5, 0.75, 1])
+      .join("line")
+      .attr("x1", 0).attr("x2", width)
+      .attr("y1", d => y(d)).attr("y2", d => y(d))
+      .attr("stroke", "#eee").attr("stroke-width", 1);
+
+    svg.append("g")
+      .attr("transform", `translate(0,${height})`)
+      .call(d3.axisBottom(x))
+      .selectAll("text")
+      .attr("transform", "rotate(-40)")
+      .style("text-anchor", "end")
+      .style("font-size", "10px");
+
+    svg.append("g")
+      .call(d3.axisLeft(y).ticks(5).tickFormat(d => d.toFixed(1)));
+
+    // Area fill
+    const area = d3.area()
+      .x(d => x(d.step))
+      .y0(height)
+      .y1(d => y(d.score))
+      .curve(d3.curveMonotoneX);
+
+    svg.append("path")
+      .datum(data)
+      .attr("fill", "rgba(41, 128, 185, 0.1)")
+      .attr("d", area);
+
+    // Line
+    const line = d3.line()
+      .x(d => x(d.step))
+      .y(d => y(d.score))
+      .curve(d3.curveMonotoneX);
+
+    svg.append("path")
+      .datum(data)
+      .attr("fill", "none")
+      .attr("stroke", "#2980b9")
+      .attr("stroke-width", 2.5)
+      .attr("d", line);
+
+    // Dots
+    svg.selectAll(".dot")
+      .data(data)
+      .join("circle")
+      .attr("cx", d => x(d.step))
+      .attr("cy", d => y(d.score))
+      .attr("r", 5)
+      .attr("fill", d => d.score > 0.6 ? "#27ae60" : d.score > 0.3 ? "#2980b9" : "#c0392b")
+      .attr("stroke", "white")
+      .attr("stroke-width", 2);
+
+    // Score labels
+    svg.selectAll(".score-label")
+      .data(data)
+      .join("text")
+      .attr("x", d => x(d.step))
+      .attr("y", d => y(d.score) - 10)
+      .attr("text-anchor", "middle")
+      .attr("font-size", "11px")
+      .attr("fill", "#555")
+      .text(d => d.score.toFixed(1));
+  </script>
+</body>
+</html>

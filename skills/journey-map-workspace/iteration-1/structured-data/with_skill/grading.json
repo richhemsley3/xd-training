@@ -1,0 +1,57 @@
+{
+  "eval_name": "structured-data",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "HTML file exists",
+      "passed": true,
+      "evidence": "journey-map.html exists in outputs directory"
+    },
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": false,
+      "evidence": "File uses cdn.jsdelivr.net/npm/d3@7 instead of d3js.org"
+    },
+    {
+      "text": "All 4 phases present",
+      "passed": true,
+      "evidence": "Contains 'Discovery', 'Evaluation', 'Purchase', and 'Implementation' in phase definitions"
+    },
+    {
+      "text": "All 12 steps present",
+      "passed": true,
+      "evidence": "'Google Search', 'Free Trial', 'Procurement', and 'Go-Live' all found in step data"
+    },
+    {
+      "text": "Emotion scores in data",
+      "passed": true,
+      "evidence": "Score 0.2 found in Contract step: { score: 0.2, label: 'Very Frustrated' }"
+    },
+    {
+      "text": "Pain point: trust reviews",
+      "passed": true,
+      "evidence": "'Hard to trust reviews' found in Read Reviews step painPoints"
+    },
+    {
+      "text": "Opportunity: comparison tool",
+      "passed": true,
+      "evidence": "'Add comparison tool' found in Google Search and Read Reviews step opportunities"
+    },
+    {
+      "text": "Pain point: procurement",
+      "passed": true,
+      "evidence": "'Complex procurement process' found in Procurement step painPoints"
+    },
+    {
+      "text": "Opportunity: pre-built integrations",
+      "passed": true,
+      "evidence": "'Pre-built integrations' found in Setup step opportunities"
+    },
+    {
+      "text": "Emotion curve SVG",
+      "passed": true,
+      "evidence": "SVG created via D3: d3.select(emotionContainer).append('svg')"
+    }
+  ],
+  "pass_rate": 0.9
+}

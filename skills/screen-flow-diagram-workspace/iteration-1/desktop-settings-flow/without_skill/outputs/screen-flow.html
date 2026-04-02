@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings Flow - Screen Flow Diagram</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f0f2f5;
+    overflow: auto;
+  }
+
+  .diagram-header {
+    padding: 32px 48px 16px;
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .diagram-header h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #1a1a2e;
+  }
+
+  .diagram-header p {
+    font-size: 14px;
+    color: #6b7280;
+    margin-top: 4px;
+  }
+
+  .legend {
+    display: flex;
+    gap: 24px;
+    margin-top: 12px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #4b5563;
+  }
+
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.1);
+  }
+
+  #diagram-container {
+    padding: 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  svg text {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+</style>
+</head>
+<body>
+
+<div class="diagram-header">
+  <h1>Settings Flow</h1>
+  <p>Desktop web application settings navigation and interaction flow</p>
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#e8f4fd;border-color:#90caf9;"></div>
+      Screen
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#fff3e0;border-color:#ffb74d;"></div>
+      Modal Dialog
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#e3f2fd;"></div>
+      Navigation Arrow
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#ef5350;"></div>
+      Destructive Action
+    </div>
+  </div>
+</div>
+
+<div id="diagram-container">
+  <svg id="flow-svg"></svg>
+</div>
+
+<script>
+(function() {
+
+  // ── Configuration ──
+  const SCREEN_W = 320;
+  const SCREEN_H = 220;
+  const MODAL_W = 280;
+  const MODAL_H = 180;
+  const GAP_X = 120;
+  const GAP_Y = 100;
+  const ARROW_COLOR = '#90caf9';
+  const ARROW_DESTRUCTIVE = '#ef5350';
+  const SCREEN_FILL = '#ffffff';
+  const SCREEN_STROKE = '#90caf9';
+  const SCREEN_HEADER_BG = '#e8f4fd';
+  const MODAL_FILL = '#ffffff';
+  const MODAL_STROKE = '#ffb74d';
+  const MODAL_HEADER_BG = '#fff3e0';
+  const CORNER_R = 10;
+
+  // ── Screen data ──
+  const screens = [
+    {
+      id: 'settings-overview',
+      title: 'Settings Overview',
+      type: 'screen',
+      x: 0, y: 0,
+      content: [
+        { type: 'list-item', label: 'Profile', icon: 'user' },
+        { type: 'list-item', label: 'Notifications', icon: 'bell' },
+        { type: 'list-item', label: 'Security', icon: 'shield' },
+        { type: 'list-item', label: 'Billing', icon: 'card', muted: true },
+        { type: 'list-item', label: 'Integrations', icon: 'plug', muted: true },
+      ]
+    },
+    {
+      id: 'profile-settings',
+      title: 'Profile Settings',
+      type: 'screen',
+      x: SCREEN_W + GAP_X, y: -(SCREEN_H + GAP_Y) * 0.6,
+      content: [
+        { type: 'field', label: 'Full Name' },
+        { type: 'field', label: 'Email Address' },
+        { type: 'field', label: 'Job Title' },
+        { type: 'button', label: 'Save Changes', style: 'primary' },
+      ]
+    },
+    {
+      id: 'notification-prefs',
+      title: 'Notification Preferences',
+      type: 'screen',
+      x: SCREEN_W + GAP_X, y: 0,
+      content: [
+        { type: 'toggle', label: 'Email Notifications', on: true },
+        { type: 'toggle', label: 'Push Notifications', on: true },
+        { type: 'toggle', label: 'Weekly Digest', on: false },
+        { type: 'toggle', label: 'Marketing Emails', on: false },
+      ]
+    },
+    {
+      id: 'security-settings',
+      title: 'Security Settings',
+      type: 'screen',
+      x: SCREEN_W + GAP_X, y: (SCREEN_H + GAP_Y) * 0.6,
+      content: [
+        { type: 'field', label: 'Current Password', password: true },
+        { type: 'field', label: 'New Password', password: true },
+        { type: 'button', label: 'Update Password', style: 'primary' },
+        { type: 'button', label: 'Delete Account', style: 'danger' },
+      ]
+    },
+    {
+      id: 'delete-account-modal',
+      title: 'Delete Account',
+      type: 'modal',
+      x: (SCREEN_W + GAP_X) * 2 + 20, y: (SCREEN_H + GAP_Y) * 0.6 + 20,
+      content: [
+        { type: 'text', label: 'Are you sure you want to permanently delete your account? This action cannot be undone.' },
+        { type: 'field', label: 'Type "DELETE" to confirm' },
+        { type: 'button-row', buttons: [
+          { label: 'Cancel', style: 'secondary' },
+          { label: 'Delete', style: 'danger' },
+        ]},
+      ]
+    }
+  ];
+
+  // ── Arrows ──
+  const arrows = [
+    { from: 'settings-overview', to: 'profile-settings', label: 'Profile', fromSide: 'right', toSide: 'left' },
+    { from: 'settings-overview', to: 'notification-prefs', label: 'Notifications', fromSide: 'right', toSide: 'left' },
+    { from: 'settings-overview', to: 'security-settings', label: 'Security', fromSide: 'right', toSide: 'left' },
+    { from: 'security-settings', to: 'delete-account-modal', label: 'Delete Account', fromSide: 'right', toSide: 'left', destructive: true },
+  ];
+
+  // ── Compute bounding box ──
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  screens.forEach(s => {
+    const w = s.type === 'modal' ? MODAL_W : SCREEN_W;
+    const h = s.type === 'modal' ? MODAL_H : SCREEN_H;
+    if (s.x < minX) minX = s.x;
+    if (s.y < minY) minY = s.y;
+    if (s.x + w > maxX) maxX = s.x + w;
+    if (s.y + h > maxY) maxY = s.y + h;
+  });
+
+  const PAD = 60;
+  const svgW = maxX - minX + PAD * 2;
+  const svgH = maxY - minY + PAD * 2;
+  const offsetX = -minX + PAD;
+  const offsetY = -minY + PAD;
+
+  const svg = d3.select('#flow-svg')
+    .attr('width', svgW)
+    .attr('height', svgH);
+
+  // ── Defs: arrowhead markers, drop shadow ──
+  const defs = svg.append('defs');
+
+  defs.append('marker')
+    .attr('id', 'arrowhead')
+    .attr('viewBox', '0 0 10 7')
+    .attr('refX', 10).attr('refY', 3.5)
+    .attr('markerWidth', 10).attr('markerHeight', 7)
+    .attr('orient', 'auto')
+    .append('polygon')
+    .attr('points', '0 0, 10 3.5, 0 7')
+    .attr('fill', ARROW_COLOR);
+
+  defs.append('marker')
+    .attr('id', 'arrowhead-danger')
+    .attr('viewBox', '0 0 10 7')
+    .attr('refX', 10).attr('refY', 3.5)
+    .attr('markerWidth', 10).attr('markerHeight', 7)
+    .attr('orient', 'auto')
+    .append('polygon')
+    .attr('points', '0 0, 10 3.5, 0 7')
+    .attr('fill', ARROW_DESTRUCTIVE);
+
+  const filter = defs.append('filter')
+    .attr('id', 'shadow')
+    .attr('x', '-10%').attr('y', '-10%')
+    .attr('width', '130%').attr('height', '130%');
+  filter.append('feDropShadow')
+    .attr('dx', 0).attr('dy', 2)
+    .attr('stdDeviation', 4)
+    .attr('flood-color', 'rgba(0,0,0,0.10)');
+
+  const root = svg.append('g')
+    .attr('transform', `translate(${offsetX},${offsetY})`);
+
+  // ── Helper: get anchor point on screen edge ──
+  function anchor(s, side) {
+    const w = s.type === 'modal' ? MODAL_W : SCREEN_W;
+    const h = s.type === 'modal' ? MODAL_H : SCREEN_H;
+    switch (side) {
+      case 'right': return { x: s.x + w, y: s.y + h / 2 };
+      case 'left': return { x: s.x, y: s.y + h / 2 };
+      case 'bottom': return { x: s.x + w / 2, y: s.y + h };
+      case 'top': return { x: s.x + w / 2, y: s.y };
+    }
+  }
+
+  // ── Draw arrows ──
+  const screenMap = {};
+  screens.forEach(s => screenMap[s.id] = s);
+
+  arrows.forEach(a => {
+    const fromS = screenMap[a.from];
+    const toS = screenMap[a.to];
+    const p1 = anchor(fromS, a.fromSide);
+    const p2 = anchor(toS, a.toSide);
+
+    const midX = (p1.x + p2.x) / 2;
+
+    const color = a.destructive ? ARROW_DESTRUCTIVE : ARROW_COLOR;
+    const markerEnd = a.destructive ? 'url(#arrowhead-danger)' : 'url(#arrowhead)';
+
+    const path = d3.path();
+    if (a.fromSide === 'right' && a.toSide === 'left') {
+      path.moveTo(p1.x, p1.y);
+      path.bezierCurveTo(midX, p1.y, midX, p2.y, p2.x, p2.y);
+    } else {
+      path.moveTo(p1.x, p1.y);
+      path.lineTo(p2.x, p2.y);
+    }
+
+    root.append('path')
+      .attr('d', path.toString())
+      .attr('fill', 'none')
+      .attr('stroke', color)
+      .attr('stroke-width', 2)
+      .attr('stroke-dasharray', a.destructive ? '6,4' : 'none')
+      .attr('marker-end', markerEnd);
+
+    // Arrow label
+    const labelX = midX;
+    const labelY = (p1.y + p2.y) / 2 - 10;
+
+    root.append('rect')
+      .attr('x', labelX - 48)
+      .attr('y', labelY - 9)
+      .attr('width', 96)
+      .attr('height', 18)
+      .attr('rx', 9)
+      .attr('fill', a.destructive ? '#fce4ec' : '#e3f2fd')
+      .attr('stroke', a.destructive ? '#ef9a9a' : '#bbdefb')
+      .attr('stroke-width', 1);
+
+    root.append('text')
+      .attr('x', labelX)
+      .attr('y', labelY + 4)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', 11)
+      .attr('font-weight', 500)
+      .attr('fill', a.destructive ? '#c62828' : '#1565c0')
+      .text(a.label);
+  });
+
+  // ── Draw screens ──
+  screens.forEach(s => {
+    const isModal = s.type === 'modal';
+    const w = isModal ? MODAL_W : SCREEN_W;
+    const h = isModal ? MODAL_H : SCREEN_H;
+    const fill = isModal ? MODAL_FILL : SCREEN_FILL;
+    const stroke = isModal ? MODAL_STROKE : SCREEN_STROKE;
+    const headerBg = isModal ? MODAL_HEADER_BG : SCREEN_HEADER_BG;
+
+    const g = root.append('g')
+      .attr('transform', `translate(${s.x},${s.y})`);
+
+    // Card background
+    g.append('rect')
+      .attr('width', w)
+      .attr('height', h)
+      .attr('rx', CORNER_R)
+      .attr('fill', fill)
+      .attr('stroke', stroke)
+      .attr('stroke-width', 1.5)
+      .attr('filter', 'url(#shadow)');
+
+    // Header bar
+    g.append('rect')
+      .attr('width', w)
+      .attr('height', 32)
+      .attr('rx', CORNER_R)
+      .attr('fill', headerBg);
+    // Bottom half of header (no radius)
+    g.append('rect')
+      .attr('y', 10)
+      .attr('width', w)
+      .attr('height', 22)
+      .attr('fill', headerBg);
+
+    // Header border
+    g.append('line')
+      .attr('x1', 0).attr('y1', 32)
+      .attr('x2', w).attr('y2', 32)
+      .attr('stroke', stroke)
+      .attr('stroke-width', 1);
+
+    // Window dots (only for screens)
+    if (!isModal) {
+      [0, 1, 2].forEach((i) => {
+        g.append('circle')
+          .attr('cx', 14 + i * 14)
+          .attr('cy', 16)
+          .attr('r', 4)
+          .attr('fill', ['#ff5f57', '#febc2e', '#28c840'][i]);
+      });
+    }
+
+    // Title
+    g.append('text')
+      .attr('x', isModal ? w / 2 : 60)
+      .attr('y', 21)
+      .attr('text-anchor', isModal ? 'middle' : 'start')
+      .attr('font-size', 13)
+      .attr('font-weight', 600)
+      .attr('fill', '#1a1a2e')
+      .text(s.title);
+
+    // Close button for modal
+    if (isModal) {
+      g.append('text')
+        .attr('x', w - 16)
+        .attr('y', 21)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', 15)
+        .attr('fill', '#9e9e9e')
+        .attr('cursor', 'pointer')
+        .text('\u00d7');
+    }
+
+    // ── Content rendering ──
+    let cy = 44;
+    const px = 14;
+    const contentW = w - px * 2;
+
+    (s.content || []).forEach(item => {
+      if (item.type === 'list-item') {
+        const muted = item.muted;
+        // Row bg
+        g.append('rect')
+          .attr('x', px)
+          .attr('y', cy)
+          .attr('width', contentW)
+          .attr('height', 26)
+          .attr('rx', 4)
+          .attr('fill', muted ? '#fafafa' : '#f5f9ff')
+          .attr('stroke', muted ? '#eee' : '#e3ecf7')
+          .attr('stroke-width', 1);
+
+        g.append('text')
+          .attr('x', px + 10)
+          .attr('y', cy + 17)
+          .attr('font-size', 12)
+          .attr('fill', muted ? '#bbb' : '#333')
+          .text(item.label);
+
+        // Chevron
+        g.append('text')
+          .attr('x', px + contentW - 10)
+          .attr('y', cy + 17)
+          .attr('text-anchor', 'end')
+          .attr('font-size', 12)
+          .attr('fill', muted ? '#ccc' : '#90caf9')
+          .text('\u203a');
+
+        cy += 32;
+      }
+
+      if (item.type === 'field') {
+        g.append('text')
+          .attr('x', px)
+          .attr('y', cy + 10)
+          .attr('font-size', 10)
+          .attr('fill', '#666')
+          .text(item.label);
+        cy += 14;
+
+        g.append('rect')
+          .attr('x', px)
+          .attr('y', cy)
+          .attr('width', contentW)
+          .attr('height', 20)
+          .attr('rx', 3)
+          .attr('fill', '#f9f9f9')
+          .attr('stroke', '#ddd')
+          .attr('stroke-width', 1);
+
+        if (item.password) {
+          g.append('text')
+            .attr('x', px + 8)
+            .attr('y', cy + 14)
+            .attr('font-size', 11)
+            .attr('fill', '#999')
+            .text('\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022');
+        }
+
+        cy += 28;
+      }
+
+      if (item.type === 'toggle') {
+        const toggleW = 30;
+        const toggleH = 16;
+        const tx = px + contentW - toggleW - 2;
+
+        g.append('text')
+          .attr('x', px)
+          .attr('y', cy + 12)
+          .attr('font-size', 11)
+          .attr('fill', '#333')
+          .text(item.label);
+
+        // Track
+        g.append('rect')
+          .attr('x', tx)
+          .attr('y', cy + 2)
+          .attr('width', toggleW)
+          .attr('height', toggleH)
+          .attr('rx', toggleH / 2)
+          .attr('fill', item.on ? '#4caf50' : '#ccc');
+
+        // Knob
+        g.append('circle')
+          .attr('cx', item.on ? tx + toggleW - toggleH / 2 : tx + toggleH / 2)
+          .attr('cy', cy + 2 + toggleH / 2)
+          .attr('r', toggleH / 2 - 2)
+          .attr('fill', '#fff');
+
+        cy += 28;
+      }
+
+      if (item.type === 'button') {
+        const btnW = contentW;
+        const btnH = 24;
+        let bgColor, textColor, borderColor;
+        if (item.style === 'primary') {
+          bgColor = '#1976d2'; textColor = '#fff'; borderColor = '#1565c0';
+        } else if (item.style === 'danger') {
+          bgColor = '#fff'; textColor = '#e53935'; borderColor = '#e53935';
+        } else {
+          bgColor = '#f5f5f5'; textColor = '#333'; borderColor = '#ccc';
+        }
+
+        g.append('rect')
+          .attr('x', px)
+          .attr('y', cy)
+          .attr('width', btnW)
+          .attr('height', btnH)
+          .attr('rx', 4)
+          .attr('fill', bgColor)
+          .attr('stroke', borderColor)
+          .attr('stroke-width', 1);
+
+        g.append('text')
+          .attr('x', px + btnW / 2)
+          .attr('y', cy + 16)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', 11)
+          .attr('font-weight', 600)
+          .attr('fill', textColor)
+          .text(item.label);
+
+        cy += 32;
+      }
+
+      if (item.type === 'text') {
+        // Wrap text manually
+        const words = item.label.split(' ');
+        let line = '';
+        const lines = [];
+        const maxChars = 36;
+        words.forEach(w => {
+          if ((line + ' ' + w).trim().length > maxChars) {
+            lines.push(line.trim());
+            line = w;
+          } else {
+            line = (line + ' ' + w).trim();
+          }
+        });
+        if (line) lines.push(line.trim());
+
+        lines.forEach((l, i) => {
+          g.append('text')
+            .attr('x', px)
+            .attr('y', cy + 10 + i * 14)
+            .attr('font-size', 10)
+            .attr('fill', '#555')
+            .text(l);
+        });
+
+        cy += lines.length * 14 + 8;
+      }
+
+      if (item.type === 'button-row') {
+        const btnCount = item.buttons.length;
+        const gap = 8;
+        const btnW = (contentW - gap * (btnCount - 1)) / btnCount;
+        const btnH = 24;
+
+        item.buttons.forEach((btn, i) => {
+          let bgColor, textColor, borderColor;
+          if (btn.style === 'primary') {
+            bgColor = '#1976d2'; textColor = '#fff'; borderColor = '#1565c0';
+          } else if (btn.style === 'danger') {
+            bgColor = '#e53935'; textColor = '#fff'; borderColor = '#c62828';
+          } else {
+            bgColor = '#f5f5f5'; textColor = '#333'; borderColor = '#ccc';
+          }
+
+          const bx = px + i * (btnW + gap);
+
+          g.append('rect')
+            .attr('x', bx)
+            .attr('y', cy)
+            .attr('width', btnW)
+            .attr('height', btnH)
+            .attr('rx', 4)
+            .attr('fill', bgColor)
+            .attr('stroke', borderColor)
+            .attr('stroke-width', 1);
+
+          g.append('text')
+            .attr('x', bx + btnW / 2)
+            .attr('y', cy + 16)
+            .attr('text-anchor', 'middle')
+            .attr('font-size', 11)
+            .attr('font-weight', 600)
+            .attr('fill', textColor)
+            .text(btn.label);
+        });
+
+        cy += 32;
+      }
+    });
+
+    // Screen type badge
+    const badge = isModal ? 'MODAL' : 'SCREEN';
+    const badgeColor = isModal ? '#ff9800' : '#42a5f5';
+    const badgeBg = isModal ? '#fff3e0' : '#e3f2fd';
+
+    g.append('rect')
+      .attr('x', w - 60)
+      .attr('y', h - 22)
+      .attr('width', 52)
+      .attr('height', 16)
+      .attr('rx', 8)
+      .attr('fill', badgeBg)
+      .attr('stroke', badgeColor)
+      .attr('stroke-width', 0.8);
+
+    g.append('text')
+      .attr('x', w - 34)
+      .attr('y', h - 11)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', 9)
+      .attr('font-weight', 600)
+      .attr('fill', badgeColor)
+      .attr('letter-spacing', 0.5)
+      .text(badge);
+  });
+
+  // ── Flow step numbers ──
+  const stepOrder = ['settings-overview', 'profile-settings', 'notification-prefs', 'security-settings', 'delete-account-modal'];
+  stepOrder.forEach((id, i) => {
+    const s = screenMap[id];
+    const w = s.type === 'modal' ? MODAL_W : SCREEN_W;
+
+    root.append('circle')
+      .attr('cx', s.x + 14)
+      .attr('cy', s.y - 12)
+      .attr('r', 12)
+      .attr('fill', s.type === 'modal' ? '#ff9800' : '#1976d2')
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 2);
+
+    root.append('text')
+      .attr('x', s.x + 14)
+      .attr('y', s.y - 8)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', 11)
+      .attr('font-weight', 700)
+      .attr('fill', '#fff')
+      .text(i + 1);
+  });
+
+})();
+</script>
+</body>
+</html>

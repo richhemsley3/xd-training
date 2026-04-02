@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login / Sign Up Screen Flow</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f1117;
+    color: #e1e4ea;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    padding: 24px 32px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+  }
+  header .badge {
+    font-size: 11px;
+    font-weight: 500;
+    background: rgba(99,102,241,0.15);
+    color: #818cf8;
+    padding: 3px 10px;
+    border-radius: 100px;
+    letter-spacing: 0.02em;
+  }
+  .legend {
+    display: flex;
+    gap: 20px;
+    margin-left: auto;
+    font-size: 12px;
+    color: #8b8fa3;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+  }
+  #canvas {
+    flex: 1;
+    width: 100%;
+  }
+  svg { display: block; }
+
+  /* Tooltip */
+  .tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: #1e2030;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #c4c8d8;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    opacity: 0;
+    transition: opacity 0.15s;
+    max-width: 220px;
+    line-height: 1.5;
+    z-index: 10;
+  }
+  .tooltip strong {
+    color: #fff;
+    display: block;
+    margin-bottom: 2px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Login / Sign Up Screen Flow</h1>
+  <span class="badge">7 Screens</span>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#6366f1"></div> Entry / Exit</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div> Auth Screen</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div> Success</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div> Error</div>
+  </div>
+</header>
+
+<div id="canvas"></div>
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────
+const nodes = [
+  { id: "landing",       label: "Landing Page",          type: "entry",   description: "Welcome screen with Login and Sign Up CTAs" },
+  { id: "login",         label: "Login Form",            type: "auth",    description: "Email and password fields with submit button" },
+  { id: "signup",        label: "Sign Up Form",          type: "auth",    description: "Registration form: name, email, password" },
+  { id: "verification",  label: "Email Verification",    type: "auth",    description: "Prompt to check inbox and verify email" },
+  { id: "dashboard",     label: "Dashboard",             type: "success", description: "Authenticated home screen after login or signup" },
+  { id: "error",         label: "Invalid Credentials",   type: "error",   description: "Error message shown on failed login attempt" },
+];
+
+const links = [
+  { source: "landing",      target: "login",        label: "Login" },
+  { source: "landing",      target: "signup",       label: "Sign Up" },
+  { source: "login",        target: "dashboard",    label: "Success" },
+  { source: "login",        target: "error",        label: "Failure" },
+  { source: "error",        target: "login",        label: "Retry" },
+  { source: "signup",       target: "verification", label: "Submit" },
+  { source: "verification", target: "dashboard",    label: "Verified" },
+];
+
+// ── Layout (manual positions for clean flow) ──────────────────────
+const positions = {
+  landing:      { x: 160, y: 300 },
+  login:        { x: 460, y: 160 },
+  signup:       { x: 460, y: 440 },
+  error:        { x: 760, y: 60  },
+  dashboard:    { x: 1060, y: 300 },
+  verification: { x: 760, y: 440 },
+};
+
+// ── Palette ───────────────────────────────────────────────────────
+const palette = {
+  entry:   { fill: "#6366f1", stroke: "#818cf8", bg: "rgba(99,102,241,0.08)" },
+  auth:    { fill: "#3b82f6", stroke: "#60a5fa", bg: "rgba(59,130,246,0.08)" },
+  success: { fill: "#10b981", stroke: "#34d399", bg: "rgba(16,185,129,0.08)" },
+  error:   { fill: "#ef4444", stroke: "#f87171", bg: "rgba(239,68,68,0.08)" },
+};
+
+const nodeW = 180, nodeH = 72, nodeR = 12;
+
+// ── SVG Setup ─────────────────────────────────────────────────────
+const container = document.getElementById("canvas");
+const width = container.clientWidth || 1280;
+const height = container.clientHeight || 560;
+
+const svg = d3.select("#canvas")
+  .append("svg")
+  .attr("width", "100%")
+  .attr("height", "100%")
+  .attr("viewBox", `0 0 1260 560`)
+  .attr("preserveAspectRatio", "xMidYMid meet");
+
+// Defs: arrowheads & drop shadow
+const defs = svg.append("defs");
+
+// Arrow markers per type
+["normal","error","retry"].forEach(type => {
+  const color = type === "error" ? "#f87171" : type === "retry" ? "#fbbf24" : "#4b5563";
+  defs.append("marker")
+    .attr("id", `arrow-${type}`)
+    .attr("viewBox", "0 0 10 10")
+    .attr("refX", 10)
+    .attr("refY", 5)
+    .attr("markerWidth", 8)
+    .attr("markerHeight", 8)
+    .attr("orient", "auto-start-reverse")
+    .append("path")
+    .attr("d", "M 0 1 L 10 5 L 0 9 z")
+    .attr("fill", color);
+});
+
+// Drop shadow filter
+const filter = defs.append("filter").attr("id","shadow").attr("x","-20%").attr("y","-20%").attr("width","140%").attr("height","140%");
+filter.append("feDropShadow").attr("dx",0).attr("dy",2).attr("stdDeviation",6).attr("flood-color","rgba(0,0,0,0.35)");
+
+// ── Tooltip ───────────────────────────────────────────────────────
+const tooltip = d3.select("#tooltip");
+
+// ── Helper: curved path between node edges ────────────────────────
+function edgePath(src, tgt, link) {
+  const sx = positions[src].x, sy = positions[src].y;
+  const tx = positions[tgt].x, ty = positions[tgt].y;
+
+  // Determine exit/entry sides
+  let x1, y1, x2, y2;
+
+  // Special case: error → login (loop back upward-left)
+  if (src === "error" && tgt === "login") {
+    x1 = sx + nodeW / 2; y1 = sy;             // top of error
+    x2 = tx + nodeW / 2; y2 = ty;             // top of login
+    const cx1 = x1, cy1 = y1 - 80;
+    const cx2 = x2, cy2 = y2 - 80;
+    return `M${x1},${y1} C${cx1},${cy1} ${cx2},${cy2} ${x2},${y2}`;
+  }
+
+  // General: exit right, enter left
+  x1 = sx + nodeW; y1 = sy + nodeH / 2;
+  x2 = tx;         y2 = ty + nodeH / 2;
+
+  // If target is above/below and to the right, adjust
+  if (src === "login" && tgt === "error") {
+    x1 = sx + nodeW; y1 = sy + nodeH / 2;
+    x2 = tx;         y2 = ty + nodeH / 2;
+  }
+
+  const dx = (x2 - x1) * 0.5;
+  return `M${x1},${y1} C${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}`;
+}
+
+function linkType(l) {
+  if (l.source === "login" && l.target === "error") return "error";
+  if (l.source === "error" && l.target === "login") return "retry";
+  return "normal";
+}
+
+function linkColor(l) {
+  const t = linkType(l);
+  if (t === "error") return "#f87171";
+  if (t === "retry") return "#fbbf24";
+  return "#4b5563";
+}
+
+// ── Draw Links ────────────────────────────────────────────────────
+const linkG = svg.append("g").attr("class","links");
+
+links.forEach(l => {
+  const type = linkType(l);
+  const color = linkColor(l);
+  const d = edgePath(l.source, l.target, l);
+
+  // Path
+  linkG.append("path")
+    .attr("d", d)
+    .attr("fill", "none")
+    .attr("stroke", color)
+    .attr("stroke-width", 1.8)
+    .attr("stroke-dasharray", type === "retry" ? "6 4" : "none")
+    .attr("marker-end", `url(#arrow-${type})`)
+    .attr("opacity", 0.7);
+
+  // Label on path
+  const tempPath = linkG.append("path").attr("d", d).attr("fill","none").attr("stroke","none");
+  const totalLen = tempPath.node().getTotalLength();
+  const mid = tempPath.node().getPointAtLength(totalLen * 0.5);
+  tempPath.remove();
+
+  // Offset label so it doesn't overlap path
+  let offsetY = -10;
+  if (l.source === "error" && l.target === "login") offsetY = -14;
+
+  linkG.append("text")
+    .attr("x", mid.x)
+    .attr("y", mid.y + offsetY)
+    .attr("text-anchor", "middle")
+    .attr("fill", color)
+    .attr("font-size", 11)
+    .attr("font-weight", 500)
+    .attr("font-family", "inherit")
+    .text(l.label);
+});
+
+// ── Draw Nodes ────────────────────────────────────────────────────
+const nodeG = svg.append("g").attr("class","nodes");
+
+nodes.forEach(n => {
+  const p = positions[n.id];
+  const pal = palette[n.type];
+  const g = nodeG.append("g")
+    .attr("transform", `translate(${p.x}, ${p.y})`)
+    .style("cursor", "pointer");
+
+  // Background glow
+  g.append("rect")
+    .attr("width", nodeW)
+    .attr("height", nodeH)
+    .attr("rx", nodeR)
+    .attr("fill", pal.bg)
+    .attr("stroke", pal.stroke)
+    .attr("stroke-width", 1.4)
+    .attr("filter", "url(#shadow)");
+
+  // Accent bar on left
+  g.append("rect")
+    .attr("x", 0)
+    .attr("y", 0)
+    .attr("width", 4)
+    .attr("height", nodeH)
+    .attr("rx", 2)
+    .attr("fill", pal.fill);
+
+  // Type badge
+  const badgeText = n.type.charAt(0).toUpperCase() + n.type.slice(1);
+  g.append("rect")
+    .attr("x", 18)
+    .attr("y", 12)
+    .attr("width", badgeText.length * 6.5 + 12)
+    .attr("height", 18)
+    .attr("rx", 9)
+    .attr("fill", pal.fill)
+    .attr("opacity", 0.2);
+  g.append("text")
+    .attr("x", 24)
+    .attr("y", 24.5)
+    .attr("fill", pal.stroke)
+    .attr("font-size", 10)
+    .attr("font-weight", 600)
+    .attr("font-family", "inherit")
+    .attr("letter-spacing", "0.03em")
+    .text(badgeText.toUpperCase());
+
+  // Label
+  g.append("text")
+    .attr("x", 18)
+    .attr("y", 52)
+    .attr("fill", "#fff")
+    .attr("font-size", 14)
+    .attr("font-weight", 600)
+    .attr("font-family", "inherit")
+    .text(n.label);
+
+  // Hover interactions
+  g.on("mouseenter", function(event) {
+    d3.select(this).select("rect").attr("stroke-width", 2.2);
+    tooltip.style("opacity", 1)
+      .html(`<strong>${n.label}</strong>${n.description}`)
+      .style("left", (event.pageX + 14) + "px")
+      .style("top", (event.pageY - 10) + "px");
+  })
+  .on("mousemove", function(event) {
+    tooltip.style("left", (event.pageX + 14) + "px")
+      .style("top", (event.pageY - 10) + "px");
+  })
+  .on("mouseleave", function() {
+    d3.select(this).select("rect").attr("stroke-width", 1.4);
+    tooltip.style("opacity", 0);
+  });
+});
+
+// ── Path annotations ──────────────────────────────────────────────
+const annotations = [
+  { x: 310, y: 120, text: "Login Path", color: "#60a5fa" },
+  { x: 310, y: 490, text: "Sign Up Path", color: "#60a5fa" },
+  { x: 760, y: 20,  text: "Error Path (retry loop)", color: "#fbbf24" },
+];
+
+annotations.forEach(a => {
+  svg.append("text")
+    .attr("x", a.x)
+    .attr("y", a.y)
+    .attr("fill", a.color)
+    .attr("font-size", 11)
+    .attr("font-weight", 500)
+    .attr("font-family", "inherit")
+    .attr("opacity", 0.6)
+    .text(a.text);
+});
+</script>
+</body>
+</html>

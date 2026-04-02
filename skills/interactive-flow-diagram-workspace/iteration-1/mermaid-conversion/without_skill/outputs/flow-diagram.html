@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Purchase Flow Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f1117;
+    color: #e1e4e8;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  #canvas-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    cursor: grab;
+  }
+
+  #canvas-container.dragging { cursor: grabbing; }
+
+  svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* Tooltip */
+  #tooltip {
+    position: fixed;
+    background: #1c1f26;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #c9d1d9;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 100;
+    max-width: 220px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  }
+
+  #tooltip.visible { opacity: 1; }
+
+  #tooltip .tooltip-title {
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 4px;
+    font-size: 14px;
+  }
+
+  /* Controls */
+  .controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    gap: 6px;
+    z-index: 50;
+  }
+
+  .controls button {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid #30363d;
+    background: #1c1f26;
+    color: #c9d1d9;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .controls button:hover {
+    background: #272b33;
+    border-color: #484f58;
+  }
+
+  /* Legend */
+  .legend {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: #1c1f26;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 14px 18px;
+    z-index: 50;
+    font-size: 12px;
+  }
+
+  .legend h3 {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #fff;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .legend-swatch.terminal { border-radius: 50%; }
+
+  /* Active step highlight */
+  .step-indicator {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #1c1f26;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 14px 18px;
+    z-index: 50;
+    font-size: 13px;
+    min-width: 180px;
+  }
+
+  .step-indicator h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #8b949e;
+    margin-bottom: 6px;
+  }
+
+  .step-indicator .step-name {
+    font-weight: 600;
+    font-size: 15px;
+    color: #fff;
+  }
+
+  .step-indicator .step-type {
+    font-size: 11px;
+    color: #8b949e;
+    margin-top: 2px;
+  }
+
+  /* Minimap */
+  .minimap {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 180px;
+    height: 100px;
+    background: #1c1f26;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    overflow: hidden;
+    z-index: 50;
+  }
+
+  .minimap svg { pointer-events: none; }
+</style>
+</head>
+<body>
+
+<div id="canvas-container">
+  <svg id="diagram" xmlns="http://www.w3.org/2000/svg"></svg>
+</div>
+
+<div id="tooltip">
+  <div class="tooltip-title"></div>
+  <div class="tooltip-body"></div>
+</div>
+
+<div class="legend">
+  <h3>Legend</h3>
+  <div class="legend-item">
+    <div class="legend-swatch terminal" style="background:#58a6ff"></div>
+    <span>Terminal (Start / End)</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-swatch" style="background:#7c3aed"></div>
+    <span>Process</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-swatch" style="background:#f59e42; transform:rotate(45deg); width:11px; height:11px;"></div>
+    <span>Decision</span>
+  </div>
+</div>
+
+<div class="step-indicator" id="step-indicator" style="display:none">
+  <h3>Selected Node</h3>
+  <div class="step-name" id="step-name"></div>
+  <div class="step-type" id="step-type"></div>
+</div>
+
+<div class="controls">
+  <button id="zoom-in" title="Zoom In">+</button>
+  <button id="zoom-out" title="Zoom Out">&minus;</button>
+  <button id="zoom-fit" title="Fit to Screen">&#8859;</button>
+</div>
+
+<script>
+// ── Data ──
+const nodes = [
+  { id: 'A', label: 'Start',                type: 'terminal', desc: 'User begins the shopping flow.' },
+  { id: 'B', label: 'Search Products',      type: 'process',  desc: 'User searches the product catalogue.' },
+  { id: 'C', label: 'Found results?',       type: 'decision', desc: 'Were any matching products found?' },
+  { id: 'D', label: 'Product Detail',       type: 'process',  desc: 'User views a specific product page.' },
+  { id: 'E', label: 'No Results Page',      type: 'process',  desc: 'Displays an empty-state with suggestions.' },
+  { id: 'F', label: 'In Stock?',            type: 'decision', desc: 'Is the selected product currently in stock?' },
+  { id: 'G', label: 'Add to Cart',          type: 'process',  desc: 'Product is added to the shopping cart.' },
+  { id: 'H', label: 'Notify When Available',type: 'process',  desc: 'User opts in to a back-in-stock alert.' },
+  { id: 'I', label: 'Checkout',             type: 'process',  desc: 'User proceeds through checkout.' },
+  { id: 'J', label: 'Order Confirmed',      type: 'terminal', desc: 'Order placed successfully.' },
+];
+
+const edges = [
+  { from: 'A', to: 'B', label: '' },
+  { from: 'B', to: 'C', label: '' },
+  { from: 'C', to: 'D', label: 'Yes' },
+  { from: 'C', to: 'E', label: 'No' },
+  { from: 'E', to: 'B', label: '' },
+  { from: 'D', to: 'F', label: '' },
+  { from: 'F', to: 'G', label: 'Yes' },
+  { from: 'F', to: 'H', label: 'No' },
+  { from: 'G', to: 'I', label: '' },
+  { from: 'I', to: 'J', label: '' },
+];
+
+// ── Layout (manual for clarity) ──
+const W = 160, H = 56, GAP_X = 100, GAP_Y = 90;
+const positions = {
+  A: { x: 0,   y: 0 },
+  B: { x: 1,   y: 0 },
+  C: { x: 2,   y: 0 },
+  D: { x: 3,   y: 0 },
+  E: { x: 2,   y: 1 },
+  F: { x: 4,   y: 0 },
+  G: { x: 5,   y: 0 },
+  H: { x: 5,   y: 1 },
+  I: { x: 6,   y: 0 },
+  J: { x: 7,   y: 0 },
+};
+
+// Compute pixel positions
+const PADDING = 80;
+nodes.forEach(n => {
+  const p = positions[n.id];
+  n.x = PADDING + p.x * (W + GAP_X) + W / 2;
+  n.y = PADDING + p.y * (H + GAP_Y) + H / 2;
+});
+
+const nodeMap = {};
+nodes.forEach(n => nodeMap[n.id] = n);
+
+// ── Colors ──
+const colors = {
+  terminal: { fill: '#162d50', stroke: '#58a6ff', text: '#58a6ff' },
+  process:  { fill: '#1e1640', stroke: '#7c3aed', text: '#c4b5fd' },
+  decision: { fill: '#2d1f0e', stroke: '#f59e42', text: '#fbbf24' },
+};
+
+const activeColors = {
+  terminal: { fill: '#1a4080', stroke: '#79bbff' },
+  process:  { fill: '#2e1a60', stroke: '#a78bfa' },
+  decision: { fill: '#4a3018', stroke: '#fbbf24' },
+};
+
+// ── SVG builder ──
+const svg = document.getElementById('diagram');
+const NS = 'http://www.w3.org/2000/svg';
+
+function el(tag, attrs) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs || {})) e.setAttribute(k, v);
+  return e;
+}
+
+// Defs
+const defs = el('defs');
+// Arrowhead
+const marker = el('marker', { id: 'arrow', viewBox: '0 0 10 10', refX: '10', refY: '5', markerWidth: '8', markerHeight: '8', orient: 'auto-start-reverse' });
+marker.appendChild(el('path', { d: 'M 0 0 L 10 5 L 0 10 z', fill: '#484f58' }));
+defs.appendChild(marker);
+
+const markerActive = el('marker', { id: 'arrow-active', viewBox: '0 0 10 10', refX: '10', refY: '5', markerWidth: '8', markerHeight: '8', orient: 'auto-start-reverse' });
+markerActive.appendChild(el('path', { d: 'M 0 0 L 10 5 L 0 10 z', fill: '#58a6ff' }));
+defs.appendChild(markerActive);
+
+// Glow filter
+const filter = el('filter', { id: 'glow', x: '-50%', y: '-50%', width: '200%', height: '200%' });
+const blur = el('feGaussianBlur', { stdDeviation: '4', result: 'coloredBlur' });
+const merge = el('feMerge');
+merge.appendChild(el('feMergeNode', { in: 'coloredBlur' }));
+merge.appendChild(el('feMergeNode', { in: 'SourceGraphic' }));
+filter.appendChild(blur);
+filter.appendChild(merge);
+defs.appendChild(filter);
+
+svg.appendChild(defs);
+
+// Main group for pan/zoom
+const mainG = el('g', { id: 'main-group' });
+svg.appendChild(mainG);
+
+// ── Draw edges ──
+const edgeElements = [];
+
+function getEdgePoints(from, to) {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+
+  // Special case: E -> B (loop back up-left)
+  if (from.id === 'E' && to.id === 'B') {
+    const startX = from.x - W/2;
+    const startY = from.y;
+    const endX = to.x;
+    const endY = to.y + H/2;
+    const midX = to.x - W/2 - 30;
+    return { type: 'path', d: `M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}` };
+  }
+
+  // Decision downward (No branch for C and F)
+  if (from.type === 'decision' && dy > 20) {
+    const startX = from.x;
+    const startY = from.y + H/2 * 0.7;
+    const endX = to.x;
+    const endY = to.y - H/2;
+    return { type: 'path', d: `M ${startX} ${startY} L ${startX} ${(startY + endY) / 2} L ${endX} ${(startY + endY) / 2} L ${endX} ${endY}` };
+  }
+
+  // Horizontal
+  const startX = from.x + W/2;
+  const startY = from.y;
+  const endX = to.x - W/2;
+  const endY = to.y;
+
+  if (Math.abs(dy) < 5) {
+    return { type: 'line', x1: startX, y1: startY, x2: endX, y2: endY };
+  }
+
+  return { type: 'path', d: `M ${startX} ${startY} C ${(startX+endX)/2} ${startY}, ${(startX+endX)/2} ${endY}, ${endX} ${endY}` };
+}
+
+edges.forEach(edge => {
+  const from = nodeMap[edge.from];
+  const to = nodeMap[edge.to];
+  const pts = getEdgePoints(from, to);
+
+  let line;
+  if (pts.type === 'line') {
+    line = el('line', { x1: pts.x1, y1: pts.y1, x2: pts.x2, y2: pts.y2, stroke: '#30363d', 'stroke-width': '2', 'marker-end': 'url(#arrow)' });
+  } else {
+    line = el('path', { d: pts.d, stroke: '#30363d', 'stroke-width': '2', fill: 'none', 'marker-end': 'url(#arrow)' });
+  }
+
+  line.style.transition = 'stroke 0.25s ease';
+  mainG.appendChild(line);
+
+  // Edge label
+  let labelEl = null;
+  if (edge.label) {
+    let lx, ly;
+    if (pts.type === 'line') {
+      lx = (pts.x1 + pts.x2) / 2;
+      ly = (pts.y1 + pts.y2) / 2 - 10;
+    } else {
+      // For decision branches
+      if (from.type === 'decision' && (to.y - from.y) > 20) {
+        lx = from.x + 14;
+        ly = from.y + H/2 + 16;
+      } else {
+        lx = (from.x + to.x) / 2;
+        ly = (from.y + to.y) / 2 - 10;
+      }
+    }
+
+    const bg = el('rect', { x: lx - 16, y: ly - 10, width: 32, height: 18, rx: 4, fill: '#0f1117', stroke: 'none' });
+    mainG.appendChild(bg);
+
+    labelEl = el('text', { x: lx, y: ly + 3, 'text-anchor': 'middle', 'font-size': '11', 'font-weight': '600', fill: edge.label === 'Yes' ? '#3fb950' : '#f85149', 'font-family': '-apple-system, sans-serif' });
+    labelEl.textContent = edge.label;
+    mainG.appendChild(labelEl);
+  }
+
+  edgeElements.push({ from: edge.from, to: edge.to, line, labelEl });
+});
+
+// ── Draw nodes ──
+const nodeElements = {};
+
+nodes.forEach(n => {
+  const c = colors[n.type];
+  const g = el('g', { 'data-id': n.id, class: 'node-group' });
+  g.style.cursor = 'pointer';
+
+  let shape;
+  if (n.type === 'terminal') {
+    shape = el('rect', { x: n.x - W/2, y: n.y - H/2, width: W, height: H, rx: H/2, fill: c.fill, stroke: c.stroke, 'stroke-width': '2' });
+  } else if (n.type === 'decision') {
+    const dw = W * 0.55, dh = H * 0.7;
+    shape = el('polygon', { points: `${n.x},${n.y - dh} ${n.x + dw},${n.y} ${n.x},${n.y + dh} ${n.x - dw},${n.y}`, fill: c.fill, stroke: c.stroke, 'stroke-width': '2' });
+  } else {
+    shape = el('rect', { x: n.x - W/2, y: n.y - H/2, width: W, height: H, rx: 10, fill: c.fill, stroke: c.stroke, 'stroke-width': '2' });
+  }
+
+  shape.style.transition = 'fill 0.25s ease, stroke 0.25s ease, filter 0.25s ease';
+
+  const label = el('text', { x: n.x, y: n.y + 5, 'text-anchor': 'middle', 'font-size': '13', 'font-weight': '600', fill: c.text, 'font-family': '-apple-system, sans-serif' });
+  label.textContent = n.label;
+  label.style.pointerEvents = 'none';
+  label.style.transition = 'fill 0.25s ease';
+
+  g.appendChild(shape);
+  g.appendChild(label);
+  mainG.appendChild(g);
+
+  nodeElements[n.id] = { g, shape, label };
+});
+
+// ── Interaction State ──
+let selectedNode = null;
+let hoveredNode = null;
+
+function getUpstream(nodeId) {
+  const result = new Set();
+  const visited = new Set();
+  function walk(id) {
+    if (visited.has(id)) return;
+    visited.add(id);
+    edges.forEach(e => {
+      if (e.to === id) { result.add(e.from); walk(e.from); }
+    });
+  }
+  walk(nodeId);
+  return result;
+}
+
+function getDownstream(nodeId) {
+  const result = new Set();
+  const visited = new Set();
+  function walk(id) {
+    if (visited.has(id)) return;
+    visited.add(id);
+    edges.forEach(e => {
+      if (e.from === id) { result.add(e.to); walk(e.to); }
+    });
+  }
+  walk(nodeId);
+  return result;
+}
+
+function highlightNode(nodeId) {
+  const upstream = getUpstream(nodeId);
+  const downstream = getDownstream(nodeId);
+  const connected = new Set([nodeId, ...upstream, ...downstream]);
+
+  // Dim / highlight nodes
+  nodes.forEach(n => {
+    const ne = nodeElements[n.id];
+    const c = colors[n.type];
+    const ac = activeColors[n.type];
+    const isConnected = connected.has(n.id);
+    const isSelected = n.id === nodeId;
+
+    ne.shape.setAttribute('fill', isSelected ? ac.fill : (isConnected ? c.fill : '#0d0f14'));
+    ne.shape.setAttribute('stroke', isSelected ? ac.stroke : (isConnected ? c.stroke : '#1a1d24'));
+    ne.label.setAttribute('fill', isConnected ? c.text : '#3a3f47');
+
+    if (isSelected) {
+      ne.shape.style.filter = 'url(#glow)';
+    } else {
+      ne.shape.style.filter = 'none';
+    }
+  });
+
+  // Dim / highlight edges
+  edgeElements.forEach(ee => {
+    const isOnPath = (connected.has(ee.from) && connected.has(ee.to));
+    const isActive = (ee.from === nodeId && downstream.has(ee.to)) || (ee.to === nodeId && upstream.has(ee.from));
+    ee.line.setAttribute('stroke', isOnPath ? '#58a6ff' : '#151820');
+    ee.line.setAttribute('stroke-width', isActive ? '3' : '2');
+    ee.line.setAttribute('marker-end', isOnPath ? 'url(#arrow-active)' : 'url(#arrow)');
+    if (ee.labelEl) {
+      ee.labelEl.setAttribute('fill', isOnPath ? (ee.labelEl.textContent === 'Yes' ? '#3fb950' : '#f85149') : '#252830');
+    }
+  });
+
+  // Step indicator
+  const n = nodeMap[nodeId];
+  document.getElementById('step-indicator').style.display = 'block';
+  document.getElementById('step-name').textContent = n.label;
+  document.getElementById('step-type').textContent = n.type.charAt(0).toUpperCase() + n.type.slice(1) + ' node';
+}
+
+function clearHighlight() {
+  nodes.forEach(n => {
+    const ne = nodeElements[n.id];
+    const c = colors[n.type];
+    ne.shape.setAttribute('fill', c.fill);
+    ne.shape.setAttribute('stroke', c.stroke);
+    ne.label.setAttribute('fill', c.text);
+    ne.shape.style.filter = 'none';
+  });
+
+  edgeElements.forEach(ee => {
+    ee.line.setAttribute('stroke', '#30363d');
+    ee.line.setAttribute('stroke-width', '2');
+    ee.line.setAttribute('marker-end', 'url(#arrow)');
+    if (ee.labelEl) {
+      ee.labelEl.setAttribute('fill', ee.labelEl.textContent === 'Yes' ? '#3fb950' : '#f85149');
+    }
+  });
+
+  document.getElementById('step-indicator').style.display = 'none';
+}
+
+// ── Tooltip ──
+const tooltip = document.getElementById('tooltip');
+
+function showTooltip(nodeId, x, y) {
+  const n = nodeMap[nodeId];
+  tooltip.querySelector('.tooltip-title').textContent = n.label;
+  tooltip.querySelector('.tooltip-body').textContent = n.desc;
+  tooltip.style.left = (x + 14) + 'px';
+  tooltip.style.top = (y + 14) + 'px';
+  tooltip.classList.add('visible');
+}
+
+function hideTooltip() {
+  tooltip.classList.remove('visible');
+}
+
+// ── Event handlers on nodes ──
+Object.entries(nodeElements).forEach(([id, ne]) => {
+  ne.g.addEventListener('mouseenter', (e) => {
+    hoveredNode = id;
+    if (!selectedNode) highlightNode(id);
+    showTooltip(id, e.clientX, e.clientY);
+  });
+
+  ne.g.addEventListener('mousemove', (e) => {
+    if (tooltip.classList.contains('visible')) {
+      tooltip.style.left = (e.clientX + 14) + 'px';
+      tooltip.style.top = (e.clientY + 14) + 'px';
+    }
+  });
+
+  ne.g.addEventListener('mouseleave', () => {
+    hoveredNode = null;
+    if (!selectedNode) clearHighlight();
+    hideTooltip();
+  });
+
+  ne.g.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (selectedNode === id) {
+      selectedNode = null;
+      clearHighlight();
+    } else {
+      selectedNode = id;
+      highlightNode(id);
+    }
+  });
+});
+
+// Click on empty area deselects
+document.getElementById('canvas-container').addEventListener('click', () => {
+  if (selectedNode) {
+    selectedNode = null;
+    clearHighlight();
+  }
+});
+
+// ── Pan & Zoom ──
+let viewX = 0, viewY = 0, scale = 1;
+let isPanning = false, panStartX = 0, panStartY = 0, panViewX = 0, panViewY = 0;
+
+function updateTransform() {
+  mainG.setAttribute('transform', `translate(${viewX},${viewY}) scale(${scale})`);
+}
+
+const container = document.getElementById('canvas-container');
+
+container.addEventListener('mousedown', (e) => {
+  if (e.target.closest('.node-group')) return;
+  isPanning = true;
+  panStartX = e.clientX;
+  panStartY = e.clientY;
+  panViewX = viewX;
+  panViewY = viewY;
+  container.classList.add('dragging');
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (!isPanning) return;
+  viewX = panViewX + (e.clientX - panStartX);
+  viewY = panViewY + (e.clientY - panStartY);
+  updateTransform();
+});
+
+window.addEventListener('mouseup', () => {
+  isPanning = false;
+  container.classList.remove('dragging');
+});
+
+container.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? 0.9 : 1.1;
+  const newScale = Math.max(0.3, Math.min(3, scale * delta));
+
+  // Zoom toward mouse
+  const rect = svg.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  viewX = mx - (mx - viewX) * (newScale / scale);
+  viewY = my - (my - viewY) * (newScale / scale);
+  scale = newScale;
+  updateTransform();
+}, { passive: false });
+
+// Zoom controls
+document.getElementById('zoom-in').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const rect = svg.getBoundingClientRect();
+  const cx = rect.width / 2, cy = rect.height / 2;
+  const newScale = Math.min(3, scale * 1.25);
+  viewX = cx - (cx - viewX) * (newScale / scale);
+  viewY = cy - (cy - viewY) * (newScale / scale);
+  scale = newScale;
+  updateTransform();
+});
+
+document.getElementById('zoom-out').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const rect = svg.getBoundingClientRect();
+  const cx = rect.width / 2, cy = rect.height / 2;
+  const newScale = Math.max(0.3, scale * 0.8);
+  viewX = cx - (cx - viewX) * (newScale / scale);
+  viewY = cy - (cy - viewY) * (newScale / scale);
+  scale = newScale;
+  updateTransform();
+});
+
+document.getElementById('zoom-fit').addEventListener('click', (e) => {
+  e.stopPropagation();
+  fitToScreen();
+});
+
+function fitToScreen() {
+  const rect = svg.getBoundingClientRect();
+  const xs = nodes.map(n => n.x);
+  const ys = nodes.map(n => n.y);
+  const minX = Math.min(...xs) - W/2 - 40;
+  const maxX = Math.max(...xs) + W/2 + 40;
+  const minY = Math.min(...ys) - H/2 - 40;
+  const maxY = Math.max(...ys) + H/2 + 40;
+  const contentW = maxX - minX;
+  const contentH = maxY - minY;
+
+  scale = Math.min(rect.width / contentW, rect.height / contentH, 1.5) * 0.85;
+  viewX = (rect.width - contentW * scale) / 2 - minX * scale;
+  viewY = (rect.height - contentH * scale) / 2 - minY * scale;
+  updateTransform();
+}
+
+// Initial fit
+requestAnimationFrame(() => {
+  fitToScreen();
+});
+
+// ── Keyboard ──
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    selectedNode = null;
+    clearHighlight();
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+{
+  "eval_id": 0,
+  "eval_name": "automated-mode-full-run",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "Recognized automated mode from user prompt without asking",
+      "passed": true,
+      "evidence": "Line 108: assistant immediately says 'Starting Stage 1: Research. In automated mode, the pipeline defaults are...' without asking the user which mode to use. The skill instructions say to ask, but the user's prompt explicitly said 'run the full design pipeline automated — don't stop and ask me anything' so it correctly inferred automated mode."
+    },
+    {
+      "text": "Ran all 9 pipeline stages in correct order",
+      "passed": true,
+      "evidence": "TodoWrite at line 225 shows all 9 stages plus summary marked completed in order: Stage 1 (Research), Stage 2 (Research Report), Stage 3 (Journey Map), Stage 4 (Information Architecture), Stage 5 (Product Design), Stage 6 (Critique + Heuristics), Stage 7 (Accessibility), Stage 8 (Research Review), Stage 9 (Component Gap Report). All corresponding output files exist."
+    },
+    {
+      "text": "Produced research report as standalone HTML with SDS components",
+      "passed": true,
+      "evidence": "research-report.html exists in outputs directory. Grep found 43 occurrences of sds-header/sds-sidenav classes in the file, confirming Software DS shell components are used. Summary confirms 'Standalone HTML report using Software DS shell (header, side navigation, content area)'."
+    },
+    {
+      "text": "Journey map uses D3.js interactive format",
+      "passed": true,
+      "evidence": "journey-map.html exists in outputs directory. Grep found 9 occurrences of D3.js-related patterns (d3.select etc.) in the file. Summary confirms 'Interactive D3.js journey map'."
+    },
+    {
+      "text": "Product design defaulted to 1 comprehensive prototype (all flows)",
+      "passed": true,
+      "evidence": "prototype.html is a single file with 7 interactive screens covering all user flows (classify fields, cross-source groups, review queue, coverage dashboard, protection policies, data sources, activity log). The final summary at line 235 describes it as a 'Comprehensive 7-screen interactive prototype'. No mention of 3 separate concepts — consistent with automated mode default of 1 comprehensive prototype."
+    },
+    {
+      "text": "Self-challenge step documented in product design reasoning",
+      "passed": true,
+      "evidence": "Grep found 1 match for self-challenge/challenge-related terms in the transcript. The skill instructions specify 'Challenge yourself' for the all-flows prototype path, and the pipeline executed this step. The summary and final output reflect iterative design reasoning."
+    },
+    {
+      "text": "Critique/heuristics ran 3 passes with auto-fix",
+      "passed": true,
+      "evidence": "findings-report.html contains explicit sections: 'Pass 1: Critique + Heuristics' (line 97), 'Pass 2: Re-evaluation' (line 170), 'Pass 3: Final Evaluation' (line 213). Summary states '18 total findings: 4 critical, 8 major, 6 minor. All 18 fixed across 3 passes. Post-fix heuristic score: 4.5/5'."
+    },
+    {
+      "text": "Accessibility ran 3 passes with auto-fix",
+      "passed": true,
+      "evidence": "findings-report.html contains 'Accessibility Audit Summary (3 Passes)' section (line 266) with WCAG criteria results showing fixes applied across passes (e.g., 'Fixed in Pass 1', 'Fixed in Pass 1-2'). Summary states 'WCAG 2.1 AA: All 13 audited criteria pass'."
+    },
+    {
+      "text": "Research review evaluated designs against original findings",
+      "passed": true,
+      "evidence": "research-review.html exists. Summary confirms: '6/6 research insights fully addressed in the design, 5/5 market opportunities implemented, 2/2 personas served (all goals mapped to design features), 7 recommendations for next iteration'. Grep found references to 'research findings' in the file."
+    },
+    {
+      "text": "Component gap report lists missing Design System Lab components",
+      "passed": true,
+      "evidence": "component-gap-report.html exists. Summary confirms: '2 existing Software DS components used (Header, Side Navigation), 14 missing components identified, Top 3 priority to build: Data Table, Bulk Action Bar, Status Tag/Badge, Recommended build order provided'."
+    },
+    {
+      "text": "Did not pause for user confirmation at any stage",
+      "passed": true,
+      "evidence": "The transcript contains only one user message (the initial prompt at line 1). All subsequent 'user' type messages are tool_result responses from tool calls. No assistant message asked the user to confirm or approve before proceeding. The pipeline ran continuously from 18:09 to 18:27 without interruption."
+    },
+    {
+      "text": "Presented final summary of all outputs at the end",
+      "passed": true,
+      "evidence": "Line 235: final assistant message presents complete summary listing all 7 files produced with descriptions of each, key design decisions, and the output directory path. summary.md was also written to disk at line 228."
+    }
+  ]
+}

@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Journey Map</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface-2: #242836;
+    --border: #2e3345;
+    --text-primary: #e8eaed;
+    --text-secondary: #9aa0b2;
+    --text-muted: #6b7280;
+    --accent-blue: #4f8ff7;
+    --accent-purple: #8b5cf6;
+    --accent-green: #34d399;
+    --accent-amber: #f59e0b;
+    --accent-red: #ef4444;
+    --accent-pink: #ec4899;
+    --emotion-high: #34d399;
+    --emotion-mid: #f59e0b;
+    --emotion-low: #ef4444;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    min-height: 100vh;
+    padding: 40px;
+  }
+
+  .header {
+    max-width: 1400px;
+    margin: 0 auto 48px;
+  }
+
+  .header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+
+  .header p {
+    color: var(--text-secondary);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .journey-container {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .emotion-chart-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 32px 24px;
+    margin-bottom: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .emotion-chart-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple), var(--accent-pink), var(--accent-amber));
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+  }
+
+  #emotion-chart svg {
+    display: block;
+  }
+
+  .phases-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+  }
+
+  .phase-column {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 28px 24px;
+    position: relative;
+  }
+
+  .phase-column:first-child {
+    border-radius: 0 0 0 16px;
+  }
+
+  .phase-column:last-child {
+    border-radius: 0 0 16px 0;
+  }
+
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .phase-number {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .phase-column:nth-child(1) .phase-number { background: rgba(79,143,247,0.15); color: var(--accent-blue); }
+  .phase-column:nth-child(2) .phase-number { background: rgba(139,92,246,0.15); color: var(--accent-purple); }
+  .phase-column:nth-child(3) .phase-number { background: rgba(236,72,153,0.15); color: var(--accent-pink); }
+  .phase-column:nth-child(4) .phase-number { background: rgba(52,211,153,0.15); color: var(--accent-green); }
+
+  .phase-name {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .detail-section {
+    margin-bottom: 20px;
+  }
+
+  .detail-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .detail-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .step-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    padding: 6px 10px;
+    background: var(--surface-2);
+    border-radius: 8px;
+  }
+
+  .step-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .phase-column:nth-child(1) .step-dot { background: var(--accent-blue); }
+  .phase-column:nth-child(2) .step-dot { background: var(--accent-purple); }
+  .phase-column:nth-child(3) .step-dot { background: var(--accent-pink); }
+  .phase-column:nth-child(4) .step-dot { background: var(--accent-green); }
+
+  .pain-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 6px;
+  }
+
+  .pain-item:last-child { margin-bottom: 0; }
+
+  .pain-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--accent-red);
+    font-size: 12px;
+  }
+
+  .opportunity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px dashed;
+    margin-bottom: 6px;
+  }
+
+  .opportunity-item:last-child { margin-bottom: 0; }
+
+  .phase-column:nth-child(1) .opportunity-item { border-color: rgba(79,143,247,0.3); color: rgba(79,143,247,0.9); background: rgba(79,143,247,0.05); }
+  .phase-column:nth-child(2) .opportunity-item { border-color: rgba(139,92,246,0.3); color: rgba(139,92,246,0.9); background: rgba(139,92,246,0.05); }
+  .phase-column:nth-child(3) .opportunity-item { border-color: rgba(236,72,153,0.3); color: rgba(236,72,153,0.9); background: rgba(236,72,153,0.05); }
+  .phase-column:nth-child(4) .opportunity-item { border-color: rgba(52,211,153,0.3); color: rgba(52,211,153,0.9); background: rgba(52,211,153,0.05); }
+
+  .opp-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 12px;
+  }
+
+  .tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--text-primary);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 10;
+    white-space: nowrap;
+  }
+
+  .tooltip .tt-step {
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .tooltip .tt-emotion {
+    color: var(--text-secondary);
+    font-size: 12px;
+  }
+
+  .legend {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-top: 16px;
+    justify-content: center;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .legend-swatch {
+    width: 12px;
+    height: 3px;
+    border-radius: 2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Customer Journey Map</h1>
+  <p>Emotional experience across the full customer lifecycle, from initial discovery through implementation.</p>
+</div>
+
+<div class="journey-container">
+  <div class="emotion-chart-container">
+    <div class="section-label">Emotional Curve</div>
+    <div id="emotion-chart"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--emotion-high)"></div>Positive</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--emotion-mid)"></div>Neutral</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--emotion-low)"></div>Negative</div>
+    </div>
+  </div>
+
+  <div class="phases-grid" id="phases-grid"></div>
+</div>
+
+<div class="tooltip" id="tooltip">
+  <div class="tt-step"></div>
+  <div class="tt-emotion"></div>
+</div>
+
+<script>
+const data = [
+  {
+    phase: "Discovery",
+    steps: ["Google Search", "Read Reviews", "Visit Website"],
+    emotions: [0.5, 0.6, 0.7],
+    pains: ["Too many options", "Hard to trust reviews"],
+    opportunities: ["Add comparison tool"]
+  },
+  {
+    phase: "Evaluation",
+    steps: ["Free Trial", "Demo Call", "Internal Discussion"],
+    emotions: [0.8, 0.7, 0.4],
+    pains: ["Trial too short", "Demo scheduling friction"],
+    opportunities: ["Extend trial", "Self-serve demo"]
+  },
+  {
+    phase: "Purchase",
+    steps: ["Procurement", "Contract", "Payment"],
+    emotions: [0.3, 0.2, 0.5],
+    pains: ["Complex procurement process", "Legal review delays"],
+    opportunities: ["Streamline contract templates"]
+  },
+  {
+    phase: "Implementation",
+    steps: ["Setup", "Training", "Go-Live"],
+    emotions: [0.6, 0.7, 0.9],
+    pains: ["Integration complexity"],
+    opportunities: ["Pre-built integrations"]
+  }
+];
+
+const phaseColors = ["#4f8ff7", "#8b5cf6", "#ec4899", "#34d399"];
+
+// Build flat data points
+const points = [];
+data.forEach((phase, pi) => {
+  phase.steps.forEach((step, si) => {
+    points.push({
+      step,
+      emotion: phase.emotions[si],
+      phase: phase.phase,
+      phaseIndex: pi,
+      color: phaseColors[pi]
+    });
+  });
+});
+
+// Emotion chart
+const container = document.getElementById('emotion-chart');
+const margin = { top: 20, right: 40, bottom: 56, left: 50 };
+const width = container.parentElement.clientWidth - 64;
+const height = 260;
+const innerW = width - margin.left - margin.right;
+const innerH = height - margin.top - margin.bottom;
+
+const svg = d3.select('#emotion-chart')
+  .append('svg')
+  .attr('width', width)
+  .attr('height', height);
+
+const g = svg.append('g')
+  .attr('transform', `translate(${margin.left},${margin.top})`);
+
+const x = d3.scalePoint()
+  .domain(points.map((_, i) => i))
+  .range([0, innerW])
+  .padding(0.3);
+
+const y = d3.scaleLinear()
+  .domain([0, 1])
+  .range([innerH, 0]);
+
+// Phase background bands
+let stepIdx = 0;
+data.forEach((phase, pi) => {
+  const startI = stepIdx;
+  const endI = stepIdx + phase.steps.length - 1;
+  const bandX = startI === 0 ? -10 : (x(startI) + x(startI - 1)) / 2;
+  const bandEnd = endI === points.length - 1 ? innerW + 10 : (x(endI) + x(endI + 1)) / 2;
+
+  g.append('rect')
+    .attr('x', bandX)
+    .attr('y', -10)
+    .attr('width', bandEnd - bandX)
+    .attr('height', innerH + 20)
+    .attr('fill', phaseColors[pi])
+    .attr('opacity', 0.04)
+    .attr('rx', 8);
+
+  // Phase label at top
+  g.append('text')
+    .attr('x', (bandX + bandEnd) / 2)
+    .attr('y', innerH + 40)
+    .attr('text-anchor', 'middle')
+    .attr('font-size', 12)
+    .attr('font-weight', 600)
+    .attr('fill', phaseColors[pi])
+    .attr('opacity', 0.8)
+    .text(phase.phase);
+
+  stepIdx += phase.steps.length;
+});
+
+// Horizontal grid lines
+[0, 0.25, 0.5, 0.75, 1].forEach(v => {
+  g.append('line')
+    .attr('x1', -10)
+    .attr('x2', innerW + 10)
+    .attr('y1', y(v))
+    .attr('y2', y(v))
+    .attr('stroke', '#2e3345')
+    .attr('stroke-dasharray', v === 0.5 ? '0' : '3,3')
+    .attr('opacity', v === 0.5 ? 0.6 : 0.4);
+});
+
+// Y-axis labels
+g.append('text').attr('x', -10).attr('y', y(1)).attr('dy', '0.35em').attr('text-anchor', 'end').attr('font-size', 10).attr('fill', '#6b7280').text('High');
+g.append('text').attr('x', -10).attr('y', y(0.5)).attr('dy', '0.35em').attr('text-anchor', 'end').attr('font-size', 10).attr('fill', '#6b7280').text('Mid');
+g.append('text').attr('x', -10).attr('y', y(0)).attr('dy', '0.35em').attr('text-anchor', 'end').attr('font-size', 10).attr('fill', '#6b7280').text('Low');
+
+// Gradient definition for the area fill
+const defs = svg.append('defs');
+const areaGrad = defs.append('linearGradient')
+  .attr('id', 'areaGrad')
+  .attr('x1', '0').attr('y1', '0')
+  .attr('x2', '0').attr('y2', '1');
+areaGrad.append('stop').attr('offset', '0%').attr('stop-color', '#4f8ff7').attr('stop-opacity', 0.2);
+areaGrad.append('stop').attr('offset', '100%').attr('stop-color', '#4f8ff7').attr('stop-opacity', 0);
+
+// Area
+const area = d3.area()
+  .x((d, i) => x(i))
+  .y0(innerH)
+  .y1((d) => y(d.emotion))
+  .curve(d3.curveMonotoneX);
+
+g.append('path')
+  .datum(points)
+  .attr('d', area)
+  .attr('fill', 'url(#areaGrad)');
+
+// Line
+const line = d3.line()
+  .x((d, i) => x(i))
+  .y(d => y(d.emotion))
+  .curve(d3.curveMonotoneX);
+
+g.append('path')
+  .datum(points)
+  .attr('d', line)
+  .attr('fill', 'none')
+  .attr('stroke', 'url(#lineGrad)')
+  .attr('stroke-width', 2.5);
+
+// Line gradient
+const lineGrad = defs.append('linearGradient')
+  .attr('id', 'lineGrad')
+  .attr('gradientUnits', 'userSpaceOnUse')
+  .attr('x1', x(0)).attr('x2', x(points.length - 1));
+
+points.forEach((p, i) => {
+  const emotionColor = p.emotion >= 0.65 ? '#34d399' : p.emotion >= 0.4 ? '#f59e0b' : '#ef4444';
+  lineGrad.append('stop')
+    .attr('offset', `${(i / (points.length - 1)) * 100}%`)
+    .attr('stop-color', emotionColor);
+});
+
+// Step labels on x-axis
+points.forEach((p, i) => {
+  g.append('text')
+    .attr('x', x(i))
+    .attr('y', innerH + 20)
+    .attr('text-anchor', 'middle')
+    .attr('font-size', 11)
+    .attr('fill', '#9aa0b2')
+    .text(p.step);
+});
+
+// Dots
+const tooltip = document.getElementById('tooltip');
+
+points.forEach((p, i) => {
+  const emotionColor = p.emotion >= 0.65 ? '#34d399' : p.emotion >= 0.4 ? '#f59e0b' : '#ef4444';
+
+  // Glow
+  g.append('circle')
+    .attr('cx', x(i))
+    .attr('cy', y(p.emotion))
+    .attr('r', 10)
+    .attr('fill', emotionColor)
+    .attr('opacity', 0.15);
+
+  // Dot
+  const dot = g.append('circle')
+    .attr('cx', x(i))
+    .attr('cy', y(p.emotion))
+    .attr('r', 5)
+    .attr('fill', emotionColor)
+    .attr('stroke', '#0f1117')
+    .attr('stroke-width', 2)
+    .style('cursor', 'pointer');
+
+  // Emotion value label
+  g.append('text')
+    .attr('x', x(i))
+    .attr('y', y(p.emotion) - 14)
+    .attr('text-anchor', 'middle')
+    .attr('font-size', 11)
+    .attr('font-weight', 600)
+    .attr('fill', emotionColor)
+    .text(p.emotion.toFixed(1));
+
+  // Hover
+  dot.on('mouseenter', (event) => {
+    dot.transition().duration(150).attr('r', 7);
+    tooltip.querySelector('.tt-step').textContent = p.step;
+    tooltip.querySelector('.tt-emotion').textContent = `Emotion: ${(p.emotion * 100).toFixed(0)}% \u2014 ${p.phase}`;
+    tooltip.style.opacity = '1';
+    const rect = container.parentElement.getBoundingClientRect();
+    tooltip.style.left = `${event.pageX - rect.left + 12}px`;
+    tooltip.style.top = `${event.pageY - rect.top - 40}px`;
+  });
+
+  dot.on('mouseleave', () => {
+    dot.transition().duration(150).attr('r', 5);
+    tooltip.style.opacity = '0';
+  });
+});
+
+// Phase detail cards
+const grid = document.getElementById('phases-grid');
+data.forEach((phase, pi) => {
+  const col = document.createElement('div');
+  col.className = 'phase-column';
+
+  const stepsHtml = phase.steps.map(s =>
+    `<div class="step-item"><span class="step-dot"></span>${s}</div>`
+  ).join('');
+
+  const painsHtml = phase.pains.map(p =>
+    `<div class="pain-item"><span class="pain-icon">\u26A0</span>${p}</div>`
+  ).join('');
+
+  const oppsHtml = phase.opportunities.map(o =>
+    `<div class="opportunity-item"><span class="opp-icon">\u2728</span>${o}</div>`
+  ).join('');
+
+  col.innerHTML = `
+    <div class="phase-header">
+      <div class="phase-number">${pi + 1}</div>
+      <div class="phase-name">${phase.phase}</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-label">Steps</div>
+      <div class="step-list">${stepsHtml}</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-label">Pain Points</div>
+      ${painsHtml}
+    </div>
+    <div class="detail-section">
+      <div class="detail-label">Opportunities</div>
+      ${oppsHtml}
+    </div>
+  `;
+
+  grid.appendChild(col);
+});
+</script>
+</body>
+</html>

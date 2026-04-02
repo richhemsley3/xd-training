@@ -1,0 +1,18 @@
+{
+  "eval_id": 2,
+  "eval_name": "guided-mode-new-research",
+  "prompt": "run the design pipeline for me. I need to explore a new feature area — we're thinking about adding data lineage visualization to our product. I don't have any research yet and I'd like to start with market research to understand the competitive landscape before we do user research. The market is data observability and governance. Target customers are mid-to-large enterprises with complex data ecosystems.",
+  "assertions": [
+    {"text": "Asked about running mode (guided vs automated)", "type": "boolean"},
+    {"text": "Correctly identified user needs NEW research (not existing)", "type": "boolean"},
+    {"text": "Routed to market research methods (competitive analysis, market sizing) not user interviews", "type": "boolean"},
+    {"text": "Market research includes competitor landscape analysis", "type": "boolean"},
+    {"text": "Research report built with SDS components as HTML", "type": "boolean"},
+    {"text": "Journey map only fills research-supported rows", "type": "boolean"},
+    {"text": "IA proposes flows including edge and error states", "type": "boolean"},
+    {"text": "Product design self-challenge step present", "type": "boolean"},
+    {"text": "Critique/heuristics ran 3 passes", "type": "boolean"},
+    {"text": "Accessibility ran 3 passes", "type": "boolean"},
+    {"text": "Component gap report produced", "type": "boolean"}
+  ]
+}

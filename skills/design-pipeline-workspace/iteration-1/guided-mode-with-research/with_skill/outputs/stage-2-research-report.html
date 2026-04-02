@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Access Request Portal — Research Report</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap">
+<style>
+  /* ============================================================
+     Design System Lab — Inline Tokens
+     ============================================================ */
+  @font-face { font-family: 'Proxima Nova'; src: url('../../../../../../design-system-labs/fonts/ProximaNova-Light.otf') format('opentype'); font-weight: 300; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'Proxima Nova'; src: url('../../../../../../design-system-labs/fonts/ProximaNova-Reg.otf') format('opentype'); font-weight: 400; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'Proxima Nova'; src: url('../../../../../../design-system-labs/fonts/ProximaNova-Sbold.otf') format('opentype'); font-weight: 600; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'Proxima Nova'; src: url('../../../../../../design-system-labs/fonts/ProximaNova-Bold.otf') format('opentype'); font-weight: 700; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'Proxima Nova'; src: url('../../../../../../design-system-labs/fonts/ProximaNova-Xbold.otf') format('opentype'); font-weight: 800; font-style: normal; font-display: swap; }
+
+  :root {
+    --sds-font-sans: 'Proxima Nova', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --sds-font-mono: 'SF Mono', SFMono-Regular, Consolas, monospace;
+    --sds-type-display: 28px;
+    --sds-type-heading: 22px;
+    --sds-type-subheading: 16px;
+    --sds-type-title: 15px;
+    --sds-type-body: 14px;
+    --sds-type-label: 13px;
+    --sds-type-caption: 12px;
+    --sds-type-overline: 11px;
+    --sds-weight-light: 300;
+    --sds-weight-regular: 400;
+    --sds-weight-medium: 500;
+    --sds-weight-semibold: 600;
+    --sds-weight-bold: 700;
+    --sds-weight-extrabold: 800;
+    --sds-leading-tight: 1.2;
+    --sds-leading-snug: 1.35;
+    --sds-leading-normal: 1.5;
+    --sds-leading-relaxed: 1.6;
+    --sds-tracking-tight: -0.01em;
+    --sds-tracking-normal: 0em;
+    --sds-tracking-wide: 0.5px;
+    --sds-space-0: 0px;
+    --sds-space-050: 2px;
+    --sds-space-100: 4px;
+    --sds-space-150: 6px;
+    --sds-space-200: 8px;
+    --sds-space-250: 10px;
+    --sds-space-300: 12px;
+    --sds-space-400: 16px;
+    --sds-space-500: 20px;
+    --sds-space-600: 24px;
+    --sds-space-800: 32px;
+    --sds-space-1000: 40px;
+    --sds-space-1200: 48px;
+    --sds-space-1600: 64px;
+    --sds-color-warm-gray-025: #FAF8F5;
+    --sds-color-warm-gray-050: #F4F1EB;
+    --sds-color-warm-gray-100: #EBE6DD;
+    --sds-color-warm-gray-150: #E0DCD3;
+    --sds-color-warm-gray-200: #D0CBC3;
+    --sds-color-warm-gray-250: #BFBAB2;
+    --sds-color-warm-gray-300: #B0ABA2;
+    --sds-color-warm-gray-350: #A39E96;
+    --sds-color-warm-gray-400: #948E85;
+    --sds-color-warm-gray-450: #858079;
+    --sds-color-warm-gray-500: #7A756F;
+    --sds-color-warm-gray-550: #6B6760;
+    --sds-color-warm-gray-600: #615D55;
+    --sds-color-warm-gray-650: #54514D;
+    --sds-color-warm-gray-700: #47443F;
+    --sds-color-warm-gray-750: #3B3834;
+    --sds-color-warm-gray-800: #302D28;
+    --sds-color-warm-gray-900: #1C1A17;
+    --sds-color-blue-025: #F2F7F7;
+    --sds-color-blue-050: #EBF4F5;
+    --sds-color-blue-100: #D9EBED;
+    --sds-color-blue-150: #C1DDE3;
+    --sds-color-blue-200: #A6CBD6;
+    --sds-color-blue-450: #4F8AA0;
+    --sds-color-blue-700: #0C4A69;
+    --sds-color-blue-750: #013D5B;
+    --sds-color-blue-800: #05314D;
+    --sds-color-blue-850: #032740;
+    --sds-color-blue-900: #031E36;
+    --sds-color-blue-950: #00132B;
+    --sds-color-red-050: #FFEEEB;
+    --sds-color-red-500: #BF5547;
+    --sds-color-red-550: #AD4739;
+    --sds-color-red-650: #8F3629;
+    --sds-color-green-025: #F4FAEB;
+    --sds-color-green-400: #7A9A01;
+    --sds-color-green-500: #62800B;
+    --sds-color-green-700: #374A1E;
+    --sds-color-yellow-025: #FCF9D9;
+    --sds-color-yellow-200: #EBCE2D;
+    --sds-color-yellow-500: #8A7515;
+    --sds-color-yellow-550: #7A6710;
+    --sds-color-purple-550: #805AA1;
+    --sds-color-white: #FFFFFF;
+    --sds-color-brand-pacific: #A6CBD6;
+    --sds-bg-page: var(--sds-color-white);
+    --sds-bg-surface: var(--sds-color-warm-gray-025);
+    --sds-bg-card: var(--sds-color-white);
+    --sds-bg-subtle: var(--sds-color-warm-gray-050);
+    --sds-text-primary: var(--sds-color-warm-gray-900);
+    --sds-text-secondary: var(--sds-color-warm-gray-650);
+    --sds-text-tertiary: var(--sds-color-warm-gray-550);
+    --sds-text-on-primary: var(--sds-color-white);
+    --sds-text-link: var(--sds-color-blue-750);
+    --sds-border-default: var(--sds-color-warm-gray-150);
+    --sds-border-subtle: var(--sds-color-warm-gray-100);
+    --sds-border-strong: var(--sds-color-warm-gray-200);
+    --sds-interactive-primary: var(--sds-color-blue-750);
+    --sds-interactive-primary-hover: var(--sds-color-blue-800);
+    --sds-nav-sidebar-bg: var(--sds-color-warm-gray-025);
+    --sds-nav-item-active-bg: var(--sds-color-blue-100);
+    --sds-nav-item-active-text: var(--sds-color-blue-750);
+    --sds-nav-item-text: var(--sds-color-warm-gray-650);
+    --sds-status-success-bg: var(--sds-color-green-025);
+    --sds-status-success-text: var(--sds-color-green-500);
+    --sds-status-warning-bg: var(--sds-color-yellow-025);
+    --sds-status-warning-text: var(--sds-color-yellow-500);
+    --sds-status-error-bg: var(--sds-color-red-050);
+    --sds-status-error-text: var(--sds-color-red-500);
+    --sds-status-info-bg: var(--sds-color-blue-050);
+    --sds-status-info-text: var(--sds-color-blue-700);
+    --sds-status-neutral-bg: var(--sds-color-warm-gray-100);
+    --sds-status-neutral-text: var(--sds-color-warm-gray-650);
+    --sds-status-purple-bg: #F7EEFF;
+    --sds-status-purple-text: var(--sds-color-purple-550);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sds-font-sans);
+    background: var(--sds-bg-page);
+    color: var(--sds-text-primary);
+    line-height: var(--sds-leading-normal);
+    font-size: var(--sds-type-body);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Header */
+  .sds-header {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px; padding: 0 var(--sds-space-500);
+    background: var(--sds-bg-page); border-bottom: 1px solid var(--sds-border-subtle);
+    flex-shrink: 0; z-index: 10;
+  }
+  .sds-header-logo { display: flex; align-items: center; gap: var(--sds-space-250); height: 28px; }
+  .sds-header-logo-mark {
+    width: 28px; height: 28px; border-radius: 6px; background: var(--sds-interactive-primary);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .sds-header-logo-mark svg { width: 16px; height: 16px; fill: var(--sds-color-white); }
+  .sds-header-logo-text {
+    font-size: var(--sds-type-title); font-weight: var(--sds-weight-semibold);
+    color: var(--sds-text-primary); letter-spacing: -0.2px; white-space: nowrap;
+  }
+  .sds-header-actions { display: flex; align-items: center; gap: var(--sds-space-200); }
+  .sds-header-help {
+    width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--sds-color-warm-gray-300);
+    background: transparent; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--sds-text-tertiary); font-size: var(--sds-type-body);
+    font-weight: var(--sds-weight-semibold); font-family: var(--sds-font-sans); line-height: 1;
+  }
+  .sds-header-divider { width: 1px; height: 20px; background: var(--sds-border-default); margin: 0 var(--sds-space-100); }
+  .sds-header-profile {
+    display: flex; align-items: center; gap: var(--sds-space-200);
+    padding: var(--sds-space-100) var(--sds-space-200) var(--sds-space-100) var(--sds-space-100);
+    border-radius: 8px; cursor: pointer; border: none; background: transparent; font-family: inherit;
+  }
+  .sds-header-avatar {
+    width: 28px; height: 28px; border-radius: 50%; background: var(--sds-interactive-primary);
+    color: var(--sds-text-on-primary); display: flex; align-items: center; justify-content: center;
+    font-size: var(--sds-type-caption); font-weight: var(--sds-weight-semibold); letter-spacing: 0.3px; flex-shrink: 0;
+  }
+  .sds-header-username { font-size: var(--sds-type-label); font-weight: var(--sds-weight-medium); color: var(--sds-text-primary); }
+  .sds-header-chevron { display: flex; align-items: center; flex-shrink: 0; }
+  .sds-header-chevron .material-symbols-outlined {
+    font-size: 18px; color: var(--sds-text-tertiary);
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+  }
+
+  /* Layout */
+  .app-body { display: flex; flex: 1; overflow: hidden; }
+
+  /* Side Navigation */
+  .sds-sidenav {
+    width: 220px; min-width: 220px; background: var(--sds-nav-sidebar-bg);
+    border-right: 1px solid var(--sds-border-default); display: flex;
+    flex-direction: column; padding: var(--sds-space-400) var(--sds-space-300);
+    user-select: none; overflow-y: auto; flex-shrink: 0;
+  }
+  .sds-sidenav-item {
+    display: flex; align-items: center; gap: var(--sds-space-250);
+    padding: var(--sds-space-200) var(--sds-space-300); border-radius: 8px;
+    font-size: var(--sds-type-body); font-weight: var(--sds-weight-regular);
+    color: var(--sds-color-warm-gray-700); cursor: pointer; text-decoration: none;
+    margin: var(--sds-space-050) 0; line-height: 1.3;
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+  .sds-sidenav-item:hover { background: var(--sds-bg-subtle); color: var(--sds-text-primary); }
+  .sds-sidenav-item.active { background: var(--sds-nav-item-active-bg); color: var(--sds-nav-item-active-text); font-weight: var(--sds-weight-medium); }
+  .sds-sidenav-icon { width: 20px; height: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .sds-sidenav-icon .material-symbols-outlined {
+    font-size: 20px; color: var(--sds-text-tertiary);
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+    transition: color 0.12s;
+  }
+  .sds-sidenav-item:hover .sds-sidenav-icon .material-symbols-outlined { color: var(--sds-color-warm-gray-700); }
+  .sds-sidenav-item.active .sds-sidenav-icon .material-symbols-outlined { color: var(--sds-nav-item-active-text); }
+  .sds-sidenav-group-label {
+    font-size: var(--sds-type-overline); font-weight: var(--sds-weight-semibold);
+    color: var(--sds-color-warm-gray-400); text-transform: uppercase;
+    letter-spacing: 0.4px; padding: var(--sds-space-500) var(--sds-space-300) var(--sds-space-150);
+  }
+  .sds-sidenav-group-label:first-child { padding-top: var(--sds-space-200); }
+
+  /* Main Content */
+  .main-content {
+    flex: 1; overflow-y: auto; background: var(--sds-bg-page);
+    padding: var(--sds-space-800) var(--sds-space-1000) var(--sds-space-1600);
+    max-height: 100vh;
+  }
+  .main-content > .section p,
+  .main-content > .section .callout,
+  .main-content > .section > ul,
+  .main-content > .section > ol { max-width: 860px; }
+
+  /* Scroll progress */
+  .scroll-progress {
+    position: sticky; top: calc(-1 * var(--sds-space-800)); left: 0; right: 0; z-index: 5;
+    padding-top: var(--sds-space-800);
+    margin: calc(-1 * var(--sds-space-800)) calc(-1 * var(--sds-space-1000)) var(--sds-space-800);
+    background: var(--sds-bg-page);
+  }
+  .scroll-progress-track { height: 3px; background: var(--sds-border-subtle); border-radius: 2px; }
+  .scroll-progress-bar { height: 100%; width: 0%; background: var(--sds-color-blue-450); border-radius: 2px; transition: width 0.1s ease; }
+
+  /* Page header */
+  .page-header { margin-bottom: var(--sds-space-800); padding-bottom: var(--sds-space-600); border-bottom: 1px solid var(--sds-border-default); }
+  .page-header h1 { font-size: var(--sds-type-display); font-weight: var(--sds-weight-semibold); margin-bottom: var(--sds-space-100); letter-spacing: var(--sds-tracking-tight); line-height: var(--sds-leading-tight); }
+  .page-header .page-desc { font-size: var(--sds-type-body); color: var(--sds-text-secondary); line-height: var(--sds-leading-normal); }
+
+  /* Section */
+  .section { margin-bottom: var(--sds-space-1200); }
+  .section h2 { font-size: var(--sds-type-heading); font-weight: var(--sds-weight-semibold); margin-bottom: var(--sds-space-150); line-height: var(--sds-leading-tight); }
+  .section .section-desc { font-size: var(--sds-type-label); color: var(--sds-text-secondary); margin-bottom: var(--sds-space-500); line-height: var(--sds-leading-normal); }
+  .section h3 { font-size: var(--sds-type-body); font-weight: var(--sds-weight-semibold); color: var(--sds-color-warm-gray-700); margin: var(--sds-space-600) 0 var(--sds-space-300); }
+  .section-divider { border: none; border-top: 1px solid var(--sds-border-default); margin: var(--sds-space-1200) 0 var(--sds-space-1200); }
+
+  /* Stat Cards */
+  .stat-row { display: flex; gap: var(--sds-space-300); flex-wrap: wrap; margin-bottom: var(--sds-space-600); }
+  .sds-stat-card {
+    background: var(--sds-color-white); border: 1px solid var(--sds-color-warm-gray-150);
+    border-radius: 8px; padding: var(--sds-space-500) var(--sds-space-600);
+    display: flex; flex-direction: column; gap: var(--sds-space-050);
+    flex: 1; min-width: 120px; text-align: center;
+  }
+  .sds-stat-card__label { font-size: var(--sds-type-caption); color: var(--sds-color-warm-gray-500); font-weight: var(--sds-weight-medium); text-transform: uppercase; letter-spacing: var(--sds-tracking-wide); margin: 0; line-height: 1; }
+  .sds-stat-card__value { font-size: var(--sds-type-display); font-weight: var(--sds-weight-semibold); color: var(--sds-interactive-primary); margin-top: var(--sds-space-150); line-height: 1.1; }
+
+  /* Cards */
+  .card {
+    background: var(--sds-bg-card); border: 1px solid var(--sds-border-default);
+    border-radius: 8px; padding: var(--sds-space-600); margin-bottom: var(--sds-space-400);
+  }
+  .card h3 { font-size: var(--sds-type-subheading); font-weight: var(--sds-weight-semibold); margin: 0 0 var(--sds-space-200); color: var(--sds-text-primary); }
+  .card h4 { font-size: var(--sds-type-caption); font-weight: var(--sds-weight-semibold); color: var(--sds-color-warm-gray-400); text-transform: uppercase; letter-spacing: 0.4px; margin: var(--sds-space-400) 0 var(--sds-space-150); }
+  .card p, .card li { color: var(--sds-text-secondary); font-size: var(--sds-type-label); line-height: var(--sds-leading-relaxed); }
+  .card ul { padding-left: 18px; margin-top: var(--sds-space-100); }
+  .card li { margin-bottom: var(--sds-space-100); }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sds-space-400); }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--sds-space-400); }
+
+  /* Tags */
+  .sds-tag {
+    display: inline-flex; align-items: center; gap: var(--sds-space-100);
+    padding: var(--sds-space-050) var(--sds-space-200);
+    font-family: inherit; font-size: var(--sds-type-overline);
+    font-weight: var(--sds-weight-semibold); line-height: var(--sds-leading-normal);
+    border-radius: 4px; white-space: nowrap; vertical-align: middle;
+    margin-right: var(--sds-space-100); margin-bottom: var(--sds-space-100);
+  }
+  .sds-tag--info { background: var(--sds-status-info-bg); color: var(--sds-status-info-text); }
+  .sds-tag--success { background: var(--sds-status-success-bg); color: var(--sds-status-success-text); }
+  .sds-tag--warning { background: var(--sds-status-warning-bg); color: var(--sds-status-warning-text); }
+  .sds-tag--error { background: var(--sds-status-error-bg); color: var(--sds-status-error-text); }
+  .sds-tag--purple { background: var(--sds-status-purple-bg); color: var(--sds-status-purple-text); }
+  .sds-tag--neutral { background: var(--sds-status-neutral-bg); color: var(--sds-status-neutral-text); }
+
+  /* Callout */
+  .callout {
+    border-left: 4px solid var(--sds-interactive-primary); background: var(--sds-status-info-bg);
+    padding: var(--sds-space-400) var(--sds-space-500); border-radius: 0 8px 8px 0;
+    margin: var(--sds-space-500) 0;
+  }
+  .callout.callout-green { border-left-color: var(--sds-color-green-400); background: var(--sds-status-success-bg); }
+  .callout.callout-yellow { border-left-color: var(--sds-color-yellow-200); background: var(--sds-status-warning-bg); }
+  .callout.callout-red { border-left-color: var(--sds-color-red-500); background: var(--sds-status-error-bg); }
+  .callout strong { color: var(--sds-text-primary); }
+  .callout p { color: var(--sds-text-secondary); font-size: var(--sds-type-label); margin: 0; line-height: var(--sds-leading-normal); }
+
+  /* Persona */
+  .persona-card { display: flex; gap: var(--sds-space-500); align-items: flex-start; }
+  .persona-icon {
+    width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center;
+    justify-content: center; font-size: 18px; flex-shrink: 0; color: white;
+    font-weight: var(--sds-weight-bold);
+  }
+
+  /* Table */
+  .sds-table-container {
+    background: var(--sds-color-white); border: 1px solid var(--sds-color-warm-gray-150);
+    border-radius: 8px; overflow: hidden; overflow-x: auto; margin: var(--sds-space-300) 0;
+  }
+  .sds-table { width: 100%; border-collapse: collapse; font-size: var(--sds-type-label); }
+  .sds-table th {
+    background: var(--sds-color-warm-gray-025); border-bottom: 1px solid var(--sds-color-warm-gray-150);
+    padding: var(--sds-space-250) var(--sds-space-400); text-align: left;
+    font-size: var(--sds-type-caption); font-weight: var(--sds-weight-semibold);
+    color: var(--sds-color-warm-gray-550); white-space: nowrap;
+  }
+  .sds-table td {
+    padding: var(--sds-space-250) var(--sds-space-400); color: var(--sds-color-warm-gray-700);
+    border-bottom: 1px solid var(--sds-color-warm-gray-100); vertical-align: top;
+  }
+  .sds-table tbody tr:last-child td { border-bottom: none; }
+  .sds-table td:first-child { font-weight: var(--sds-weight-medium); color: var(--sds-text-primary); }
+
+  /* Flow strip */
+  .flow-strip { display: flex; align-items: center; gap: 0; overflow-x: auto; padding: var(--sds-space-300) 0; margin: var(--sds-space-300) 0; }
+  .flow-step {
+    background: var(--sds-bg-card); border: 1px solid var(--sds-border-default);
+    border-radius: 8px; padding: var(--sds-space-300) var(--sds-space-400);
+    min-width: 140px; text-align: center; flex-shrink: 0;
+  }
+  .flow-step .step-num { font-size: var(--sds-type-overline); font-weight: var(--sds-weight-semibold); color: var(--sds-interactive-primary); text-transform: uppercase; letter-spacing: 0.4px; }
+  .flow-step .step-name { font-size: var(--sds-type-label); font-weight: var(--sds-weight-medium); margin-top: var(--sds-space-050); }
+  .flow-step .step-time { font-size: var(--sds-type-overline); color: var(--sds-color-warm-gray-400); margin-top: var(--sds-space-050); }
+  .flow-arrow { font-size: var(--sds-type-subheading); color: var(--sds-color-warm-gray-300); padding: 0 var(--sds-space-150); flex-shrink: 0; }
+
+  @media (max-width: 768px) {
+    .app-body { flex-direction: column; }
+    .sds-sidenav { width: 100%; min-width: 100%; flex-direction: row; overflow-x: auto; padding: var(--sds-space-200) var(--sds-space-300); border-right: none; border-bottom: 1px solid var(--sds-border-default); gap: var(--sds-space-100); }
+    .sds-sidenav-group-label { display: none; }
+    .sds-sidenav-item { white-space: nowrap; padding: var(--sds-space-150) var(--sds-space-300); }
+    .main-content { max-height: none; padding: var(--sds-space-600) var(--sds-space-500) var(--sds-space-1200); }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="sds-header">
+  <div class="sds-header-logo">
+    <div class="sds-header-logo-mark"><svg viewBox="0 0 16 16"><path d="M8 1L2 4.5v7L8 15l6-3.5v-7L8 1z"/></svg></div>
+    <span class="sds-header-logo-text">Beacon</span>
+  </div>
+  <div class="sds-header-actions">
+    <button class="sds-header-help" aria-label="Help">?</button>
+    <div class="sds-header-divider"></div>
+    <button class="sds-header-profile" aria-label="User menu">
+      <span class="sds-header-avatar">RH</span>
+      <span class="sds-header-username">Rich Hemsley</span>
+      <span class="sds-header-chevron"><span class="material-symbols-outlined">expand_more</span></span>
+    </button>
+  </div>
+</header>
+
+<div class="app-body">
+
+  <!-- Side Navigation -->
+  <nav class="sds-sidenav" aria-label="Report navigation">
+    <a class="sds-sidenav-item active" href="#summary" onclick="scrollToSection(event, 'summary')">
+      <span class="sds-sidenav-icon"><span class="material-symbols-outlined">dashboard</span></span>
+      <span>Executive Summary</span>
+    </a>
+    <a class="sds-sidenav-item" href="#insights" onclick="scrollToSection(event, 'insights')">
+      <span class="sds-sidenav-icon"><span class="material-symbols-outlined">lightbulb</span></span>
+      <span>Key Insights</span>
+    </a>
+
+    <div class="sds-sidenav-group-label">Research</div>
+    <a class="sds-sidenav-item" href="#personas" onclick="scrollToSection(event, 'personas')">
+      <span class="sds-sidenav-icon"><span class="material-symbols-outlined">person</span></span>
+      <span>Personas</span>
+    </a>
+    <a class="sds-sidenav-item" href="#pain-points" onclick="scrollToSection(event, 'pain-points')">
+      <span class="sds-sidenav-icon"><span class="material-symbols-outlined">warning</span></span>
+      <span>Pain Points</span>
+    </a>
+    <a class="sds-sidenav-item" href="#patterns" onclick="scrollToSection(event, 'patterns')">
+      <span class="sds-sidenav-icon"><span class="material-symbols-outlined">pattern</span></span>
+      <span>Patterns</span>
+    </a>
+
+    <div class="sds-sidenav-group-label">Strategy</div>
+    <a class="sds-sidenav-item" href="#opportunity" onclick="scrollToSection(event, 'opportunity')">
+      <span class="sds-sidenav-icon"><span class="material-symbols-outlined">rocket_launch</span></span>
+      <span>Opportunity</span>
+    </a>
+    <a class="sds-sidenav-item" href="#recommendations" onclick="scrollToSection(event, 'recommendations')">
+      <span class="sds-sidenav-icon"><span class="material-symbols-outlined">checklist</span></span>
+      <span>Recommendations</span>
+    </a>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content" id="main-content">
+
+    <div class="scroll-progress"><div class="scroll-progress-track"><div class="scroll-progress-bar" id="progress-bar"></div></div></div>
+
+    <div class="page-header">
+      <h1>Access Request Portal &mdash; User Research Report</h1>
+      <p class="page-desc">User Interview Findings &middot; Self-Service Access Management &middot; March 2026</p>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="stat-row">
+      <div class="sds-stat-card"><div class="sds-stat-card__label">Time on Workflows</div><div class="sds-stat-card__value">40%</div></div>
+      <div class="sds-stat-card"><div class="sds-stat-card__label">Manual Handoffs</div><div class="sds-stat-card__value">3&ndash;5</div></div>
+      <div class="sds-stat-card"><div class="sds-stat-card__label">Personas</div><div class="sds-stat-card__value">3</div></div>
+      <div class="sds-stat-card"><div class="sds-stat-card__label">Top Pain Points</div><div class="sds-stat-card__value">3</div></div>
+    </div>
+
+    <!-- EXECUTIVE SUMMARY -->
+    <section id="summary" class="section">
+      <h2>Executive Summary</h2>
+      <p class="section-desc">Core findings from user interviews with data engineers, data owners, and security admins.</p>
+
+      <p>Data engineers spend 40% of their working time managing access request workflows. The current approval process requires 3 to 5 manual handoffs across teams, creating bottlenecks, delays, and frustration. Participants described the experience with strong negative language, indicating deep dissatisfaction with existing tools and processes.</p>
+
+      <p style="margin-top:var(--sds-space-300);">Three pain points dominated every interview: no visibility into where a request stands in the approval chain, duplicate requests created when the original appears lost, and approvals that genuinely get lost in email threads. The primary opportunity is a self-service access request portal with automated routing that eliminates manual handoffs and provides real-time status visibility.</p>
+
+      <div class="callout" style="margin-top:var(--sds-space-500);">
+        <p><strong>Primary Opportunity:</strong> Build a self-service access request portal with automated routing that reduces the 3&ndash;5 manual handoffs to zero, gives all stakeholders real-time visibility, and prevents duplicate requests through status transparency.</p>
+      </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- KEY INSIGHTS -->
+    <section id="insights" class="section">
+      <h2>Key Insights</h2>
+      <p class="section-desc">The most significant patterns from user interviews, ranked by frequency and severity.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <span class="sds-tag sds-tag--error">Critical</span>
+          <h3>Approval Workflow is the Bottleneck</h3>
+          <p>The current process requires requests to pass through 3&ndash;5 teams manually. Each handoff introduces delay, ambiguity about ownership, and risk of the request being dropped entirely.</p>
+        </div>
+        <div class="card">
+          <span class="sds-tag sds-tag--error">Critical</span>
+          <h3>No Status Visibility</h3>
+          <p>Requestors have no way to check where their access request stands. They resort to pinging people on Slack, sending follow-up emails, or re-submitting entirely &mdash; creating more noise in an already overloaded system.</p>
+        </div>
+        <div class="card">
+          <span class="sds-tag sds-tag--warning">High</span>
+          <h3>Duplicate Requests Compound the Problem</h3>
+          <p>Because status is opaque, requestors submit duplicate requests, which doubles the workload for approvers and further clogs the pipeline. This creates a negative feedback loop.</p>
+        </div>
+        <div class="card">
+          <span class="sds-tag sds-tag--warning">High</span>
+          <h3>Email is the Wrong Medium</h3>
+          <p>Approvals live in email threads that get buried, forwarded to wrong people, or simply lost. There is no structured data, no audit trail, and no way to escalate systematically.</p>
+        </div>
+        <div class="card">
+          <span class="sds-tag sds-tag--info">Moderate</span>
+          <h3>Audit Trail Gaps</h3>
+          <p>Security admins cannot reconstruct who approved what and when. Compliance audits require manual archaeology through email and Slack, which is both time-consuming and unreliable.</p>
+        </div>
+        <div class="card">
+          <span class="sds-tag sds-tag--info">Moderate</span>
+          <h3>Cross-Team Coordination Friction</h3>
+          <p>Different teams use different tools and processes. There is no single source of truth for access policies, which leads to inconsistent enforcement and shadow access grants.</p>
+        </div>
+      </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- PERSONAS -->
+    <section id="personas" class="section">
+      <h2>Personas</h2>
+      <p class="section-desc">Three key personas identified from user interviews.</p>
+
+      <div class="card">
+        <div class="persona-card">
+          <div class="persona-icon" style="background: var(--sds-color-blue-750);">DE</div>
+          <div>
+            <h3 style="margin-top:0;">Data Engineer (Requestor)</h3>
+            <span class="sds-tag sds-tag--info">Primary User</span>
+            <h4>Role</h4>
+            <p>Builds and maintains data pipelines. Needs access to datasets across the organization to build and debug ETL jobs, create reports, and support analytics teams.</p>
+            <h4>Goals</h4>
+            <ul>
+              <li>Get access to the right data quickly so they can do their primary job</li>
+              <li>Understand what data is available and who owns it</li>
+              <li>Avoid spending time on administrative overhead</li>
+            </ul>
+            <h4>Frustrations</h4>
+            <ul>
+              <li>Spends 40% of time on access request workflows instead of engineering</li>
+              <li>Has no idea where requests stand after submission</li>
+              <li>Often re-submits requests because the original seems lost</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="persona-card">
+          <div class="persona-icon" style="background: var(--sds-color-green-500);">DO</div>
+          <div>
+            <h3 style="margin-top:0;">Data Owner (Approver)</h3>
+            <span class="sds-tag sds-tag--success">Key Stakeholder</span>
+            <h4>Role</h4>
+            <p>Responsible for specific datasets or domains. Must approve or deny access requests based on data sensitivity, requestor role, and business justification.</p>
+            <h4>Goals</h4>
+            <ul>
+              <li>Make informed approval decisions quickly</li>
+              <li>Maintain appropriate access controls without becoming a bottleneck</li>
+              <li>Have confidence that approved access is tracked and revocable</li>
+            </ul>
+            <h4>Frustrations</h4>
+            <ul>
+              <li>Receives requests via email with insufficient context</li>
+              <li>Cannot distinguish new requests from duplicates</li>
+              <li>No easy way to see all pending requests in one place</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="persona-card">
+          <div class="persona-icon" style="background: var(--sds-color-purple-550);">SA</div>
+          <div>
+            <h3 style="margin-top:0;">Security Admin (Auditor)</h3>
+            <span class="sds-tag sds-tag--purple">Governance</span>
+            <h4>Role</h4>
+            <p>Ensures that all data access complies with internal policies, regulatory requirements, and security standards. Conducts periodic access reviews and audit responses.</p>
+            <h4>Goals</h4>
+            <ul>
+              <li>Complete audit trail of every access grant and revocation</li>
+              <li>Ability to run access reviews on-demand</li>
+              <li>Enforce consistent access policies across the organization</li>
+            </ul>
+            <h4>Frustrations</h4>
+            <ul>
+              <li>No centralized record of who approved what</li>
+              <li>Audit preparation requires manual investigation across email and Slack</li>
+              <li>Cannot verify that access grants match current policy</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- PAIN POINTS -->
+    <section id="pain-points" class="section">
+      <h2>Pain Points</h2>
+      <p class="section-desc">Ranked by frequency of mention and severity of impact.</p>
+
+      <div class="sds-table-container">
+        <table class="sds-table">
+          <thead>
+            <tr><th>Pain Point</th><th>Severity</th><th>Affected Personas</th><th>Frequency</th><th>Current Workaround</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>No visibility into request status</td>
+              <td><span class="sds-tag sds-tag--error">Critical</span></td>
+              <td>Data Engineer, Data Owner</td>
+              <td>Every request</td>
+              <td>Slack pings, follow-up emails</td>
+            </tr>
+            <tr>
+              <td>Duplicate requests</td>
+              <td><span class="sds-tag sds-tag--warning">High</span></td>
+              <td>Data Engineer, Data Owner</td>
+              <td>~30% of requests</td>
+              <td>Manual deduplication by approver</td>
+            </tr>
+            <tr>
+              <td>Approvals getting lost</td>
+              <td><span class="sds-tag sds-tag--error">Critical</span></td>
+              <td>All personas</td>
+              <td>~20% of requests</td>
+              <td>Escalation, re-submission</td>
+            </tr>
+            <tr>
+              <td>3&ndash;5 manual handoffs per request</td>
+              <td><span class="sds-tag sds-tag--warning">High</span></td>
+              <td>Data Engineer</td>
+              <td>Every request</td>
+              <td>None &mdash; accepted as normal</td>
+            </tr>
+            <tr>
+              <td>No audit trail</td>
+              <td><span class="sds-tag sds-tag--info">Moderate</span></td>
+              <td>Security Admin</td>
+              <td>Every audit cycle</td>
+              <td>Manual email/Slack archaeology</td>
+            </tr>
+            <tr>
+              <td>Inconsistent access policies</td>
+              <td><span class="sds-tag sds-tag--info">Moderate</span></td>
+              <td>Security Admin, Data Owner</td>
+              <td>Ongoing</td>
+              <td>Tribal knowledge, spreadsheets</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- PATTERNS -->
+    <section id="patterns" class="section">
+      <h2>Patterns</h2>
+      <p class="section-desc">Behavioral patterns observed across interviews.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>The Status Check Loop</h3>
+          <p>Requestors submit, wait 1&ndash;2 days, then begin actively pinging approvers on Slack. If no response within another day, they re-submit. This creates a cycle of noise that buries legitimate requests.</p>
+        </div>
+        <div class="card">
+          <h3>The Shadow Approval</h3>
+          <p>When formal channels fail, requestors go directly to someone with admin access and ask for a quick grant. This bypasses all governance controls and creates untracked access.</p>
+        </div>
+        <div class="card">
+          <h3>The Batch Approver</h3>
+          <p>Data owners overwhelmed by request volume batch-approve everything once a week rather than reviewing individually. This leads to over-permissioning and compliance risk.</p>
+        </div>
+        <div class="card">
+          <h3>The Audit Fire Drill</h3>
+          <p>Security admins only discover access problems during quarterly audits. They spend days reconstructing approval chains from email, resulting in incomplete records and policy gaps.</p>
+        </div>
+      </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- OPPORTUNITY -->
+    <section id="opportunity" class="section">
+      <h2>Opportunity</h2>
+      <p class="section-desc">The primary design opportunity identified from this research.</p>
+
+      <div class="callout callout-green">
+        <p><strong>Self-Service Access Request Portal with Automated Routing</strong></p>
+        <p style="margin-top:var(--sds-space-200);">Replace the email-based, multi-handoff approval process with a centralized portal where requestors can submit, track, and manage access requests, while approvers receive structured requests with full context and one-click approval capabilities.</p>
+      </div>
+
+      <h3>Current Workflow vs. Proposed</h3>
+      <div class="flow-strip">
+        <div class="flow-step"><div class="step-num">Current</div><div class="step-name">Email Request</div><div class="step-time">Manual</div></div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step"><div class="step-num">Step 2</div><div class="step-name">Forward to Owner</div><div class="step-time">1&ndash;2 days</div></div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step"><div class="step-num">Step 3</div><div class="step-name">Owner Reviews</div><div class="step-time">1&ndash;3 days</div></div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step"><div class="step-num">Step 4</div><div class="step-name">Security Check</div><div class="step-time">1&ndash;2 days</div></div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step"><div class="step-num">Step 5</div><div class="step-name">Provision</div><div class="step-time">1 day</div></div>
+      </div>
+      <p style="font-size:var(--sds-type-caption);color:var(--sds-color-warm-gray-400);margin-bottom:var(--sds-space-600);">Total: 5&ndash;10 business days average</p>
+
+      <div class="flow-strip">
+        <div class="flow-step" style="border-color:var(--sds-color-green-400);"><div class="step-num" style="color:var(--sds-color-green-500);">Proposed</div><div class="step-name">Self-Service Form</div><div class="step-time">5 min</div></div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step" style="border-color:var(--sds-color-green-400);"><div class="step-num" style="color:var(--sds-color-green-500);">Auto-Route</div><div class="step-name">Smart Routing</div><div class="step-time">Instant</div></div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step" style="border-color:var(--sds-color-green-400);"><div class="step-num" style="color:var(--sds-color-green-500);">Approve</div><div class="step-name">One-Click Review</div><div class="step-time">Minutes</div></div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step" style="border-color:var(--sds-color-green-400);"><div class="step-num" style="color:var(--sds-color-green-500);">Provision</div><div class="step-name">Auto-Provision</div><div class="step-time">Instant</div></div>
+      </div>
+      <p style="font-size:var(--sds-type-caption);color:var(--sds-color-green-500);">Target: Under 1 hour for standard requests</p>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- RECOMMENDATIONS -->
+    <section id="recommendations" class="section">
+      <h2>Recommendations</h2>
+      <p class="section-desc">Design recommendations based on research findings.</p>
+
+      <div class="grid-3">
+        <div class="card">
+          <span class="sds-tag sds-tag--error">Must Have</span>
+          <h3>Real-Time Status Tracking</h3>
+          <p>Every request must have a visible status (submitted, in review, approved, provisioned) accessible to all stakeholders at all times. This is the single most impactful feature to address user frustration.</p>
+        </div>
+        <div class="card">
+          <span class="sds-tag sds-tag--error">Must Have</span>
+          <h3>Automated Routing Engine</h3>
+          <p>Route requests to the correct approver(s) based on data classification, domain ownership, and sensitivity level. Eliminate manual forwarding entirely.</p>
+        </div>
+        <div class="card">
+          <span class="sds-tag sds-tag--error">Must Have</span>
+          <h3>Duplicate Detection</h3>
+          <p>Detect when a requestor submits a request that matches an existing pending or recently approved request. Surface the existing request instead of creating a new one.</p>
+        </div>
+        <div class="card">
+          <span class="sds-tag sds-tag--warning">Should Have</span>
+          <h3>Approver Dashboard</h3>
+          <p>Single view showing all pending requests with context (requestor, dataset, sensitivity, justification). Enable batch actions and one-click approvals for low-risk requests.</p>
+        </div>
+        <div class="card">
+          <span class="sds-tag sds-tag--warning">Should Have</span>
+          <h3>Complete Audit Trail</h3>
+          <p>Immutable log of every action: submission, routing, approval, denial, escalation, provisioning, and revocation. Exportable for compliance audits.</p>
+        </div>
+        <div class="card">
+          <span class="sds-tag sds-tag--info">Nice to Have</span>
+          <h3>Policy-Based Auto-Approval</h3>
+          <p>For low-sensitivity datasets with clear policies, enable automatic approval based on the requestor's role and the data classification. Reserve human review for high-sensitivity access.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // Scroll progress
+  const mainContent = document.getElementById('main-content');
+  const progressBar = document.getElementById('progress-bar');
+  if (mainContent && progressBar) {
+    mainContent.addEventListener('scroll', () => {
+      const scrollTop = mainContent.scrollTop;
+      const scrollHeight = mainContent.scrollHeight - mainContent.clientHeight;
+      const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+      progressBar.style.width = progress + '%';
+    });
+  }
+
+  // Nav highlight
+  function scrollToSection(e, id) {
+    e.preventDefault();
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.querySelectorAll('.sds-sidenav-item').forEach(item => item.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+  }
+</script>
+
+</body>
+</html>

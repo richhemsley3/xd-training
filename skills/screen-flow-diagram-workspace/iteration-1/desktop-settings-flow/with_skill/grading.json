@@ -1,0 +1,57 @@
+{
+  "eval_name": "desktop-settings-flow",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "HTML file exists",
+      "passed": true,
+      "evidence": "screen-flow.html exists in outputs directory"
+    },
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": false,
+      "evidence": "Missing: d3js.org; File uses cdn.jsdelivr.net/npm/d3@7 instead"
+    },
+    {
+      "text": "Settings overview screen",
+      "passed": true,
+      "evidence": "Found: Settings Overview screen defined with id 'settings-overview'"
+    },
+    {
+      "text": "Profile settings screen",
+      "passed": true,
+      "evidence": "Found: Profile Settings screen defined with id 'profile-settings'"
+    },
+    {
+      "text": "Notification prefs screen",
+      "passed": true,
+      "evidence": "Found: Notification Preferences screen defined with id 'notification-prefs'"
+    },
+    {
+      "text": "Security settings screen",
+      "passed": true,
+      "evidence": "Found: Security Settings screen defined with id 'security-settings'"
+    },
+    {
+      "text": "Delete account modal",
+      "passed": true,
+      "evidence": "Found: Delete Account modal screen defined with type 'modal'"
+    },
+    {
+      "text": "Desktop proportions used",
+      "passed": true,
+      "evidence": "Found: deviceType set to 'desktop', SCREEN_W=280 (wider than mobile)"
+    },
+    {
+      "text": "Green accent color",
+      "passed": true,
+      "evidence": "Found: #66BB6A used for connectors, pills, toggles, and buttons"
+    },
+    {
+      "text": "SVG rendering",
+      "passed": true,
+      "evidence": "Found: <svg id=\"flow-svg\">"
+    }
+  ],
+  "pass_rate": 0.9
+}

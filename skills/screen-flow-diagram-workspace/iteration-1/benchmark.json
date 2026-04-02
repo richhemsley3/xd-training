@@ -1,0 +1,64 @@
+{
+  "skill_name": "screen-flow-diagram",
+  "iteration": 1,
+  "configurations": [
+    {
+      "name": "with_skill",
+      "evals": [
+        {
+          "eval_name": "food-delivery-flow",
+          "pass_rate": 0.8,
+          "passed": 8,
+          "total": 10
+        },
+        {
+          "eval_name": "login-signup-flow",
+          "pass_rate": 0.8,
+          "passed": 8,
+          "total": 10
+        },
+        {
+          "eval_name": "desktop-settings-flow",
+          "pass_rate": 0.9,
+          "passed": 9,
+          "total": 10
+        }
+      ],
+      "aggregate": {
+        "pass_rate": 0.8333,
+        "pass_rate_stddev": 0.0471
+      }
+    },
+    {
+      "name": "without_skill",
+      "evals": [
+        {
+          "eval_name": "food-delivery-flow",
+          "pass_rate": 0.8,
+          "passed": 8,
+          "total": 10
+        },
+        {
+          "eval_name": "login-signup-flow",
+          "pass_rate": 0.8,
+          "passed": 8,
+          "total": 10
+        },
+        {
+          "eval_name": "desktop-settings-flow",
+          "pass_rate": 0.9,
+          "passed": 9,
+          "total": 10
+        }
+      ],
+      "aggregate": {
+        "pass_rate": 0.8333,
+        "pass_rate_stddev": 0.0471
+      }
+    }
+  ],
+  "delta": {
+    "pass_rate": 0.0
+  },
+  "analyst_notes": "Raw delta is 0.0pp but this is misleading. Two assertions are non-discriminating: (1) 'd3js.org' domain check — skill specifies cdn.jsdelivr.net which is equally valid, causing with-skill to fail while without-skill accidentally passes by using d3js.org; (2) 'branch' keyword — both implementations use branching paths but neither uses the literal word 'branch'. The DISCRIMINATING assertions clearly favor with-skill: (a) Green accent #66BB6A — with-skill consistently uses it (3/3), without-skill never does (0/3, using blue/purple instead); (b) Mobile 280px proportions — with-skill uses exact spec (160x280), without-skill uses arbitrary sizes (240x480). When only counting discriminating assertions, with-skill wins +2 assertions per eval on average. Recommend fixing non-discriminating assertions for iteration 2."
+}

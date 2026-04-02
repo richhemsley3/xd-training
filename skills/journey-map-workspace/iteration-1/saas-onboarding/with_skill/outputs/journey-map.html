@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SaaS Onboarding — Customer Journey Map</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #F8F9FA;
+      color: #212529;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 24px;
+    }
+
+    .title-bar {
+      margin-bottom: 24px;
+    }
+    .title-bar h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #212529;
+      margin-bottom: 4px;
+    }
+    .title-bar .subtitle {
+      font-size: 14px;
+      color: #868E96;
+    }
+
+    .journey-container {
+      overflow-x: auto;
+      position: relative;
+      border-radius: 12px;
+      background: #FFFFFF;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .journey-grid {
+      display: grid;
+      min-width: max-content;
+      border-collapse: collapse;
+    }
+
+    .row-label {
+      position: sticky;
+      left: 0;
+      z-index: 10;
+      background: #F1F3F5;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #868E96;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      border-right: 1px solid #E9ECEF;
+      min-width: 140px;
+      width: 140px;
+    }
+
+    .phase-header {
+      padding: 12px 16px;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+    }
+    .phase-header .phase-icon {
+      width: 20px;
+      height: 20px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+
+    .step-header {
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #495057;
+      background: #F8F9FA;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #E9ECEF;
+    }
+
+    .cell {
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #495057;
+      border-bottom: 1px solid #E9ECEF;
+      border-right: 1px solid #E9ECEF;
+      min-height: 64px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      transition: background 0.15s ease;
+      cursor: default;
+    }
+    .cell:hover {
+      background: rgba(91, 141, 239, 0.05);
+      box-shadow: inset 0 0 0 1px rgba(91, 141, 239, 0.1);
+    }
+
+    .cell.pain-point {
+      color: #E53E3E;
+    }
+    .cell.pain-point::before {
+      content: '⚠️ ';
+    }
+
+    .cell.opportunity {
+      color: #48BB78;
+    }
+    .cell.opportunity::before {
+      content: '💡 ';
+    }
+
+    .cell.empty-cell {
+      color: #CED4DA;
+      border-style: dashed;
+      border-color: #DEE2E6;
+    }
+
+    .emotion-row {
+      position: relative;
+      min-height: 120px;
+    }
+
+    .emotion-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .tooltip {
+      position: fixed;
+      background: #212529;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      pointer-events: none;
+      z-index: 100;
+      max-width: 220px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+    .tooltip.visible { opacity: 1; }
+
+    .phase-separator {
+      border-left: 2px solid #DEE2E6;
+    }
+
+    @media print {
+      body { background: white; }
+      .journey-container { box-shadow: none; overflow: visible; }
+      .journey-grid { min-width: unset; }
+      .row-label { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <div class="title-bar">
+    <h1>SaaS Onboarding — Customer Journey Map</h1>
+    <div class="subtitle">Mapping the end-to-end experience from awareness to adoption</div>
+  </div>
+  <div class="journey-container">
+    <div class="journey-grid" id="journeyGrid"></div>
+  </div>
+  <div class="tooltip" id="tooltip"></div>
+
+  <script>
+    const journeyData = {
+      title: "SaaS Onboarding Journey",
+      persona: {
+        name: "New SaaS User",
+        role: "End User / Team Lead",
+        goal: "Successfully adopt the SaaS product for their team"
+      },
+      phases: [
+        {
+          id: "awareness",
+          label: "Awareness",
+          color: "#7C5CFC",
+          steps: [
+            {
+              id: "landing-page",
+              label: "Landing Page",
+              emotion: { score: 0.7, label: "Curious", annotation: "User discovers the product and explores the landing page" },
+              painPoints: ["Too much jargon, unclear value proposition"],
+              opportunities: ["Add interactive demo on landing page"]
+            },
+            {
+              id: "pricing-page",
+              label: "Pricing Page",
+              emotion: { score: 0.6, label: "Evaluating", annotation: "User compares pricing tiers to find the right fit" },
+              painPoints: ["Confusing tier differences, hidden costs"],
+              opportunities: ["Add comparison table, highlight most popular plan"]
+            }
+          ]
+        },
+        {
+          id: "signup",
+          label: "Sign Up",
+          color: "#5B8DEF",
+          steps: [
+            {
+              id: "registration",
+              label: "Registration",
+              emotion: { score: 0.8, label: "Excited", annotation: "User is excited to get started and signs up" },
+              painPoints: ["Too many required fields"],
+              opportunities: ["Social login, reduce form fields"]
+            },
+            {
+              id: "email-verification",
+              label: "Email Verification",
+              emotion: { score: 0.75, label: "Eager", annotation: "User verifies email and is eager to explore" },
+              painPoints: ["Verification email delayed or in spam"],
+              opportunities: ["Instant magic link, resend option"]
+            }
+          ]
+        },
+        {
+          id: "onboarding",
+          label: "Onboarding",
+          color: "#38B2AC",
+          steps: [
+            {
+              id: "product-tour",
+              label: "Product Tour",
+              emotion: { score: 0.5, label: "Overwhelmed", annotation: "Product tour is too long and covers too many features" },
+              painPoints: ["Tour is too long, not personalized"],
+              opportunities: ["Contextual tooltips, role-based tours"]
+            },
+            {
+              id: "first-project",
+              label: "First Project",
+              emotion: { score: 0.3, label: "Frustrated", annotation: "User struggles to create their first project without guidance" },
+              painPoints: ["Unclear workflow, no templates available"],
+              opportunities: ["Starter templates, guided project wizard"]
+            },
+            {
+              id: "invite-team",
+              label: "Invite Team",
+              emotion: { score: 0.35, label: "Struggling", annotation: "Inviting team members is confusing with role permissions" },
+              painPoints: ["Complex role permissions, bulk invite missing"],
+              opportunities: ["Simplified roles, CSV bulk invite"]
+            }
+          ]
+        },
+        {
+          id: "adoption",
+          label: "Adoption",
+          color: "#48BB78",
+          steps: [
+            {
+              id: "daily-usage",
+              label: "Daily Usage",
+              emotion: { score: 0.65, label: "Productive", annotation: "User starts using the product regularly and sees value" },
+              painPoints: ["Missing keyboard shortcuts, slow loading"],
+              opportunities: ["Power user shortcuts, performance optimization"]
+            },
+            {
+              id: "feature-discovery",
+              label: "Feature Discovery",
+              emotion: { score: 0.8, label: "Delighted", annotation: "User discovers advanced features that boost productivity" },
+              painPoints: ["Advanced features hard to find"],
+              opportunities: ["Feature spotlight, tips in context"]
+            }
+          ]
+        }
+      ]
+    };
+
+    const allSteps = journeyData.phases.flatMap(p => p.steps);
+    const totalSteps = allSteps.length;
+    const colWidth = 180;
+    const rowLabelWidth = 140;
+    const totalWidth = rowLabelWidth + totalSteps * colWidth;
+    const dimensions = ['steps', 'emotion', 'painPoints', 'opportunities'];
+    const dimLabels = {
+      steps: 'Steps',
+      emotion: 'Emotion / CX',
+      painPoints: 'Pain Points',
+      opportunities: 'Opportunities'
+    };
+
+    const grid = document.getElementById('journeyGrid');
+    grid.style.gridTemplateColumns = `${rowLabelWidth}px repeat(${totalSteps}, ${colWidth}px)`;
+
+    // Phase header row
+    const phaseCorner = document.createElement('div');
+    phaseCorner.className = 'row-label';
+    phaseCorner.style.background = '#F1F3F5';
+    phaseCorner.style.borderBottom = '1px solid #E9ECEF';
+    phaseCorner.textContent = 'Phase';
+    phaseCorner.style.gridRow = '1';
+    phaseCorner.style.gridColumn = '1';
+    grid.appendChild(phaseCorner);
+
+    let colIndex = 2;
+    journeyData.phases.forEach((phase, pi) => {
+      const span = phase.steps.length;
+      const header = document.createElement('div');
+      header.className = 'phase-header';
+      if (pi > 0) header.classList.add('phase-separator');
+      header.style.background = phase.color;
+      header.style.gridRow = '1';
+      header.style.gridColumn = `${colIndex} / span ${span}`;
+      header.style.borderRadius = pi === 0 ? '8px 0 0 0' : (pi === journeyData.phases.length - 1 ? '0 8px 0 0' : '0');
+      header.innerHTML = `<span class="phase-icon">${pi + 1}</span> ${phase.label}`;
+      grid.appendChild(header);
+      colIndex += span;
+    });
+
+    // Step header row
+    const stepCorner = document.createElement('div');
+    stepCorner.className = 'row-label';
+    stepCorner.textContent = 'Steps';
+    stepCorner.style.gridRow = '2';
+    stepCorner.style.gridColumn = '1';
+    grid.appendChild(stepCorner);
+
+    colIndex = 2;
+    journeyData.phases.forEach((phase, pi) => {
+      phase.steps.forEach((step, si) => {
+        const stepEl = document.createElement('div');
+        stepEl.className = 'step-header';
+        if (si === 0 && pi > 0) stepEl.classList.add('phase-separator');
+        stepEl.style.gridRow = '2';
+        stepEl.style.gridColumn = `${colIndex}`;
+        stepEl.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;
+        stepEl.textContent = step.label;
+        grid.appendChild(stepEl);
+        colIndex++;
+      });
+    });
+
+    // Emotion row
+    const emotionLabel = document.createElement('div');
+    emotionLabel.className = 'row-label';
+    emotionLabel.textContent = 'Emotion / CX';
+    emotionLabel.style.gridRow = '3';
+    emotionLabel.style.gridColumn = '1';
+    emotionLabel.style.minHeight = '120px';
+    grid.appendChild(emotionLabel);
+
+    const emotionContainer = document.createElement('div');
+    emotionContainer.className = 'emotion-row';
+    emotionContainer.style.gridRow = '3';
+    emotionContainer.style.gridColumn = `2 / span ${totalSteps}`;
+    emotionContainer.style.position = 'relative';
+    emotionContainer.style.minHeight = '120px';
+    emotionContainer.style.borderBottom = '1px solid #E9ECEF';
+    grid.appendChild(emotionContainer);
+
+    // Pain points row
+    const painLabel = document.createElement('div');
+    painLabel.className = 'row-label';
+    painLabel.textContent = 'Pain Points';
+    painLabel.style.gridRow = '4';
+    painLabel.style.gridColumn = '1';
+    grid.appendChild(painLabel);
+
+    colIndex = 2;
+    journeyData.phases.forEach((phase, pi) => {
+      phase.steps.forEach((step, si) => {
+        const cell = document.createElement('div');
+        cell.className = 'cell pain-point';
+        if (si === 0 && pi > 0) cell.classList.add('phase-separator');
+        cell.style.gridRow = '4';
+        cell.style.gridColumn = `${colIndex}`;
+        cell.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;
+        cell.textContent = step.painPoints ? step.painPoints.join('; ') : '—';
+        if (!step.painPoints || step.painPoints.length === 0) {
+          cell.className = 'cell empty-cell';
+        }
+        grid.appendChild(cell);
+        colIndex++;
+      });
+    });
+
+    // Opportunities row
+    const oppLabel = document.createElement('div');
+    oppLabel.className = 'row-label';
+    oppLabel.textContent = 'Opportunities';
+    oppLabel.style.gridRow = '5';
+    oppLabel.style.gridColumn = '1';
+    grid.appendChild(oppLabel);
+
+    colIndex = 2;
+    journeyData.phases.forEach((phase, pi) => {
+      phase.steps.forEach((step, si) => {
+        const cell = document.createElement('div');
+        cell.className = 'cell opportunity';
+        if (si === 0 && pi > 0) cell.classList.add('phase-separator');
+        cell.style.gridRow = '5';
+        cell.style.gridColumn = `${colIndex}`;
+        cell.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;
+        cell.textContent = step.opportunities ? step.opportunities.join('; ') : '—';
+        if (!step.opportunities || step.opportunities.length === 0) {
+          cell.className = 'cell empty-cell';
+        }
+        grid.appendChild(cell);
+        colIndex++;
+      });
+    });
+
+    // D3 Emotion Curve
+    const emotionWidth = totalSteps * colWidth;
+    const emotionHeight = 110;
+
+    const svg = d3.select(emotionContainer)
+      .append('svg')
+      .attr('width', emotionWidth)
+      .attr('height', emotionHeight);
+
+    // Background bands
+    svg.append('rect').attr('x', 0).attr('y', 0).attr('width', emotionWidth).attr('height', emotionHeight / 3)
+      .attr('fill', 'rgba(72, 187, 120, 0.05)');
+    svg.append('rect').attr('x', 0).attr('y', emotionHeight / 3).attr('width', emotionWidth).attr('height', emotionHeight / 3)
+      .attr('fill', 'rgba(91, 141, 239, 0.05)');
+    svg.append('rect').attr('x', 0).attr('y', 2 * emotionHeight / 3).attr('width', emotionWidth).attr('height', emotionHeight / 3)
+      .attr('fill', 'rgba(229, 62, 62, 0.05)');
+
+    const xScale = d3.scaleLinear()
+      .domain([0, allSteps.length - 1])
+      .range([colWidth / 2, emotionWidth - colWidth / 2]);
+
+    const yScale = d3.scaleLinear()
+      .domain([0, 1])
+      .range([emotionHeight - 15, 15]);
+
+    const line = d3.line()
+      .x((d, i) => xScale(i))
+      .y(d => yScale(d.emotion.score))
+      .curve(d3.curveMonotoneX);
+
+    svg.append('path')
+      .datum(allSteps)
+      .attr('d', line)
+      .attr('fill', 'none')
+      .attr('stroke', '#5B8DEF')
+      .attr('stroke-width', 2.5);
+
+    const tooltip = document.getElementById('tooltip');
+
+    svg.selectAll('.emotion-dot')
+      .data(allSteps)
+      .join('circle')
+      .attr('class', 'emotion-dot')
+      .attr('cx', (d, i) => xScale(i))
+      .attr('cy', d => yScale(d.emotion.score))
+      .attr('r', 6)
+      .attr('fill', d => d.emotion.score > 0.6 ? '#48BB78' : d.emotion.score > 0.3 ? '#5B8DEF' : '#E53E3E')
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 2)
+      .style('cursor', 'pointer')
+      .on('mouseover', function(event, d) {
+        d3.select(this).attr('r', 10);
+        tooltip.innerHTML = `<strong>${d.label}</strong><br>${d.emotion.label} (${d.emotion.score})<br><em>${d.emotion.annotation}</em>`;
+        tooltip.classList.add('visible');
+      })
+      .on('mousemove', function(event) {
+        tooltip.style.left = (event.clientX + 12) + 'px';
+        tooltip.style.top = (event.clientY - 10) + 'px';
+      })
+      .on('mouseout', function() {
+        d3.select(this).attr('r', 6);
+        tooltip.classList.remove('visible');
+      });
+
+    // Emoji markers
+    svg.selectAll('.emoji')
+      .data(allSteps)
+      .join('text')
+      .attr('x', (d, i) => xScale(i))
+      .attr('y', d => yScale(d.emotion.score) - 14)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '14px')
+      .text(d => d.emotion.score > 0.6 ? '😊' : d.emotion.score > 0.3 ? '😐' : '😞');
+
+    function hexToRgb(hex) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `${r}, ${g}, ${b}`;
+    }
+  </script>
+</body>
+</html>

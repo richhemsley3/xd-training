@@ -1,0 +1,104 @@
+{
+  "metadata": {
+    "skill_name": "design-pipeline",
+    "skill_path": "/Users/richhemsley/Desktop/Claude/skills/design-pipeline/SKILL.md",
+    "executor_model": "claude-opus-4-6",
+    "timestamp": "2026-03-20T18:35:00Z",
+    "evals_run": ["automated-mode-full-run", "guided-mode-with-research", "guided-mode-new-research"],
+    "runs_per_configuration": 2
+  },
+  "runs": [
+    {
+      "eval_name": "automated-mode-full-run",
+      "configurations": [
+        {
+          "name": "with_skill",
+          "pass_rate": 1.0,
+          "passed": 12,
+          "total": 12,
+          "time_seconds": 1073.5,
+          "tokens": 156639,
+          "outputs": ["research-report.html", "journey-map.html", "prototype.html", "findings-report.html", "research-review.html", "component-gap-report.html", "summary.md"]
+        },
+        {
+          "name": "without_skill",
+          "pass_rate": null,
+          "passed": null,
+          "total": null,
+          "time_seconds": 662.8,
+          "tokens": 90280,
+          "outputs": ["01-competitive-analysis.md", "02-user-research-synthesis.md", "03-journey-map.md", "04-information-architecture.md", "05-interaction-design.md", "06-product-design-spec.md", "07-design-critique.md", "08-accessibility-review.md", "09-design-tokens-mapping.md", "10-user-flows.md", "11-content-design.md", "summary.md"]
+        }
+      ]
+    },
+    {
+      "eval_name": "guided-mode-with-research",
+      "configurations": [
+        {
+          "name": "with_skill",
+          "pass_rate": 1.0,
+          "passed": 11,
+          "total": 11,
+          "time_seconds": 1051.3,
+          "tokens": 152733,
+          "outputs": ["stage-2-research-report.html", "stage-3-journey-map.html", "stage-4-information-architecture.html", "stage-5-product-design.html", "stage-6-critique-heuristics-report.html", "stage-7-accessibility-audit.html", "stage-8-research-review.html", "stage-9-component-gap-report.html", "summary.md"]
+        },
+        {
+          "name": "without_skill",
+          "pass_rate": null,
+          "passed": null,
+          "total": null,
+          "time_seconds": 781.0,
+          "tokens": 113478,
+          "outputs": ["01-research-synthesis.md", "02-personas-and-journeys.md", "03-information-architecture.md", "04-wireframes.html", "05-hifi-my-requests.html", "06-hifi-request-detail.html", "07-hifi-approval-queue.html", "08-hifi-access-audit.html", "09-hifi-new-request.html", "summary.md"]
+        }
+      ]
+    },
+    {
+      "eval_name": "guided-mode-new-research",
+      "configurations": [
+        {
+          "name": "with_skill",
+          "pass_rate": 0.91,
+          "passed": 10,
+          "total": 11,
+          "time_seconds": 1207.4,
+          "tokens": 165918,
+          "outputs": ["01-market-research.md", "02-research-report.html", "03-journey-map.html", "04-information-architecture.md", "05-prototype.html", "06-critique-heuristics-findings.md", "07-accessibility-findings.md", "08-research-review.md", "09-component-gap-report.md", "summary.md"]
+        },
+        {
+          "name": "without_skill",
+          "pass_rate": null,
+          "passed": null,
+          "total": null,
+          "time_seconds": 599.5,
+          "tokens": 94691,
+          "outputs": ["01-market-research.md", "02-personas-jtbd.md", "03-information-architecture.md", "04-wireframes.html", "05-hifi-prototype.html", "06-design-spec.md", "summary.md"]
+        }
+      ]
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "avg_pass_rate": 0.97,
+      "avg_time_seconds": 1110.7,
+      "avg_tokens": 158430
+    },
+    "without_skill": {
+      "avg_time_seconds": 681.1,
+      "avg_tokens": 99483
+    },
+    "delta": {
+      "pass_rate": "97%",
+      "time_seconds": "+429.6s (skill runs ~1.6x longer due to 3-pass evaluation loops)",
+      "tokens": "+58947 (~59% more tokens for deeper evaluation passes)"
+    }
+  },
+  "notes": [
+    "With-skill runs consistently produce all 9 pipeline stages including 3-pass critique/heuristic and accessibility loops",
+    "Without-skill runs produce good outputs but skip multi-pass evaluation, research review, and component gap analysis",
+    "The 1 failed assertion (guided-mode-new-research) is a test harness issue — the test told the agent to default to guided mode, so it skipped asking the mode question",
+    "With-skill runs produce HTML outputs using SDS components; without-skill runs more often produce markdown",
+    "The time/token increase is expected — 3-pass evaluation loops and research review are significant additional work"
+  ]
+}

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login/Signup Screen Flow</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f5f6f8;
+    color: #1a1a2e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+  h1 {
+    margin: 32px 0 8px;
+    font-size: 22px;
+    font-weight: 600;
+    color: #1a1a2e;
+  }
+  .subtitle {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 24px;
+  }
+  svg {
+    display: block;
+  }
+  .legend {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 24px;
+    font-size: 13px;
+    color: #4b5563;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1.5px solid;
+  }
+</style>
+</head>
+<body>
+<h1>Login / Signup Screen Flow</h1>
+<p class="subtitle">Two paths from Landing Page to Dashboard, with error handling on Login</p>
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch" style="background:#e0e7ff;border-color:#6366f1;"></div> Screen</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#fef3c7;border-color:#f59e0b;"></div> Verification</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#fee2e2;border-color:#ef4444;"></div> Error</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#d1fae5;border-color:#10b981;"></div> Destination</div>
+</div>
+<div id="chart"></div>
+
+<script>
+(function() {
+  // --- Data ---
+  const nodes = [
+    { id: "landing",       label: "Landing Page",          x: 420, y: 60,  type: "screen" },
+    { id: "login",         label: "Login Form",            x: 220, y: 200, type: "screen" },
+    { id: "signup",        label: "Sign Up Form",          x: 620, y: 200, type: "screen" },
+    { id: "error",         label: "Invalid Credentials",   x: 60,  y: 360, type: "error" },
+    { id: "verification",  label: "Email Verification",    x: 620, y: 360, type: "verify" },
+    { id: "dashboard",     label: "Dashboard",             x: 420, y: 500, type: "destination" },
+  ];
+
+  const edges = [
+    { source: "landing", target: "login",        label: "Log In" },
+    { source: "landing", target: "signup",       label: "Sign Up" },
+    { source: "login",   target: "dashboard",    label: "Success" },
+    { source: "login",   target: "error",        label: "Failure" },
+    { source: "error",   target: "login",        label: "Retry" },
+    { source: "signup",  target: "verification", label: "Submit" },
+    { source: "verification", target: "dashboard", label: "Verified" },
+  ];
+
+  const nodeW = 170, nodeH = 56, r = 10;
+
+  const typeStyles = {
+    screen:      { fill: "#e0e7ff", stroke: "#6366f1", text: "#3730a3" },
+    error:       { fill: "#fee2e2", stroke: "#ef4444", text: "#991b1b" },
+    verify:      { fill: "#fef3c7", stroke: "#f59e0b", text: "#92400e" },
+    destination: { fill: "#d1fae5", stroke: "#10b981", text: "#065f46" },
+  };
+
+  // --- SVG setup ---
+  const width = 840, height = 600;
+  const svg = d3.select("#chart")
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", `0 0 ${width} ${height}`);
+
+  // Arrow marker
+  svg.append("defs").selectAll("marker")
+    .data(["arrow-normal", "arrow-error", "arrow-success"])
+    .join("marker")
+      .attr("id", d => d)
+      .attr("viewBox", "0 0 10 6")
+      .attr("refX", 10)
+      .attr("refY", 3)
+      .attr("markerWidth", 10)
+      .attr("markerHeight", 6)
+      .attr("orient", "auto")
+    .append("path")
+      .attr("d", "M0,0 L10,3 L0,6 Z")
+      .attr("fill", d => d === "arrow-error" ? "#ef4444" : d === "arrow-success" ? "#10b981" : "#6366f1");
+
+  const nodeMap = Object.fromEntries(nodes.map(n => [n.id, n]));
+
+  // --- Edge routing helper ---
+  function edgePath(e) {
+    const s = nodeMap[e.source];
+    const t = nodeMap[e.target];
+    const sx = s.x + nodeW / 2;
+    const sy = s.y + nodeH / 2;
+    const tx = t.x + nodeW / 2;
+    const ty = t.y + nodeH / 2;
+
+    // Special curved path for error → login (loops back up)
+    if (e.source === "error" && e.target === "login") {
+      const startX = s.x + nodeW / 2;
+      const startY = s.y;
+      const endX = t.x;
+      const endY = t.y + nodeH / 2;
+      const cpx = startX - 60;
+      const cpy = startY - 100;
+      return `M${startX},${startY} C${cpx},${cpy} ${endX - 60},${endY} ${endX},${endY}`;
+    }
+
+    // Connection points on node edges
+    let x1, y1, x2, y2;
+
+    const dx = tx - sx;
+    const dy = ty - sy;
+
+    if (Math.abs(dy) > Math.abs(dx)) {
+      // Vertical dominant
+      if (dy > 0) { x1 = sx; y1 = s.y + nodeH; x2 = tx; y2 = t.y; }
+      else        { x1 = sx; y1 = s.y;          x2 = tx; y2 = t.y + nodeH; }
+    } else {
+      // Horizontal dominant
+      if (dx > 0) { x1 = s.x + nodeW; y1 = sy; x2 = t.x; y2 = ty; }
+      else        { x1 = s.x;         y1 = sy; x2 = t.x + nodeW; y2 = ty; }
+    }
+
+    // Bezier control points
+    const mx = (x1 + x2) / 2;
+    const my = (y1 + y2) / 2;
+
+    if (Math.abs(dy) > Math.abs(dx)) {
+      return `M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`;
+    } else {
+      return `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`;
+    }
+  }
+
+  function edgeColor(e) {
+    if (e.label === "Failure" || e.label === "Retry") return "#ef4444";
+    if (e.label === "Success" || e.label === "Verified") return "#10b981";
+    return "#6366f1";
+  }
+
+  function markerRef(e) {
+    if (e.label === "Failure" || e.label === "Retry") return "url(#arrow-error)";
+    if (e.label === "Success" || e.label === "Verified") return "url(#arrow-success)";
+    return "url(#arrow-normal)";
+  }
+
+  // --- Draw edges ---
+  const edgeGroup = svg.append("g");
+
+  edgeGroup.selectAll("path")
+    .data(edges)
+    .join("path")
+      .attr("d", edgePath)
+      .attr("fill", "none")
+      .attr("stroke", edgeColor)
+      .attr("stroke-width", 2)
+      .attr("marker-end", markerRef);
+
+  // Edge labels
+  edgeGroup.selectAll("text")
+    .data(edges)
+    .join("text")
+    .each(function(e) {
+      const path = edgePath(e);
+      // Approximate midpoint from path
+      const tempPath = svg.append("path").attr("d", path).style("display","none");
+      const len = tempPath.node().getTotalLength();
+      const mid = tempPath.node().getPointAtLength(len * 0.5);
+      tempPath.remove();
+
+      const col = edgeColor(e);
+
+      d3.select(this)
+        .attr("x", mid.x)
+        .attr("y", mid.y - 6)
+        .attr("text-anchor", "middle")
+        .attr("font-size", 11)
+        .attr("font-weight", 600)
+        .attr("fill", col);
+
+      // background rect
+      edgeGroup.insert("rect", "text")
+        .attr("x", mid.x - 28)
+        .attr("y", mid.y - 18)
+        .attr("width", 56)
+        .attr("height", 16)
+        .attr("rx", 4)
+        .attr("fill", "#f5f6f8")
+        .attr("opacity", 0.9);
+    })
+    .text(d => d.label);
+
+  // --- Draw nodes ---
+  const nodeGroup = svg.append("g");
+
+  const nodeEls = nodeGroup.selectAll("g")
+    .data(nodes)
+    .join("g")
+    .attr("transform", d => `translate(${d.x},${d.y})`);
+
+  // Shadow
+  nodeEls.append("rect")
+    .attr("width", nodeW)
+    .attr("height", nodeH)
+    .attr("rx", r)
+    .attr("fill", "rgba(0,0,0,0.06)")
+    .attr("transform", "translate(2,2)");
+
+  // Box
+  nodeEls.append("rect")
+    .attr("width", nodeW)
+    .attr("height", nodeH)
+    .attr("rx", r)
+    .attr("fill", d => typeStyles[d.type].fill)
+    .attr("stroke", d => typeStyles[d.type].stroke)
+    .attr("stroke-width", 2);
+
+  // Icon
+  nodeEls.append("text")
+    .attr("x", 14)
+    .attr("y", nodeH / 2 + 1)
+    .attr("dominant-baseline", "central")
+    .attr("font-size", 18)
+    .text(d => {
+      if (d.type === "error") return "\u26A0";
+      if (d.type === "verify") return "\u2709";
+      if (d.type === "destination") return "\u2713";
+      return "\u25A1";
+    });
+
+  // Label
+  nodeEls.append("text")
+    .attr("x", 36)
+    .attr("y", nodeH / 2 + 1)
+    .attr("dominant-baseline", "central")
+    .attr("font-size", 13)
+    .attr("font-weight", 600)
+    .attr("fill", d => typeStyles[d.type].text)
+    .text(d => d.label);
+
+})();
+</script>
+</body>
+</html>

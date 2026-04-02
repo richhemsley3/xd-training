@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Access Request Portal — Critique &amp; Heuristic Evaluation</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap">
+<style>
+  :root {
+    --sds-font-sans: 'Proxima Nova', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --sds-color-warm-gray-025: #FAF8F5; --sds-color-warm-gray-050: #F4F1EB;
+    --sds-color-warm-gray-100: #EBE6DD; --sds-color-warm-gray-150: #E0DCD3;
+    --sds-color-warm-gray-200: #D0CBC3; --sds-color-warm-gray-400: #948E85;
+    --sds-color-warm-gray-550: #6B6760; --sds-color-warm-gray-700: #47443F;
+    --sds-color-warm-gray-900: #1C1A17;
+    --sds-color-blue-050: #EBF4F5; --sds-color-blue-700: #0C4A69; --sds-color-blue-750: #013D5B;
+    --sds-color-red-050: #FFEEEB; --sds-color-red-500: #BF5547;
+    --sds-color-green-025: #F4FAEB; --sds-color-green-400: #7A9A01; --sds-color-green-500: #62800B;
+    --sds-color-yellow-025: #FCF9D9; --sds-color-yellow-200: #EBCE2D; --sds-color-yellow-500: #8A7515;
+    --sds-color-purple-550: #805AA1;
+    --sds-color-white: #FFFFFF;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sds-font-sans); background: var(--sds-color-warm-gray-025); color: var(--sds-color-warm-gray-900); line-height: 1.5; font-size: 14px; padding: 32px 40px; -webkit-font-smoothing: antialiased; }
+  h1 { font-size: 28px; font-weight: 600; margin-bottom: 4px; }
+  .subtitle { font-size: 14px; color: var(--sds-color-warm-gray-550); margin-bottom: 32px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 8px; }
+  h3 { font-size: 14px; font-weight: 600; margin: 24px 0 12px; color: var(--sds-color-warm-gray-700); }
+  .desc { font-size: 13px; color: var(--sds-color-warm-gray-550); margin-bottom: 20px; max-width: 860px; }
+  .divider { border: none; border-top: 1px solid var(--sds-color-warm-gray-150); margin: 40px 0; }
+
+  .stat-row { display: flex; gap: 12px; margin-bottom: 24px; }
+  .stat-card { flex: 1; text-align: center; padding: 16px; background: var(--sds-color-white); border: 1px solid var(--sds-color-warm-gray-150); border-radius: 8px; }
+  .stat-value { font-size: 24px; font-weight: 600; color: var(--sds-color-blue-750); }
+  .stat-label { font-size: 11px; font-weight: 600; color: var(--sds-color-warm-gray-400); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 4px; }
+
+  .finding {
+    background: var(--sds-color-white); border: 1px solid var(--sds-color-warm-gray-150);
+    border-radius: 8px; padding: 16px 20px; margin-bottom: 12px;
+  }
+  .finding-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .finding-title { font-size: 14px; font-weight: 600; }
+  .finding-body { font-size: 13px; color: var(--sds-color-warm-gray-550); }
+  .finding-fix { font-size: 13px; color: var(--sds-color-green-500); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--sds-color-warm-gray-100); }
+  .finding-fix strong { color: var(--sds-color-warm-gray-700); }
+  .finding-meta { display: flex; gap: 12px; margin-top: 8px; font-size: 11px; color: var(--sds-color-warm-gray-400); }
+
+  .severity { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .severity--critical { background: var(--sds-color-red-050); color: var(--sds-color-red-500); }
+  .severity--major { background: var(--sds-color-yellow-025); color: var(--sds-color-yellow-500); }
+  .severity--minor { background: var(--sds-color-blue-050); color: var(--sds-color-blue-700); }
+  .severity--fixed { background: var(--sds-color-green-025); color: var(--sds-color-green-500); }
+
+  .pass-label { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; margin-bottom: 16px; }
+  .pass-label--1 { background: var(--sds-color-red-050); color: var(--sds-color-red-500); }
+  .pass-label--2 { background: var(--sds-color-yellow-025); color: var(--sds-color-yellow-500); }
+  .pass-label--3 { background: var(--sds-color-green-025); color: var(--sds-color-green-500); }
+
+  .heuristic-tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; background: #F7EEFF; color: var(--sds-color-purple-550); margin-left: 6px; }
+</style>
+</head>
+<body>
+
+<h1>Critique &amp; Heuristic Evaluation</h1>
+<p class="subtitle">3-pass auto-fix evaluation &middot; Design critique + Nielsen's 10 heuristics &middot; Applied to all 8 screens</p>
+
+<!-- Summary stats -->
+<div class="stat-row">
+  <div class="stat-card"><div class="stat-value">18</div><div class="stat-label">Total Findings</div></div>
+  <div class="stat-card"><div class="stat-value">18</div><div class="stat-label">Fixed</div></div>
+  <div class="stat-card"><div class="stat-value">0</div><div class="stat-label">Remaining</div></div>
+  <div class="stat-card"><div class="stat-value">3</div><div class="stat-label">Passes</div></div>
+</div>
+
+<!-- ===== PASS 1 ===== -->
+<h2>Pass 1 — Initial Evaluation</h2>
+<p class="desc">First pass identified 12 issues across critique and heuristic dimensions. All fixed before Pass 2.</p>
+<div class="pass-label pass-label--1">Pass 1 &middot; 12 findings</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">No confirmation after request submission <span class="heuristic-tag">H1: Visibility</span></div>
+    <span class="severity severity--critical">Critical</span>
+  </div>
+  <div class="finding-body">After submitting a new request, the user is not shown a confirmation state. They have no immediate feedback that their request was received and routed.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added a success confirmation banner at the top of the request detail screen after submission, showing the request ID and the approver it was routed to. Also added a toast notification pattern.</div>
+  <div class="finding-meta"><span>Screen: New Request</span><span>Severity: Critical</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">No loading or processing states <span class="heuristic-tag">H1: Visibility</span></div>
+    <span class="severity severity--major">Major</span>
+  </div>
+  <div class="finding-body">Form submission, approval actions, and data loading have no intermediate states. Users cannot tell if their action is being processed.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added loading spinner to submit and approve buttons during processing. Added skeleton loading states for table data and request detail content.</div>
+  <div class="finding-meta"><span>Screen: All</span><span>Severity: Major</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">No undo/cancel for approval actions <span class="heuristic-tag">H3: User Control</span></div>
+    <span class="severity severity--critical">Critical</span>
+  </div>
+  <div class="finding-body">Approve and Deny buttons execute immediately with no confirmation dialog. An accidental click on "Deny" cannot be reversed.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added confirmation dialog for both Approve and Deny actions. Deny requires a reason before the dialog can be confirmed. Approve shows a summary of what will be granted.</div>
+  <div class="finding-meta"><span>Screen: Review Request</span><span>Severity: Critical</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Filter bar has no active state feedback <span class="heuristic-tag">H1: Visibility</span></div>
+    <span class="severity severity--minor">Minor</span>
+  </div>
+  <div class="finding-body">When filter chips are clicked on the My Requests and Audit Log screens, there is no clear indication of which filter is active beyond the initial "All" state.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Active filter chip now uses blue-050 background with blue-750 text and a subtle border change. Added result count next to active filter.</div>
+  <div class="finding-meta"><span>Screen: My Requests, Audit Log</span><span>Severity: Minor</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Inconsistent back navigation pattern <span class="heuristic-tag">H4: Consistency</span></div>
+    <span class="severity severity--major">Major</span>
+  </div>
+  <div class="finding-body">Some detail screens use a text-based back link while others rely solely on the sidenav. The back link style varies between screens.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Standardized all detail screens to use a consistent breadcrumb pattern: "My Requests / REQ-2847" with the parent as a clickable link. Added aria-label for accessibility.</div>
+  <div class="finding-meta"><span>Screen: Request Detail, Review Request, Denied</span><span>Severity: Major</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Dataset selector lacks search in new request form <span class="heuristic-tag">H7: Flexibility</span></div>
+    <span class="severity severity--major">Major</span>
+  </div>
+  <div class="finding-body">The dataset dropdown is a simple select element. With hundreds of datasets, users cannot search or filter. This contradicts the research finding about needing a discoverable catalog.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Replaced the select with a searchable combobox that shows dataset name, schema, sensitivity level, and owner as the user types. Includes recent datasets shortcut.</div>
+  <div class="finding-meta"><span>Screen: New Request</span><span>Severity: Major</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">No empty states for filtered views <span class="heuristic-tag">H9: Help Users</span></div>
+    <span class="severity severity--minor">Minor</span>
+  </div>
+  <div class="finding-body">When filters return zero results on My Requests or Approval Queue, the table body is empty with no guidance.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added empty state component with an icon, message, and suggested action for each filtered view (e.g., "No denied requests. All your requests have been approved or are pending.").</div>
+  <div class="finding-meta"><span>Screen: My Requests, Approval Queue</span><span>Severity: Minor</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Batch approval has no scope limit <span class="heuristic-tag">H5: Error Prevention</span></div>
+    <span class="severity severity--major">Major</span>
+  </div>
+  <div class="finding-body">The "Batch Approve (Low Risk)" button could approve dozens of requests without a clear count or confirmation. Research showed batch-approving under pressure is already a problem.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Button now shows count ("Batch Approve 4 Low Risk"). Clicking opens a confirmation dialog listing all requests to be approved, with a maximum batch size of 10. Requests above medium risk are excluded from batch selection.</div>
+  <div class="finding-meta"><span>Screen: Approval Queue</span><span>Severity: Major</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">No help text for risk meter <span class="heuristic-tag">H10: Help &amp; Docs</span></div>
+    <span class="severity severity--minor">Minor</span>
+  </div>
+  <div class="finding-body">The risk meter (colored bars) is not explained. New approvers may not understand what it represents or how risk is calculated.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added tooltip on hover showing risk factors (sensitivity level, PII field count, requestor's existing access scope). Added a "How is risk calculated?" help link in the queue header.</div>
+  <div class="finding-meta"><span>Screen: Approval Queue</span><span>Severity: Minor</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Audit log pagination missing <span class="heuristic-tag">H7: Flexibility</span></div>
+    <span class="severity severity--major">Major</span>
+  </div>
+  <div class="finding-body">The audit log shows all events in a single scroll. For security admins reviewing months of activity, this becomes unmanageable.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added date range picker filter and pagination (25/50/100 per page) with total count. Also added a "Jump to date" shortcut.</div>
+  <div class="finding-meta"><span>Screen: Audit Log</span><span>Severity: Major</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">No notification preferences visible <span class="heuristic-tag">H3: User Control</span></div>
+    <span class="severity severity--minor">Minor</span>
+  </div>
+  <div class="finding-body">Users receive notifications but cannot control which notifications they get (email vs. in-app, frequency). Settings link exists but preferences are not surfaced.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added notification dropdown from the bell icon showing recent notifications with a "Manage preferences" link. Settings page includes granular notification controls.</div>
+  <div class="finding-meta"><span>Screen: All (header)</span><span>Severity: Minor</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Denied state lacks clear next steps <span class="heuristic-tag">H9: Help Users</span></div>
+    <span class="severity severity--minor">Minor</span>
+  </div>
+  <div class="finding-body">While the denied screen shows a reason, the "Amend &amp; Resubmit" button does not pre-populate the original form data. Users would need to re-enter everything.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> "Amend &amp; Resubmit" now opens the new request form pre-filled with the original request data, with the justification field highlighted for editing. The original denial reason is shown as context.</div>
+  <div class="finding-meta"><span>Screen: Denied State</span><span>Severity: Minor</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== PASS 2 ===== -->
+<h2>Pass 2 — Re-evaluation</h2>
+<p class="desc">Second pass on updated designs found 4 additional issues introduced or revealed by the fixes.</p>
+<div class="pass-label pass-label--2">Pass 2 &middot; 4 findings</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Confirmation dialog blocks keyboard navigation <span class="heuristic-tag">H7: Flexibility</span></div>
+    <span class="severity severity--major">Major</span>
+  </div>
+  <div class="finding-body">The new confirmation dialogs for approve/deny do not trap focus properly and lack keyboard shortcuts for confirm/cancel actions.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added focus trap to modal dialogs. Enter confirms, Escape cancels. Tab cycles through focusable elements within the dialog.</div>
+  <div class="finding-meta"><span>Screen: Review Request</span><span>Severity: Major</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Searchable combobox lacks keyboard support <span class="heuristic-tag">H4: Consistency</span></div>
+    <span class="severity severity--major">Major</span>
+  </div>
+  <div class="finding-body">The new dataset search combobox does not support arrow key navigation through results or Enter to select.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added full ARIA combobox pattern with arrow key navigation, Enter to select, and Escape to close. Results are announced to screen readers.</div>
+  <div class="finding-meta"><span>Screen: New Request</span><span>Severity: Major</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Breadcrumb truncation on narrow viewports <span class="heuristic-tag">H8: Aesthetic Design</span></div>
+    <span class="severity severity--minor">Minor</span>
+  </div>
+  <div class="finding-body">The new breadcrumb pattern overflows on narrow viewports, pushing content off-screen.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added text-overflow: ellipsis to breadcrumb items with a max-width constraint. On mobile, breadcrumb collapses to show only the parent link.</div>
+  <div class="finding-meta"><span>Screen: All detail screens</span><span>Severity: Minor</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Toast notification overlaps with batch confirmation <span class="heuristic-tag">H8: Aesthetic Design</span></div>
+    <span class="severity severity--minor">Minor</span>
+  </div>
+  <div class="finding-body">If a batch approval triggers a toast while the confirmation dialog is still closing, the two overlap visually.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Toast notification now queues behind any open dialog and displays after dialog closes. Added z-index management for layered UI elements.</div>
+  <div class="finding-meta"><span>Screen: Approval Queue</span><span>Severity: Minor</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== PASS 3 ===== -->
+<h2>Pass 3 — Final Evaluation</h2>
+<p class="desc">Final pass found 2 remaining minor issues. All resolved.</p>
+<div class="pass-label pass-label--3">Pass 3 &middot; 2 findings</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Date range picker does not validate range <span class="heuristic-tag">H5: Error Prevention</span></div>
+    <span class="severity severity--minor">Minor</span>
+  </div>
+  <div class="finding-body">The audit log date range picker allows selecting an end date before the start date without warning.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added validation that prevents end date from being earlier than start date. If user selects an invalid range, the end date auto-adjusts to match the start date.</div>
+  <div class="finding-meta"><span>Screen: Audit Log</span><span>Severity: Minor</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Amend form does not indicate what changed <span class="heuristic-tag">H6: Recognition</span></div>
+    <span class="severity severity--minor">Minor</span>
+  </div>
+  <div class="finding-body">When pre-filling the amend form, there is no visual distinction between original data and fields the user has edited.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added a subtle left border highlight on fields that have been modified from the original request. "Changed" label appears next to modified fields.</div>
+  <div class="finding-meta"><span>Screen: New Request (amend mode)</span><span>Severity: Minor</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<hr class="divider">
+
+<h2>Summary</h2>
+<p class="desc">All 18 findings resolved across 3 passes. The designs are ready for accessibility audit.</p>
+
+<table style="width:100%;border-collapse:collapse;font-size:13px;background:var(--sds-color-white);border:1px solid var(--sds-color-warm-gray-150);border-radius:8px;overflow:hidden;">
+  <thead>
+    <tr style="border-bottom:2px solid var(--sds-color-warm-gray-150);background:var(--sds-color-warm-gray-025);">
+      <th style="text-align:left;padding:10px 16px;font-size:12px;font-weight:600;color:var(--sds-color-warm-gray-550);">Severity</th>
+      <th style="text-align:center;padding:10px 16px;font-size:12px;font-weight:600;color:var(--sds-color-warm-gray-550);">Pass 1</th>
+      <th style="text-align:center;padding:10px 16px;font-size:12px;font-weight:600;color:var(--sds-color-warm-gray-550);">Pass 2</th>
+      <th style="text-align:center;padding:10px 16px;font-size:12px;font-weight:600;color:var(--sds-color-warm-gray-550);">Pass 3</th>
+      <th style="text-align:center;padding:10px 16px;font-size:12px;font-weight:600;color:var(--sds-color-warm-gray-550);">Total Fixed</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom:1px solid var(--sds-color-warm-gray-100);">
+      <td style="padding:10px 16px;"><span class="severity severity--critical">Critical</span></td>
+      <td style="padding:10px 16px;text-align:center;">2</td>
+      <td style="padding:10px 16px;text-align:center;">0</td>
+      <td style="padding:10px 16px;text-align:center;">0</td>
+      <td style="padding:10px 16px;text-align:center;font-weight:600;">2</td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--sds-color-warm-gray-100);">
+      <td style="padding:10px 16px;"><span class="severity severity--major">Major</span></td>
+      <td style="padding:10px 16px;text-align:center;">5</td>
+      <td style="padding:10px 16px;text-align:center;">2</td>
+      <td style="padding:10px 16px;text-align:center;">0</td>
+      <td style="padding:10px 16px;text-align:center;font-weight:600;">7</td>
+    </tr>
+    <tr>
+      <td style="padding:10px 16px;"><span class="severity severity--minor">Minor</span></td>
+      <td style="padding:10px 16px;text-align:center;">5</td>
+      <td style="padding:10px 16px;text-align:center;">2</td>
+      <td style="padding:10px 16px;text-align:center;">2</td>
+      <td style="padding:10px 16px;text-align:center;font-weight:600;">9</td>
+    </tr>
+  </tbody>
+</table>
+
+<p style="margin-top:24px;font-size:12px;color:var(--sds-color-warm-gray-400);">[CHECKPOINT] Stage 6 complete — would pause here for user review of findings before proceeding to accessibility audit.</p>
+
+</body>
+</html>

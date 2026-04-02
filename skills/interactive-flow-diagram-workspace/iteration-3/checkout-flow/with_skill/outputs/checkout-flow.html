@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>E-Commerce Checkout — Interactive Flow</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0F0F0F;
+      color: #FFFFFF;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+    }
+
+    /* Breadcrumb */
+    #breadcrumb {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 48px;
+      background: rgba(15, 15, 15, 0.95);
+      border-bottom: 1px solid #3A3A3A;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 100;
+      gap: 8px;
+      font-size: 13px;
+    }
+    .breadcrumb-item {
+      color: #999999;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+    .breadcrumb-item:hover { color: #FFFFFF; }
+    .breadcrumb-item.active { color: #FFFFFF; cursor: default; }
+    .breadcrumb-sep { color: #666666; font-size: 11px; }
+
+    /* Title bar */
+    #title-bar {
+      position: fixed;
+      top: 48px;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: rgba(15, 15, 15, 0.9);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 99;
+      font-size: 11px;
+      color: #666666;
+    }
+
+    /* Detail sidebar */
+    #detail-sidebar {
+      position: fixed;
+      top: 0;
+      right: -420px;
+      width: 420px;
+      height: 100vh;
+      background: #1A1A1A;
+      border-left: 1px solid #3A3A3A;
+      z-index: 200;
+      transition: right 0.3s ease-out;
+      overflow-y: auto;
+      padding: 24px;
+    }
+    #detail-sidebar.open { right: 0; }
+    #detail-sidebar .close-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: #252525;
+      border: 1px solid #3A3A3A;
+      color: #999;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    #detail-sidebar .close-btn:hover { background: #333; color: #fff; }
+    #detail-sidebar h2 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+    #detail-sidebar .screen-type { font-size: 12px; color: #999; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+    #detail-sidebar .section-label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 20px; margin-bottom: 8px; }
+    #detail-sidebar .section-content { font-size: 13px; color: #ccc; line-height: 1.6; }
+    #detail-sidebar .edge-case { background: #1E1E1E; border-left: 3px solid #EF5350; padding: 8px 12px; margin-bottom: 8px; border-radius: 4px; font-size: 12px; color: #ccc; }
+    #detail-sidebar .exit-item { background: #1E1E1E; padding: 8px 12px; margin-bottom: 6px; border-radius: 6px; font-size: 12px; color: #ccc; border: 1px solid #3A3A3A; }
+    #detail-sidebar .exit-label { color: #4CAF50; font-weight: 500; }
+
+    /* Minimap */
+    #minimap {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 180px;
+      height: 120px;
+      background: rgba(15, 15, 15, 0.9);
+      border: 1px solid #3A3A3A;
+      border-radius: 8px;
+      z-index: 50;
+      display: none;
+      overflow: hidden;
+    }
+
+    /* Overlay for closing sidebar */
+    #overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 150;
+      display: none;
+    }
+    #overlay.open { display: block; }
+  </style>
+</head>
+<body>
+  <div id="breadcrumb">
+    <span class="breadcrumb-item active" id="bc-overview">E-Commerce Checkout</span>
+  </div>
+  <div id="title-bar">
+    <span>Interactive User Flow — Click phases to explore, click nodes for detail</span>
+  </div>
+  <svg id="flow-svg"></svg>
+  <div id="minimap"><svg id="minimap-svg"></svg></div>
+  <div id="overlay"></div>
+  <div id="detail-sidebar">
+    <div class="close-btn" id="detail-close">&times;</div>
+    <div id="detail-content"></div>
+  </div>
+
+  <script>
+    // ─── Flow Data ───
+    const flowData = {
+      title: "E-Commerce Checkout",
+      phases: [
+        {
+          id: "browse",
+          label: "Browse",
+          description: "Discover and explore products",
+          icon: "search",
+          color: "#162228",
+          borderColor: "#0C4A69",
+          nodes: [
+            {
+              id: "product-catalog",
+              type: "screen",
+              label: "Product Catalog",
+              screenType: "list",
+              moscow: "M",
+              userAction: "Browse products, filter, search",
+              description: "Grid/list view of available products with search, filters, and sorting options.",
+              sections: ["Search bar", "Category filters", "Product grid", "Pagination"],
+              edgeCases: [
+                "Empty state: No products match filters — show clear filters CTA",
+                "Slow load: Skeleton loaders for product cards"
+              ],
+              exits: [
+                { to: "product-detail", label: "Click product card" }
+              ]
+            },
+            {
+              id: "product-detail",
+              type: "screen",
+              label: "Product Detail",
+              screenType: "detail",
+              moscow: "M",
+              userAction: "View product info, select options, add to cart",
+              description: "Full product page with images, pricing, variants, and reviews.",
+              sections: ["Image gallery", "Price & variants", "Description", "Reviews", "Add to Cart CTA"],
+              edgeCases: [
+                "Out of stock: Disable Add to Cart, show notify button",
+                "Variant not available: Gray out unavailable options"
+              ],
+              exits: [
+                { to: "cart", label: "Add to Cart" },
+                { to: "product-catalog", label: "Back to catalog" }
+              ]
+            }
+          ],
+          edges: [
+            { from: "product-catalog", to: "product-detail", label: "View product", actionPill: "View Product", isHappyPath: true },
+            { from: "product-detail", to: "product-catalog", label: "Back", isHappyPath: false }
+          ]
+        },
+        {
+          id: "cart",
+          label: "Cart",
+          description: "Review and manage selected items",
+          icon: "shopping-cart",
+          color: "#1E2218",
+          borderColor: "#4A6A20",
+          nodes: [
+            {
+              id: "cart-page",
+              type: "screen",
+              label: "Shopping Cart",
+              screenType: "list",
+              moscow: "M",
+              userAction: "Review items, update quantities, apply coupons",
+              description: "Shows all items added to cart with quantities, prices, and subtotal.",
+              sections: ["Cart items list", "Quantity controls", "Coupon code input", "Order summary", "Checkout CTA"],
+              edgeCases: [
+                "Empty cart: Show empty state with 'Continue Shopping' CTA",
+                "Item became unavailable: Show warning badge, disable checkout until resolved",
+                "Price changed since adding: Show price change notification"
+              ],
+              exits: [
+                { to: "shipping-form", label: "Proceed to Checkout" },
+                { to: "product-catalog", label: "Continue Shopping" }
+              ]
+            }
+          ],
+          edges: []
+        },
+        {
+          id: "shipping",
+          label: "Shipping",
+          description: "Enter and validate delivery address",
+          icon: "truck",
+          color: "#1E1E28",
+          borderColor: "#5B5BAF",
+          nodes: [
+            {
+              id: "shipping-form",
+              type: "screen",
+              label: "Shipping Address",
+              screenType: "form",
+              moscow: "M",
+              userAction: "Enter delivery address and select shipping method",
+              description: "Form for entering shipping address with auto-complete and shipping method selection.",
+              sections: ["Address form fields", "Saved addresses", "Shipping method selector", "Delivery estimate"],
+              edgeCases: [
+                "Invalid address: Show inline field errors",
+                "Address not serviceable: Show error with alternative options",
+                "Saved address deleted: Prompt to enter new address"
+              ],
+              exits: [
+                { to: "address-validation", label: "Continue to Payment" },
+                { to: "cart-page", label: "Back to Cart" }
+              ]
+            },
+            {
+              id: "address-validation",
+              type: "decision",
+              label: "Address\nValid?",
+              description: "System validates the shipping address via address verification API.",
+              exits: [
+                { to: "payment-form", label: "Yes — Valid" },
+                { to: "address-error", label: "No — Invalid" }
+              ]
+            },
+            {
+              id: "address-error",
+              type: "error",
+              label: "Address Error",
+              screenType: "form",
+              moscow: "M",
+              userAction: "Correct address fields highlighted in red",
+              description: "Address validation failed. Inline errors shown on problematic fields with suggestions.",
+              sections: ["Error banner", "Highlighted invalid fields", "Suggested corrections"],
+              edgeCases: [
+                "Multiple suggestions: Show dropdown of valid address options",
+                "API timeout: Allow user to proceed with unverified address (with warning)"
+              ],
+              exits: [
+                { to: "shipping-form", label: "Correct address" }
+              ]
+            }
+          ],
+          edges: [
+            { from: "shipping-form", to: "address-validation", label: "Submit", actionPill: "Validate Address", isHappyPath: true },
+            { from: "address-validation", to: "payment-form", label: "Valid", isHappyPath: true, isCrossPhase: true },
+            { from: "address-validation", to: "address-error", label: "Invalid", isError: true },
+            { from: "address-error", to: "shipping-form", label: "Fix address", isError: true }
+          ]
+        },
+        {
+          id: "payment",
+          label: "Payment",
+          description: "Enter payment details and process transaction",
+          icon: "credit-card",
+          color: "#28201E",
+          borderColor: "#AF7A3A",
+          nodes: [
+            {
+              id: "payment-form",
+              type: "screen",
+              label: "Payment Details",
+              screenType: "form",
+              moscow: "M",
+              userAction: "Enter payment information or select saved method",
+              description: "Payment form with credit card, PayPal, and other payment method options.",
+              sections: ["Payment method tabs", "Card number input", "Saved payment methods", "Billing address toggle", "Order summary sidebar"],
+              edgeCases: [
+                "Invalid card number: Inline validation with card type detection",
+                "Expired card: Show error on expiry field",
+                "3D Secure required: Redirect to bank verification"
+              ],
+              exits: [
+                { to: "payment-processing", label: "Place Order" },
+                { to: "shipping-form", label: "Back to Shipping" }
+              ]
+            },
+            {
+              id: "payment-processing",
+              type: "decision",
+              label: "Payment\nSucceeded?",
+              description: "Payment gateway processes the transaction. Checks for sufficient funds, fraud detection, and authorization.",
+              exits: [
+                { to: "confirmation", label: "Yes — Approved" },
+                { to: "payment-error", label: "No — Declined" }
+              ]
+            },
+            {
+              id: "payment-error",
+              type: "error",
+              label: "Payment Failed",
+              screenType: "form",
+              moscow: "M",
+              userAction: "Review error message and retry with different payment method",
+              description: "Payment was declined. Shows reason and options to retry.",
+              sections: ["Error message", "Decline reason", "Retry with same card", "Try different method"],
+              edgeCases: [
+                "Fraud flag: Account temporarily locked, show support contact",
+                "Network error: Show retry button with exponential backoff",
+                "Insufficient funds: Suggest splitting payment or using different card"
+              ],
+              exits: [
+                { to: "payment-form", label: "Try again" }
+              ]
+            }
+          ],
+          edges: [
+            { from: "payment-form", to: "payment-processing", label: "Submit", actionPill: "Place Order", isHappyPath: true },
+            { from: "payment-processing", to: "confirmation", label: "Approved", isHappyPath: true, isCrossPhase: true },
+            { from: "payment-processing", to: "payment-error", label: "Declined", isError: true },
+            { from: "payment-error", to: "payment-form", label: "Retry", isError: true }
+          ]
+        },
+        {
+          id: "confirmation",
+          label: "Confirmation",
+          description: "Order placed successfully",
+          icon: "check-circle",
+          color: "#1E2818",
+          borderColor: "#4CAF50",
+          nodes: [
+            {
+              id: "order-confirmation",
+              type: "screen",
+              label: "Order Confirmation",
+              screenType: "detail",
+              moscow: "M",
+              userAction: "View order summary, track order, continue shopping",
+              description: "Success page showing order number, items, estimated delivery, and next steps.",
+              sections: ["Success banner", "Order number", "Items ordered", "Delivery estimate", "Track order CTA", "Continue shopping CTA"],
+              edgeCases: [
+                "Email delivery failed: Show resend confirmation link",
+                "Estimated delivery unknown: Show 'We will email you' message"
+              ],
+              exits: [
+                { to: "product-catalog", label: "Continue Shopping" }
+              ]
+            }
+          ],
+          edges: []
+        }
+      ],
+      crossPhaseEdges: [
+        { from: "browse", to: "cart", label: "Add to Cart", isHappyPath: true },
+        { from: "cart", to: "shipping", label: "Checkout", isHappyPath: true },
+        { from: "shipping", to: "payment", label: "Address Valid", isHappyPath: true },
+        { from: "payment", to: "confirmation", label: "Payment Approved", isHappyPath: true }
+      ]
+    };
+
+    // ─── Globals ───
+    let currentLevel = 1;
+    let currentPhase = null;
+    const svgEl = document.getElementById('flow-svg');
+    const width = window.innerWidth;
+    const height = window.innerHeight - 88;
+
+    const svg = d3.select('#flow-svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('margin-top', '88px');
+
+    // Arrow markers
+    const defs = svg.append('defs');
+
+    function addMarker(id, color) {
+      defs.append('marker')
+        .attr('id', id)
+        .attr('viewBox', '0 0 8 6')
+        .attr('refX', 8)
+        .attr('refY', 3)
+        .attr('markerWidth', 8)
+        .attr('markerHeight', 6)
+        .attr('orient', 'auto-start-reverse')
+        .append('path')
+        .attr('d', 'M0,0 L8,3 L0,6 Z')
+        .attr('fill', color);
+    }
+    addMarker('arrow-default', '#666666');
+    addMarker('arrow-happy', '#4CAF50');
+    addMarker('arrow-error', '#EF5350');
+
+    const container = svg.append('g').attr('class', 'container');
+
+    const zoom = d3.zoom()
+      .scaleExtent([0.1, 4])
+      .on('zoom', (event) => {
+        container.attr('transform', event.transform);
+      });
+    svg.call(zoom);
+
+    // ─── Utility: Fit to Content ───
+    function fitToContent(duration = 500) {
+      setTimeout(() => {
+        const bounds = container.node().getBBox();
+        if (bounds.width === 0) return;
+        const padding = 80;
+        const fullWidth = bounds.width + padding * 2;
+        const fullHeight = bounds.height + padding * 2;
+        const scale = Math.min(width / fullWidth, height / fullHeight, 1);
+        const tx = (width - bounds.width * scale) / 2 - bounds.x * scale;
+        const ty = (height - bounds.height * scale) / 2 - bounds.y * scale;
+        svg.transition().duration(duration)
+          .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+      }, 50);
+    }
+
+    // ─── Icons (inline SVG paths) ───
+    const icons = {
+      'search': 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
+      'shopping-cart': 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z',
+      'truck': 'M1 3h15v13H1zm15 7h4l3 3v3h-7zm3 10a2 2 0 100-4 2 2 0 000 4zm-14 0a2 2 0 100-4 2 2 0 000 4z',
+      'credit-card': 'M3 5a2 2 0 00-2 2v10a2 2 0 002 2h18a2 2 0 002-2V7a2 2 0 00-2-2H3zm0 4h18m-18 4h6',
+      'check-circle': 'M22 11.08V12a10 10 0 11-5.93-9.14M22 4L12 14.01l-3-3',
+      'zap': 'M13 2L3 14h9l-1 10 10-12h-9l1-10z'
+    };
+
+    // ─── Moscow colors ───
+    const moscowColors = { M: '#4CAF50', S: '#26A69A', C: '#FF9800', W: '#EF5350' };
+
+    // ─── Render Window Dots ───
+    function renderWindowDots(g, x, y) {
+      const colors = ['#555555', '#555555', '#555555'];
+      colors.forEach((c, i) => {
+        g.append('circle')
+          .attr('cx', x + i * 10)
+          .attr('cy', y)
+          .attr('r', 3)
+          .attr('fill', c);
+      });
+    }
+
+    // ─── Render MoSCoW Circle ───
+    function renderMoscowCircle(g, x, y, letter) {
+      const color = moscowColors[letter] || '#666';
+      g.append('circle')
+        .attr('cx', x).attr('cy', y).attr('r', 10)
+        .attr('fill', '#1E1E1E').attr('stroke', color).attr('stroke-width', 2);
+      g.append('text')
+        .attr('x', x).attr('y', y + 4)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', 9).attr('font-weight', 600)
+        .attr('fill', '#FFFFFF')
+        .text(letter);
+    }
+
+    // ─── LEVEL 1: Overview ───
+    function renderLevel1() {
+      currentLevel = 1;
+      currentPhase = null;
+      container.selectAll('*').remove();
+      updateBreadcrumb();
+      document.getElementById('minimap').style.display = 'none';
+
+      const phaseSpacing = 280;
+      const startX = 120;
+      const centerY = height / 2;
+
+      flowData.phases.forEach((phase, i) => {
+        phase.x = startX + i * phaseSpacing;
+        phase.y = centerY;
+      });
+
+      // Cross-phase edges
+      flowData.crossPhaseEdges.forEach((edge, i) => {
+        const fromPhase = flowData.phases.find(p => p.id === edge.from);
+        const toPhase = flowData.phases.find(p => p.id === edge.to);
+        if (!fromPhase || !toPhase) return;
+
+        const x1 = fromPhase.x + 100;
+        const y1 = fromPhase.y;
+        const x2 = toPhase.x - 100;
+        const y2 = toPhase.y;
+        const midX = (x1 + x2) / 2;
+
+        // Orthogonal path
+        const pathD = `M ${x1},${y1} H ${midX} V ${y2} H ${x2}`;
+
+        const isHappy = edge.isHappyPath;
+        container.append('path')
+          .attr('d', pathD)
+          .attr('stroke', isHappy ? '#4CAF50' : '#666666')
+          .attr('stroke-width', isHappy ? 2.5 : 1.5)
+          .attr('fill', 'none')
+          .attr('marker-end', isHappy ? 'url(#arrow-happy)' : 'url(#arrow-default)');
+
+        // Action pill on connector
+        const pillX = midX;
+        const pillY = y1;
+        const pillW = Math.max(edge.label.length * 8 + 30, 120);
+        const pillH = 28;
+
+        const pillG = container.append('g');
+        pillG.append('rect')
+          .attr('x', pillX - pillW / 2)
+          .attr('y', pillY - pillH / 2)
+          .attr('width', pillW)
+          .attr('height', pillH)
+          .attr('rx', pillH / 2)
+          .attr('fill', '#7A6C2A');
+        pillG.append('text')
+          .attr('x', pillX + 6)
+          .attr('y', pillY + 4)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', 11)
+          .attr('font-weight', 500)
+          .attr('fill', '#FFFFFF')
+          .text(edge.label);
+        // Zap icon
+        pillG.append('path')
+          .attr('d', 'M13 2L3 14h9l-1 10 10-12h-9l1-10z')
+          .attr('transform', `translate(${pillX - pillW / 2 + 8}, ${pillY - 7}) scale(0.6)`)
+          .attr('fill', 'none')
+          .attr('stroke', '#FFFFFF')
+          .attr('stroke-width', 1.5)
+          .attr('stroke-linecap', 'round')
+          .attr('stroke-linejoin', 'round');
+      });
+
+      // Phase nodes
+      flowData.phases.forEach((phase, i) => {
+        const g = container.append('g')
+          .attr('class', 'phase-node')
+          .style('cursor', 'pointer')
+          .on('click', () => {
+            g.select('rect').transition().duration(150).attr('opacity', 0.7)
+              .transition().duration(150).attr('opacity', 1)
+              .on('end', () => renderLevel2(phase));
+          })
+          .on('mouseenter', function() {
+            d3.select(this).select('rect')
+              .transition().duration(150)
+              .attr('fill', '#252525')
+              .attr('stroke', '#555555');
+            d3.select(this).attr('transform', `translate(${phase.x}, ${phase.y}) scale(1.02)`);
+          })
+          .on('mouseleave', function() {
+            d3.select(this).select('rect')
+              .transition().duration(150)
+              .attr('fill', '#1E1E1E')
+              .attr('stroke', '#3A3A3A');
+            d3.select(this).attr('transform', `translate(${phase.x}, ${phase.y}) scale(1)`);
+          });
+
+        g.attr('transform', `translate(${phase.x}, ${phase.y})`);
+
+        // Card
+        g.append('rect')
+          .attr('x', -100).attr('y', -50)
+          .attr('width', 200).attr('height', 100)
+          .attr('rx', 12)
+          .attr('fill', '#1E1E1E')
+          .attr('stroke', '#3A3A3A')
+          .attr('stroke-width', 1);
+
+        // Window dots
+        renderWindowDots(g, -85, -35);
+
+        // Phase number circle
+        g.append('circle')
+          .attr('cx', 0).attr('cy', -15)
+          .attr('r', 16)
+          .attr('fill', phase.borderColor)
+          .attr('opacity', 0.3);
+        g.append('text')
+          .attr('x', 0).attr('y', -10)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', 14).attr('font-weight', 700)
+          .attr('fill', '#FFFFFF')
+          .text(i + 1);
+
+        // Label
+        g.append('text')
+          .attr('x', 0).attr('y', 12)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', 14).attr('font-weight', 600)
+          .attr('fill', '#FFFFFF')
+          .text(phase.label);
+
+        // Description
+        g.append('text')
+          .attr('x', 0).attr('y', 30)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', 11)
+          .attr('fill', '#999999')
+          .text(phase.description);
+      });
+
+      fitToContent();
+    }
+
+    // ─── LEVEL 2: Flow ───
+    function renderLevel2(phase) {
+      currentLevel = 2;
+      currentPhase = phase;
+      container.selectAll('*').remove();
+      updateBreadcrumb();
+
+      const nodes = phase.nodes;
+      const edges = phase.edges || [];
+
+      // Also include cross-phase referenced nodes
+      // Build a lookup for all nodes across all phases
+      const allNodes = {};
+      flowData.phases.forEach(p => {
+        p.nodes.forEach(n => { allNodes[n.id] = { ...n, phaseId: p.id }; });
+      });
+
+      // Position nodes
+      const positions = {};
+      const cardW = 220;
+      const cardH = 120;
+      const spacingX = 380;
+      const spacingY = 220;
+
+      // Layout strategy for this phase
+      if (phase.id === 'browse') {
+        positions['product-catalog'] = { x: 120, y: height / 2 - 60 };
+        positions['product-detail'] = { x: 120 + spacingX, y: height / 2 - 60 };
+      } else if (phase.id === 'cart') {
+        positions['cart-page'] = { x: 120, y: height / 2 - 60 };
+      } else if (phase.id === 'shipping') {
+        positions['shipping-form'] = { x: 120, y: height / 2 - 80 };
+        positions['address-validation'] = { x: 120 + spacingX, y: height / 2 - 80 };
+        positions['address-error'] = { x: 120 + spacingX, y: height / 2 - 80 + spacingY };
+      } else if (phase.id === 'payment') {
+        positions['payment-form'] = { x: 120, y: height / 2 - 80 };
+        positions['payment-processing'] = { x: 120 + spacingX, y: height / 2 - 80 };
+        positions['payment-error'] = { x: 120 + spacingX, y: height / 2 - 80 + spacingY };
+      } else if (phase.id === 'confirmation') {
+        positions['order-confirmation'] = { x: 120, y: height / 2 - 60 };
+      }
+
+      // Draw edges first (behind nodes)
+      edges.forEach(edge => {
+        const fromPos = positions[edge.from];
+        const toNode = allNodes[edge.to];
+        let toPos = positions[edge.to];
+
+        if (!fromPos) return;
+        if (!toPos && edge.isCrossPhase) {
+          // Don't draw cross-phase edges inside level 2
+          return;
+        }
+        if (!toPos) return;
+
+        const fromNode = allNodes[edge.from];
+        const isFromDecision = fromNode && fromNode.type === 'decision';
+        const isToDecision = toNode && toNode.type === 'decision';
+
+        let x1, y1, x2, y2;
+
+        if (isFromDecision) {
+          // Exit from diamond
+          if (edge.isError) {
+            // Exit from bottom of diamond
+            x1 = fromPos.x + 30;
+            y1 = fromPos.y + 30 + 30; // bottom of diamond
+            x2 = toPos.x + cardW / 2;
+            y2 = toPos.y;
+          } else {
+            // Exit from right of diamond
+            x1 = fromPos.x + 30 + 30;
+            y1 = fromPos.y + 30;
+            x2 = toPos.x;
+            y2 = toPos.y + (toNode && toNode.type === 'decision' ? 30 : cardH / 2);
+          }
+        } else {
+          // Exit from right of card
+          x1 = fromPos.x + cardW;
+          y1 = fromPos.y + cardH / 2;
+
+          if (isToDecision) {
+            x2 = toPos.x;
+            y2 = toPos.y + 30;
+          } else {
+            x2 = toPos.x;
+            y2 = toPos.y + cardH / 2;
+          }
+        }
+
+        // Check if this is a back-loop (error going back left)
+        const isBackLoop = edge.isError && x2 < x1;
+
+        let pathD;
+        if (isFromDecision && edge.isError) {
+          // Straight down then left to error card
+          const midY = (y1 + y2) / 2;
+          pathD = `M ${x1},${y1} V ${y2 + cardH / 2} H ${toPos.x + cardW}`;
+          // Adjust: go down from diamond bottom, then horizontal to error card right edge
+          // Actually go down then left
+          pathD = `M ${x1},${y1} V ${toPos.y + cardH / 2} H ${toPos.x + cardW}`;
+        } else if (isBackLoop) {
+          // Loop back: go down, left, then up to target
+          const loopY = Math.max(y1, y2) + 80;
+          pathD = `M ${x1},${y1} V ${loopY} H ${x2 + cardW} V ${y2 + cardH}`;
+          // From error card right side, loop down and back to shipping form bottom
+          const errRight = fromPos.x + cardW;
+          const errMidY = fromPos.y + cardH / 2;
+          const targetBottom = toPos.y + cardH;
+          const loopDown = Math.max(fromPos.y + cardH, toPos.y + cardH) + 60;
+          pathD = `M ${errRight},${errMidY} H ${errRight + 40} V ${loopDown} H ${toPos.x + cardW / 2} V ${targetBottom}`;
+        } else {
+          // Standard orthogonal path
+          const midX = (x1 + x2) / 2;
+          if (Math.abs(y1 - y2) < 5) {
+            pathD = `M ${x1},${y1} H ${x2}`;
+          } else {
+            pathD = `M ${x1},${y1} H ${midX} V ${y2} H ${x2}`;
+          }
+        }
+
+        const isHappy = edge.isHappyPath;
+        const isErr = edge.isError;
+
+        container.append('path')
+          .attr('d', pathD)
+          .attr('stroke', isErr ? '#EF5350' : (isHappy ? '#4CAF50' : '#666666'))
+          .attr('stroke-width', isHappy ? 2.5 : 1.5)
+          .attr('stroke-dasharray', isErr ? '6,4' : 'none')
+          .attr('fill', 'none')
+          .attr('marker-end', isErr ? 'url(#arrow-error)' : (isHappy ? 'url(#arrow-happy)' : 'url(#arrow-default)'));
+
+        // Edge label
+        if (edge.label && !edge.actionPill) {
+          let lx, ly;
+          if (isFromDecision && edge.isError) {
+            lx = x1 + 15;
+            ly = (y1 + toPos.y + cardH / 2) / 2;
+          } else if (isBackLoop) {
+            lx = (fromPos.x + cardW + fromPos.x + cardW + 40) / 2;
+            ly = Math.max(fromPos.y + cardH, toPos.y + cardH) + 60 + 14;
+          } else {
+            lx = (x1 + x2) / 2;
+            ly = Math.min(y1, y2) - 10;
+          }
+          container.append('text')
+            .attr('x', lx).attr('y', ly)
+            .attr('text-anchor', 'middle')
+            .attr('font-size', 10)
+            .attr('fill', isErr ? '#EF5350' : '#999999')
+            .text(edge.label);
+        }
+
+        // Action pill on connector
+        if (edge.actionPill) {
+          const pillX = (x1 + x2) / 2;
+          const pillY = y1;
+          const pillW = Math.max(edge.actionPill.length * 7 + 36, 130);
+          const pillH = 28;
+
+          // Break the line — redraw as two segments
+          container.select(`path:last-of-type`).remove(); // remove the line we just drew
+          // Left segment
+          container.append('path')
+            .attr('d', `M ${x1},${y1} H ${pillX - pillW / 2}`)
+            .attr('stroke', isHappy ? '#4CAF50' : '#666666')
+            .attr('stroke-width', isHappy ? 2.5 : 1.5)
+            .attr('fill', 'none');
+          // Right segment
+          container.append('path')
+            .attr('d', `M ${pillX + pillW / 2},${pillY} H ${x2}`)
+            .attr('stroke', isHappy ? '#4CAF50' : '#666666')
+            .attr('stroke-width', isHappy ? 2.5 : 1.5)
+            .attr('fill', 'none')
+            .attr('marker-end', isHappy ? 'url(#arrow-happy)' : 'url(#arrow-default)');
+
+          const pillG = container.append('g');
+          pillG.append('rect')
+            .attr('x', pillX - pillW / 2)
+            .attr('y', pillY - pillH / 2)
+            .attr('width', pillW)
+            .attr('height', pillH)
+            .attr('rx', pillH / 2)
+            .attr('fill', '#7A6C2A');
+          // Zap icon
+          pillG.append('path')
+            .attr('d', 'M13 2L3 14h9l-1 10 10-12h-9l1-10z')
+            .attr('transform', `translate(${pillX - pillW / 2 + 8}, ${pillY - 6}) scale(0.55)`)
+            .attr('fill', 'none')
+            .attr('stroke', '#FFFFFF')
+            .attr('stroke-width', 1.5)
+            .attr('stroke-linecap', 'round')
+            .attr('stroke-linejoin', 'round');
+          pillG.append('text')
+            .attr('x', pillX + 8)
+            .attr('y', pillY + 4)
+            .attr('text-anchor', 'middle')
+            .attr('font-size', 11)
+            .attr('font-weight', 500)
+            .attr('fill', '#FFFFFF')
+            .text(edge.actionPill);
+        }
+      });
+
+      // Draw nodes
+      nodes.forEach(node => {
+        const pos = positions[node.id];
+        if (!pos) return;
+
+        if (node.type === 'decision') {
+          renderDecisionDiamond(node, pos);
+        } else if (node.type === 'error') {
+          renderErrorCard(node, pos, cardW, cardH);
+        } else {
+          renderScreenCard(node, pos, cardW, cardH);
+        }
+      });
+
+      // Show minimap for phases with more than 2 nodes
+      if (nodes.length > 2) {
+        renderMinimap(positions, cardW, cardH);
+      }
+
+      fitToContent();
+    }
+
+    // ─── Render Screen Card ───
+    function renderScreenCard(node, pos, cardW, cardH) {
+      const g = container.append('g')
+        .style('cursor', 'pointer')
+        .on('click', () => showDetail(node))
+        .on('mouseenter', function() {
+          d3.select(this).select('.card-bg')
+            .transition().duration(150)
+            .attr('fill', '#252525')
+            .attr('stroke', '#555555');
+        })
+        .on('mouseleave', function() {
+          d3.select(this).select('.card-bg')
+            .transition().duration(150)
+            .attr('fill', '#1E1E1E')
+            .attr('stroke', '#3A3A3A');
+        });
+
+      // Determine card height based on sections
+      const sections = node.sections || [];
+      const actualH = Math.max(cardH, 80 + sections.length * 16);
+
+      g.append('rect')
+        .attr('class', 'card-bg')
+        .attr('x', pos.x).attr('y', pos.y)
+        .attr('width', cardW).attr('height', actualH)
+        .attr('rx', 8)
+        .attr('fill', '#1E1E1E')
+        .attr('stroke', '#3A3A3A')
+        .attr('stroke-width', 1);
+
+      // Window dots
+      renderWindowDots(g, pos.x + 12, pos.y + 14);
+
+      // MoSCoW circle
+      if (node.moscow) {
+        renderMoscowCircle(g, pos.x + cardW - 12, pos.y + 12, node.moscow);
+      }
+
+      // Screen icon
+      g.append('text')
+        .attr('x', pos.x + 12).attr('y', pos.y + 40)
+        .attr('font-size', 12).attr('fill', '#999999')
+        .text(node.screenType === 'list' ? '\u{1F4CB}' : node.screenType === 'form' ? '\u{1F4DD}' : node.screenType === 'detail' ? '\u{1F4C4}' : '\u{1F4CB}');
+
+      // Label
+      g.append('text')
+        .attr('x', pos.x + 28).attr('y', pos.y + 40)
+        .attr('font-size', 14).attr('font-weight', 600)
+        .attr('fill', '#FFFFFF')
+        .text(node.label);
+
+      // Subtitle
+      g.append('text')
+        .attr('x', pos.x + 28).attr('y', pos.y + 56)
+        .attr('font-size', 11)
+        .attr('fill', '#999999')
+        .text(node.screenType ? node.screenType.charAt(0).toUpperCase() + node.screenType.slice(1) + ' view' : '');
+
+      // Divider line
+      if (sections.length > 0) {
+        g.append('line')
+          .attr('x1', pos.x + 8).attr('y1', pos.y + 66)
+          .attr('x2', pos.x + cardW - 8).attr('y2', pos.y + 66)
+          .attr('stroke', '#3A3A3A').attr('stroke-width', 1);
+      }
+
+      // Sections
+      sections.forEach((sec, i) => {
+        if (i < 4) {
+          g.append('text')
+            .attr('x', pos.x + 16).attr('y', pos.y + 82 + i * 16)
+            .attr('font-size', 10)
+            .attr('fill', '#666666')
+            .text('\u2022 ' + sec);
+        }
+      });
+      if (sections.length > 4) {
+        g.append('text')
+          .attr('x', pos.x + 16).attr('y', pos.y + 82 + 4 * 16)
+          .attr('font-size', 10)
+          .attr('fill', '#555555')
+          .text(`+ ${sections.length - 4} more...`);
+      }
+    }
+
+    // ─── Render Error Card ───
+    function renderErrorCard(node, pos, cardW, cardH) {
+      const g = container.append('g')
+        .style('cursor', 'pointer')
+        .on('click', () => showDetail(node))
+        .on('mouseenter', function() {
+          d3.select(this).select('.card-bg')
+            .transition().duration(150)
+            .attr('fill', '#252525')
+            .attr('stroke', '#555555');
+        })
+        .on('mouseleave', function() {
+          d3.select(this).select('.card-bg')
+            .transition().duration(150)
+            .attr('fill', '#1E1E1E')
+            .attr('stroke', '#3A3A3A');
+        });
+
+      const sections = node.sections || [];
+      const actualH = Math.max(cardH, 80 + sections.length * 16);
+
+      // Red left accent bar
+      g.append('rect')
+        .attr('x', pos.x).attr('y', pos.y)
+        .attr('width', 3).attr('height', actualH)
+        .attr('fill', '#EF5350');
+
+      g.append('rect')
+        .attr('class', 'card-bg')
+        .attr('x', pos.x).attr('y', pos.y)
+        .attr('width', cardW).attr('height', actualH)
+        .attr('rx', 8)
+        .attr('fill', '#1E1E1E')
+        .attr('stroke', '#3A3A3A')
+        .attr('stroke-width', 1);
+
+      // Red accent bar overlay (left side)
+      g.append('rect')
+        .attr('x', pos.x).attr('y', pos.y)
+        .attr('width', 3).attr('height', actualH)
+        .attr('rx', 0)
+        .attr('fill', '#EF5350');
+
+      // Window dots
+      renderWindowDots(g, pos.x + 12, pos.y + 14);
+
+      // Error status circle
+      g.append('circle')
+        .attr('cx', pos.x + cardW - 12).attr('cy', pos.y + 12)
+        .attr('r', 6).attr('fill', '#EF5350');
+
+      // Label
+      g.append('text')
+        .attr('x', pos.x + 14).attr('y', pos.y + 40)
+        .attr('font-size', 14).attr('font-weight', 600)
+        .attr('fill', '#EF5350')
+        .text(node.label);
+
+      // Subtitle
+      g.append('text')
+        .attr('x', pos.x + 14).attr('y', pos.y + 56)
+        .attr('font-size', 11)
+        .attr('fill', '#999999')
+        .text('Error state');
+
+      // Divider
+      if (sections.length > 0) {
+        g.append('line')
+          .attr('x1', pos.x + 8).attr('y1', pos.y + 66)
+          .attr('x2', pos.x + cardW - 8).attr('y2', pos.y + 66)
+          .attr('stroke', '#3A3A3A').attr('stroke-width', 1);
+      }
+
+      sections.forEach((sec, i) => {
+        if (i < 4) {
+          g.append('text')
+            .attr('x', pos.x + 16).attr('y', pos.y + 82 + i * 16)
+            .attr('font-size', 10)
+            .attr('fill', '#666666')
+            .text('\u2022 ' + sec);
+        }
+      });
+    }
+
+    // ─── Render Decision Diamond ───
+    function renderDecisionDiamond(node, pos) {
+      const size = 60;
+      const cx = pos.x + size / 2;
+      const cy = pos.y + size / 2;
+
+      const g = container.append('g')
+        .style('cursor', 'pointer')
+        .on('click', () => showDetail(node))
+        .on('mouseenter', function() {
+          d3.select(this).select('polygon')
+            .transition().duration(150)
+            .attr('fill', '#C8E954');
+        })
+        .on('mouseleave', function() {
+          d3.select(this).select('polygon')
+            .transition().duration(150)
+            .attr('fill', '#B8D944');
+        });
+
+      // Diamond shape
+      const points = `${cx},${cy - size / 2} ${cx + size / 2},${cy} ${cx},${cy + size / 2} ${cx - size / 2},${cy}`;
+      g.append('polygon')
+        .attr('points', points)
+        .attr('fill', '#B8D944')
+        .attr('stroke', '#9ABF30')
+        .attr('stroke-width', 1);
+
+      // Label text (split on newline)
+      const lines = node.label.split('\n');
+      lines.forEach((line, i) => {
+        g.append('text')
+          .attr('x', cx)
+          .attr('y', cy + (i - (lines.length - 1) / 2) * 14 + 4)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', 12)
+          .attr('font-weight', 600)
+          .attr('fill', '#1C1C1C')
+          .text(line);
+      });
+    }
+
+    // ─── Minimap ───
+    function renderMinimap(positions, cardW, cardH) {
+      const minimap = document.getElementById('minimap');
+      minimap.style.display = 'block';
+
+      const mmSvg = d3.select('#minimap-svg')
+        .attr('width', 180).attr('height', 120);
+      mmSvg.selectAll('*').remove();
+
+      // Find bounds
+      const allPos = Object.values(positions);
+      const minX = Math.min(...allPos.map(p => p.x));
+      const maxX = Math.max(...allPos.map(p => p.x)) + cardW;
+      const minY = Math.min(...allPos.map(p => p.y));
+      const maxY = Math.max(...allPos.map(p => p.y)) + cardH;
+
+      const scaleX = 160 / (maxX - minX + 40);
+      const scaleY = 100 / (maxY - minY + 40);
+      const s = Math.min(scaleX, scaleY);
+
+      Object.entries(positions).forEach(([id, pos]) => {
+        mmSvg.append('rect')
+          .attr('x', 10 + (pos.x - minX) * s)
+          .attr('y', 10 + (pos.y - minY) * s)
+          .attr('width', Math.max(cardW * s, 6))
+          .attr('height', Math.max(cardH * s, 4))
+          .attr('rx', 2)
+          .attr('fill', '#4CAF50')
+          .attr('opacity', 0.6);
+      });
+
+      // Viewport indicator
+      mmSvg.append('rect')
+        .attr('x', 5).attr('y', 5)
+        .attr('width', 170).attr('height', 110)
+        .attr('rx', 3)
+        .attr('fill', 'none')
+        .attr('stroke', '#FFFFFF')
+        .attr('stroke-width', 1)
+        .attr('opacity', 0.3);
+    }
+
+    // ─── Detail Sidebar (Level 3) ───
+    function showDetail(node) {
+      const sidebar = document.getElementById('detail-sidebar');
+      const content = document.getElementById('detail-content');
+      const overlay = document.getElementById('overlay');
+
+      let html = `<h2>${node.label}</h2>`;
+      html += `<div class="screen-type">${node.type}${node.screenType ? ' \u2014 ' + node.screenType : ''}</div>`;
+
+      if (node.userAction) {
+        html += `<div class="section-label">User Action</div>`;
+        html += `<div class="section-content">${node.userAction}</div>`;
+      }
+
+      if (node.description) {
+        html += `<div class="section-label">Description</div>`;
+        html += `<div class="section-content">${node.description}</div>`;
+      }
+
+      if (node.sections && node.sections.length > 0) {
+        html += `<div class="section-label">Page Sections</div>`;
+        html += `<div class="section-content">${node.sections.map(s => '\u2022 ' + s).join('<br>')}</div>`;
+      }
+
+      if (node.edgeCases && node.edgeCases.length > 0) {
+        html += `<div class="section-label">Edge Cases</div>`;
+        node.edgeCases.forEach(ec => {
+          html += `<div class="edge-case">${ec}</div>`;
+        });
+      }
+
+      if (node.exits && node.exits.length > 0) {
+        html += `<div class="section-label">Exits</div>`;
+        node.exits.forEach(ex => {
+          html += `<div class="exit-item"><span class="exit-label">\u2192 ${ex.to}</span> \u2014 ${ex.label}</div>`;
+        });
+      }
+
+      content.innerHTML = html;
+      sidebar.classList.add('open');
+      overlay.classList.add('open');
+    }
+
+    function closeDetail() {
+      document.getElementById('detail-sidebar').classList.remove('open');
+      document.getElementById('overlay').classList.remove('open');
+    }
+
+    document.getElementById('detail-close').addEventListener('click', closeDetail);
+    document.getElementById('overlay').addEventListener('click', closeDetail);
+
+    // ─── Breadcrumb ───
+    function updateBreadcrumb() {
+      const bc = document.getElementById('breadcrumb');
+      if (currentLevel === 1) {
+        bc.innerHTML = `<span class="breadcrumb-item active">E-Commerce Checkout</span>`;
+      } else if (currentLevel === 2 && currentPhase) {
+        bc.innerHTML = `
+          <span class="breadcrumb-item" onclick="renderLevel1()">E-Commerce Checkout</span>
+          <span class="breadcrumb-sep">\u203A</span>
+          <span class="breadcrumb-item active">${currentPhase.label}</span>
+        `;
+      }
+    }
+
+    // ─── Start ───
+    renderLevel1();
+  </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "eval_id": 0,
+  "eval_name": "onboarding-flow",
+  "prompt": "Create an interactive flow diagram for a user onboarding flow: Welcome → Profile Setup → Connect Account → Tutorial → Dashboard. Each step should be clickable to see details about what happens on that screen.",
+  "assertions": [
+    "Uses D3.js from CDN",
+    "Single standalone HTML file",
+    "Nodes are clickable (click handlers)",
+    "Multiple zoom levels (at least 2 distinct views)",
+    "Breadcrumb or back navigation",
+    "Custom styled nodes (not default SVG)",
+    "Smooth transitions between states",
+    "Dark theme styling (#0F0F0F or similar dark background)",
+    "Orthogonal connectors (right-angle paths)",
+    "Action pills on connectors",
+    "Proper node types (rectangles for screens)"
+  ]
+}

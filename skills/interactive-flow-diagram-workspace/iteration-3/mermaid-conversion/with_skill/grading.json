@@ -1,0 +1,85 @@
+{
+  "eval_id": 2,
+  "eval_name": "mermaid-conversion",
+  "variant": "with_skill",
+  "pass_rate": 1.0,
+  "passed": 15,
+  "total": 15,
+  "expectations": [
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": true,
+      "evidence": "Found: ...tive Flow</title>   <script src=\"https://cdn.jsdelivr.net/npm/d3@7\"></script>   <style>..."
+    },
+    {
+      "text": "Single standalone HTML file",
+      "passed": true,
+      "evidence": "Found: ...<!DOCTYPE html> <html lang=\"e..."
+    },
+    {
+      "text": "Nodes are clickable (click handlers)",
+      "passed": true,
+      "evidence": "Found: ...pointer')           .on('click', () => showDetail(n..."
+    },
+    {
+      "text": "Multiple zoom levels (at least 2 distinct views)",
+      "passed": true,
+      "evidence": "Found: ...onst zoomBehavior = d3.zoom()       .scaleExten..."
+    },
+    {
+      "text": "Breadcrumb or back navigation",
+      "passed": true,
+      "evidence": "Found: ...dden;     }      /* Breadcrumb */     #breadcrumb..."
+    },
+    {
+      "text": "Custom styled nodes (not default SVG)",
+      "passed": true,
+      "evidence": "Found: ...height: 28px;       border-radius: 6px;       background:..."
+    },
+    {
+      "text": "Smooth transitions between states",
+      "passed": true,
+      "evidence": "Found: ...z-index: 200;       transition: right 0.3s ease-out;       overflow..."
+    },
+    {
+      "text": "Dark theme styling (#0F0F0F or similar dark background)",
+      "passed": true,
+      "evidence": "Found: ...}     body {       background: #0F0F0F;       color: #FFFF..."
+    },
+    {
+      "text": "Orthogonal connectors (right-angle paths)",
+      "passed": true,
+      "evidence": "Found: ...}      // \u2500\u2500\u2500 Build orthogonal path \u2500\u2500\u2500     functi..."
+    },
+    {
+      "text": "Action pills on connectors",
+      "passed": true,
+      "evidence": "Found: ...IZE = 60;     const PILL_W = 160;     const P..."
+    },
+    {
+      "text": "All 10 Mermaid nodes preserved",
+      "passed": true,
+      "evidence": "Found: ...{           id: \"start\",           type: \"..."
+    },
+    {
+      "text": "Start/end nodes use pill or stadium shapes",
+      "passed": true,
+      "evidence": "Found: ...IZE = 60;     const PILL_W = 160;     const..."
+    },
+    {
+      "text": "Decision nodes use diamond shapes",
+      "passed": true,
+      "evidence": "Found in product-search-flow.html"
+    },
+    {
+      "text": "Uses Software DS color tokens",
+      "passed": true,
+      "evidence": "Found: ...e === 'decision' ? '#B8D944' :..."
+    },
+    {
+      "text": "Three distinct zoom levels",
+      "passed": true,
+      "evidence": "Found: ...12px;     }      /* Detail panel */     #detail-pane..."
+    }
+  ]
+}

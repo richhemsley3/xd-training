@@ -1,0 +1,60 @@
+{
+  "eval_id": 0,
+  "eval_name": "onboarding-flow",
+  "variant": "without_skill",
+  "pass_rate": 0.9,
+  "passed": 9,
+  "total": 10,
+  "expectations": [
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": false,
+      "evidence": "Not found in onboarding-flow.html"
+    },
+    {
+      "text": "Single standalone HTML file",
+      "passed": true,
+      "evidence": "Found: ...<!DOCTYPE html> <html lang=\"e..."
+    },
+    {
+      "text": "Nodes are clickable (click handlers)",
+      "passed": true,
+      "evidence": "Found: ...lass=\"btn btn-icon\" onclick=\"zoomOut()\" title=\"..."
+    },
+    {
+      "text": "Multiple zoom levels (at least 2 distinct views)",
+      "passed": true,
+      "evidence": "Found: ...btn-icon\" onclick=\"zoomOut()\" title=\"Zoom out\"..."
+    },
+    {
+      "text": "Breadcrumb or back navigation",
+      "passed": true,
+      "evidence": "Found: ...=\"prevBtn\" onclick=\"navigateStep(-1)\">Previous</butt..."
+    },
+    {
+      "text": "Custom styled nodes (not default SVG)",
+      "passed": true,
+      "evidence": "Found: ...ding: 6px 12px;     border-radius: 6px;     font-size: 13p..."
+    },
+    {
+      "text": "Smooth transitions between states",
+      "passed": true,
+      "evidence": "Found: ...ursor: pointer;     transition: all 0.15s;     display: flex;..."
+    },
+    {
+      "text": "Dark theme styling (#0F0F0F or similar dark background)",
+      "passed": true,
+      "evidence": "Found in onboarding-flow.html"
+    },
+    {
+      "text": "Orthogonal connectors (right-angle paths)",
+      "passed": true,
+      "evidence": "Found: ...x-shrink: 0;   }   .connector-line {     width: 100%;..."
+    },
+    {
+      "text": "Action pills on connectors",
+      "passed": true,
+      "evidence": "Found in onboarding-flow.html"
+    }
+  ]
+}

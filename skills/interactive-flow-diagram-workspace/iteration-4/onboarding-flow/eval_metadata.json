@@ -1,0 +1,62 @@
+{
+  "prompt": "Create an interactive flow diagram for a user onboarding flow: Welcome \u2192 Profile Setup \u2192 Connect Account \u2192 Tutorial \u2192 Dashboard. Each step should be clickable to see details about what happens on that screen.",
+  "expected_output": "A standalone HTML file with D3.js rendering a 5-node linear flow at Level 1, with click-to-expand showing screen details at Level 2/3. Nodes should be visually styled with SDS light theme (warm canvas, white cards), with smooth transitions between levels.",
+  "assertions": [
+    {
+      "type": "file_exists",
+      "name": "HTML file exists",
+      "pattern": "*.html"
+    },
+    {
+      "type": "contains",
+      "name": "Uses D3.js from CDN",
+      "text": "d3@7"
+    },
+    {
+      "type": "contains",
+      "name": "All 5 phases present",
+      "text": "Welcome",
+      "also_contains": [
+        "Profile Setup",
+        "Connect Account",
+        "Tutorial",
+        "Dashboard"
+      ]
+    },
+    {
+      "type": "contains",
+      "name": "SDS warm canvas background",
+      "text": "#FAF8F5"
+    },
+    {
+      "type": "contains",
+      "name": "SDS interactive-primary color",
+      "text": "#013D5B"
+    },
+    {
+      "type": "contains",
+      "name": "SDS dark text",
+      "text": "#1C1A17"
+    },
+    {
+      "type": "contains",
+      "name": "SVG rendering",
+      "text": "<svg"
+    },
+    {
+      "type": "contains",
+      "name": "Click interaction",
+      "text": "click"
+    },
+    {
+      "type": "contains",
+      "name": "Zoom behavior",
+      "text": "zoom"
+    },
+    {
+      "type": "contains",
+      "name": "Transition animations",
+      "text": "transition"
+    }
+  ]
+}

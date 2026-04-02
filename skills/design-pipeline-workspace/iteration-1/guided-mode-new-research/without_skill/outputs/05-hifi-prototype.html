@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beacon — Data Lineage</title>
+<style>
+  /* ============================================================
+     Software DS — Color Tokens
+     ============================================================ */
+  :root {
+    --sds-color-warm-gray-025: #FAF8F5;
+    --sds-color-warm-gray-050: #F4F1EB;
+    --sds-color-warm-gray-100: #EBE6DD;
+    --sds-color-warm-gray-150: #E0DCD3;
+    --sds-color-warm-gray-200: #D0CBC3;
+    --sds-color-warm-gray-250: #BFBAB2;
+    --sds-color-warm-gray-300: #B0ABA2;
+    --sds-color-warm-gray-350: #A39E96;
+    --sds-color-warm-gray-400: #948E85;
+    --sds-color-warm-gray-450: #858079;
+    --sds-color-warm-gray-500: #7A756F;
+    --sds-color-warm-gray-550: #6B6760;
+    --sds-color-warm-gray-600: #615D55;
+    --sds-color-warm-gray-650: #54514D;
+    --sds-color-warm-gray-700: #47443F;
+    --sds-color-warm-gray-750: #3B3834;
+    --sds-color-warm-gray-800: #302D28;
+    --sds-color-warm-gray-900: #1C1A17;
+
+    --sds-color-blue-050: #EBF4F5;
+    --sds-color-blue-100: #D9EBED;
+    --sds-color-blue-150: #C1DDE3;
+    --sds-color-blue-200: #A6CBD6;
+    --sds-color-blue-300: #77B2C7;
+    --sds-color-blue-350: #6AA5B8;
+    --sds-color-blue-450: #4F8AA0;
+    --sds-color-blue-550: #306E88;
+    --sds-color-blue-650: #17597A;
+    --sds-color-blue-700: #0C4A69;
+    --sds-color-blue-750: #013D5B;
+    --sds-color-blue-800: #05314D;
+    --sds-color-blue-900: #031E36;
+    --sds-color-blue-950: #00132B;
+
+    --sds-color-red-050: #FFEEEB;
+    --sds-color-red-100: #FFE1DB;
+    --sds-color-red-250: #EEA79E;
+    --sds-color-red-450: #CF6253;
+    --sds-color-red-500: #BF5547;
+    --sds-color-red-650: #8F3629;
+
+    --sds-color-green-025: #F4FAEB;
+    --sds-color-green-100: #E2EDCC;
+    --sds-color-green-250: #AAC267;
+    --sds-color-green-400: #7A9A01;
+    --sds-color-green-500: #62800B;
+    --sds-color-green-650: #3E5917;
+
+    --sds-color-yellow-025: #FCF9D9;
+    --sds-color-yellow-100: #F7EC88;
+    --sds-color-yellow-200: #EBCE2D;
+    --sds-color-yellow-500: #8A7515;
+
+    --sds-color-purple-300: #C39DE3;
+    --sds-color-purple-550: #805AA1;
+
+    --sds-color-white: #FFFFFF;
+    --sds-color-black: #000000;
+
+    /* Semantic */
+    --sds-bg-page: var(--sds-color-white);
+    --sds-bg-surface: var(--sds-color-warm-gray-025);
+    --sds-bg-subtle: var(--sds-color-warm-gray-050);
+    --sds-text-primary: var(--sds-color-warm-gray-900);
+    --sds-text-secondary: var(--sds-color-warm-gray-650);
+    --sds-text-tertiary: var(--sds-color-warm-gray-550);
+    --sds-text-disabled: var(--sds-color-warm-gray-300);
+    --sds-border-default: var(--sds-color-warm-gray-150);
+    --sds-border-subtle: var(--sds-color-warm-gray-100);
+    --sds-interactive-primary: var(--sds-color-blue-750);
+    --sds-interactive-primary-hover: var(--sds-color-blue-800);
+    --sds-nav-sidebar-bg: var(--sds-color-warm-gray-025);
+    --sds-nav-item-active-bg: var(--sds-color-blue-100);
+    --sds-nav-item-active-text: var(--sds-color-blue-750);
+    --sds-nav-item-text: var(--sds-color-warm-gray-650);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--sds-bg-page);
+    color: var(--sds-text-primary);
+    line-height: 1.5;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  /* ===== APP SHELL ===== */
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    padding: 0 20px;
+    background: var(--sds-bg-page);
+    border-bottom: 1px solid var(--sds-color-warm-gray-100);
+    flex-shrink: 0;
+    z-index: 10;
+  }
+  .header-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .header-logo-mark {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: var(--sds-interactive-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .header-logo-mark svg { width: 16px; height: 16px; fill: #FFFFFF; }
+  .header-logo-text {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--sds-text-primary);
+    letter-spacing: -0.2px;
+  }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .header-help {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1.5px solid var(--sds-color-warm-gray-300);
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--sds-text-tertiary);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .header-help:hover { border-color: var(--sds-color-warm-gray-700); background: var(--sds-bg-subtle); color: var(--sds-color-warm-gray-700); }
+  .header-divider { width: 1px; height: 20px; background: var(--sds-border-default); margin: 0 4px; }
+  .header-profile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px 4px 4px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+  .header-profile:hover { background: var(--sds-bg-subtle); }
+  .header-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--sds-interactive-primary);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .header-username { font-size: 13px; font-weight: 500; color: var(--sds-text-primary); }
+  .header-chevron svg { width: 14px; height: 14px; stroke: var(--sds-text-tertiary); fill: none; stroke-width: 1.5; stroke-linecap: round; }
+
+  /* ===== LAYOUT ===== */
+  .layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ===== SIDEBAR ===== */
+  .sidenav {
+    width: 220px;
+    min-width: 220px;
+    background: var(--sds-nav-sidebar-bg);
+    border-right: 1px solid var(--sds-border-default);
+    display: flex;
+    flex-direction: column;
+    padding: 16px 12px;
+    user-select: none;
+    overflow-y: auto;
+  }
+  .sidenav-group-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--sds-color-warm-gray-400);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 20px 12px 6px;
+  }
+  .sidenav-group-label:first-child { padding-top: 8px; }
+  .sidenav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--sds-color-warm-gray-700);
+    cursor: pointer;
+    text-decoration: none;
+    margin: 1px 0;
+    transition: background 0.12s, color 0.12s;
+  }
+  .sidenav-item:hover { background: var(--sds-bg-subtle); color: var(--sds-text-primary); }
+  .sidenav-item.active {
+    background: var(--sds-nav-item-active-bg);
+    color: var(--sds-nav-item-active-text);
+    font-weight: 500;
+  }
+  .sidenav-item.active:hover { background: var(--sds-color-blue-150); }
+  .sidenav-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sidenav-icon svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* ===== MAIN CONTENT ===== */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--sds-bg-page);
+  }
+
+  /* Page header */
+  .page-header {
+    padding: 20px 24px 0;
+    flex-shrink: 0;
+  }
+  .page-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--sds-text-primary);
+    margin-bottom: 16px;
+  }
+
+  /* Search bar */
+  .search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 24px 12px;
+    padding: 10px 16px;
+    border: 1.5px solid var(--sds-border-default);
+    border-radius: 10px;
+    background: var(--sds-bg-page);
+    cursor: text;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .search-bar:hover { border-color: var(--sds-color-warm-gray-250); }
+  .search-bar:focus-within {
+    border-color: var(--sds-interactive-primary);
+    box-shadow: 0 0 0 3px rgba(1,61,91,0.1);
+  }
+  .search-bar svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--sds-color-warm-gray-400);
+    fill: none;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+  .search-bar input {
+    border: none;
+    outline: none;
+    font-size: 14px;
+    color: var(--sds-text-primary);
+    background: transparent;
+    flex: 1;
+    font-family: inherit;
+  }
+  .search-bar input::placeholder { color: var(--sds-color-warm-gray-350); }
+  .search-shortcut {
+    font-size: 11px;
+    color: var(--sds-color-warm-gray-400);
+    border: 1px solid var(--sds-border-default);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: 'SF Mono', Menlo, monospace;
+  }
+
+  /* Toolbar */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 24px;
+    border-bottom: 1px solid var(--sds-border-subtle);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+  .toolbar-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--sds-color-warm-gray-400);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-right: 2px;
+  }
+  .toolbar-btn {
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--sds-text-secondary);
+    border: 1px solid var(--sds-border-default);
+    background: var(--sds-bg-page);
+    cursor: pointer;
+    transition: all 0.12s;
+    font-family: inherit;
+  }
+  .toolbar-btn:hover { background: var(--sds-bg-subtle); color: var(--sds-text-primary); }
+  .toolbar-btn.active {
+    background: var(--sds-color-blue-050);
+    color: var(--sds-interactive-primary);
+    border-color: var(--sds-color-blue-200);
+  }
+  .toolbar-divider { width: 1px; height: 24px; background: var(--sds-border-subtle); margin: 0 6px; }
+
+  /* ===== GRAPH CANVAS ===== */
+  .canvas-area {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+  .canvas {
+    flex: 1;
+    position: relative;
+    background: var(--sds-bg-page);
+    overflow: hidden;
+  }
+  .canvas-dots {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, var(--sds-color-warm-gray-100) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+  }
+
+  /* Nodes */
+  .node {
+    position: absolute;
+    border: 1.5px solid var(--sds-border-default);
+    border-radius: 10px;
+    background: var(--sds-bg-page);
+    padding: 12px 16px;
+    min-width: 160px;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    z-index: 2;
+  }
+  .node:hover {
+    border-color: var(--sds-color-warm-gray-250);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .node.selected {
+    border-color: var(--sds-interactive-primary);
+    box-shadow: 0 0 0 3px rgba(1,61,91,0.1), 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .node-type-indicator {
+    position: absolute;
+    left: 0;
+    top: 12px;
+    bottom: 12px;
+    width: 3px;
+    border-radius: 0 2px 2px 0;
+  }
+  .node-type-indicator.source { background: var(--sds-color-blue-350); }
+  .node-type-indicator.transform { background: var(--sds-color-purple-300); }
+  .node-type-indicator.destination { background: var(--sds-color-green-400); }
+  .node-type-indicator.alert { background: var(--sds-color-red-450); }
+
+  .node-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .node-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .node-icon.source { background: var(--sds-color-blue-050); color: var(--sds-color-blue-650); }
+  .node-icon.transform { background: #F7EEFF; color: var(--sds-color-purple-550); }
+  .node-icon.destination { background: var(--sds-color-green-025); color: var(--sds-color-green-500); }
+  .node-icon svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+  .node-info { flex: 1; min-width: 0; }
+  .node-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--sds-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .node-subtitle {
+    font-size: 11px;
+    color: var(--sds-text-tertiary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .node-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  /* Status badge */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .status-badge .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .status-badge.protected { background: var(--sds-color-green-025); color: var(--sds-color-green-650); }
+  .status-badge.protected .dot { background: var(--sds-color-green-400); }
+  .status-badge.partial { background: var(--sds-color-yellow-025); color: var(--sds-color-yellow-500); }
+  .status-badge.partial .dot { background: var(--sds-color-yellow-200); }
+  .status-badge.unprotected { background: var(--sds-color-red-050); color: var(--sds-color-red-650); }
+  .status-badge.unprotected .dot { background: var(--sds-color-red-450); }
+
+  .classification-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+  .classification-tag.pii { background: var(--sds-color-red-100); color: var(--sds-color-red-650); }
+  .classification-tag.financial { background: var(--sds-color-blue-100); color: var(--sds-color-blue-700); }
+  .classification-tag.internal { background: var(--sds-color-warm-gray-100); color: var(--sds-color-warm-gray-650); }
+
+  /* SVG edges */
+  .edges-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .edge-line {
+    fill: none;
+    stroke: var(--sds-color-warm-gray-200);
+    stroke-width: 1.5;
+  }
+  .edge-line.highlighted {
+    stroke: var(--sds-interactive-primary);
+    stroke-width: 2;
+  }
+  .edge-arrow {
+    fill: var(--sds-color-warm-gray-200);
+  }
+  .edge-arrow.highlighted {
+    fill: var(--sds-interactive-primary);
+  }
+
+  /* ===== DETAIL PANEL ===== */
+  .detail-panel {
+    width: 320px;
+    min-width: 320px;
+    border-left: 1px solid var(--sds-border-default);
+    background: var(--sds-bg-page);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .detail-panel-header {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--sds-border-subtle);
+  }
+  .detail-panel-close {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .detail-panel-close-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--sds-text-tertiary);
+    transition: background 0.12s;
+  }
+  .detail-panel-close-btn:hover { background: var(--sds-bg-subtle); }
+  .detail-panel-close-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; }
+
+  .detail-panel-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--sds-text-primary);
+    margin-bottom: 2px;
+  }
+  .detail-panel-subtitle {
+    font-size: 13px;
+    color: var(--sds-text-tertiary);
+  }
+
+  .detail-section {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--sds-border-subtle);
+  }
+  .detail-section:last-child { border-bottom: none; }
+  .detail-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--sds-color-warm-gray-400);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 10px;
+  }
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 6px 0;
+  }
+  .detail-row-label {
+    font-size: 13px;
+    color: var(--sds-text-secondary);
+  }
+  .detail-row-value {
+    font-size: 13px;
+    color: var(--sds-text-primary);
+    font-weight: 500;
+    text-align: right;
+  }
+
+  .detail-dep-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    margin: 2px 0;
+    transition: background 0.12s;
+    cursor: pointer;
+  }
+  .detail-dep-item:hover { background: var(--sds-bg-subtle); }
+  .detail-dep-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .detail-dep-dot.source { background: var(--sds-color-blue-350); }
+  .detail-dep-dot.transform { background: var(--sds-color-purple-300); }
+  .detail-dep-dot.destination { background: var(--sds-color-green-400); }
+  .detail-dep-name {
+    font-size: 13px;
+    color: var(--sds-text-primary);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .detail-dep-type {
+    font-size: 11px;
+    color: var(--sds-text-tertiary);
+    flex-shrink: 0;
+  }
+
+  /* Quality bar */
+  .quality-bar {
+    display: flex;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    background: var(--sds-color-warm-gray-100);
+    margin-top: 6px;
+  }
+  .quality-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--sds-color-green-400);
+  }
+  .quality-score {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+  }
+  .quality-score-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--sds-color-green-500);
+  }
+  .quality-score-label {
+    font-size: 11px;
+    color: var(--sds-text-tertiary);
+    align-self: flex-end;
+  }
+
+  /* Action buttons */
+  .detail-actions {
+    padding: 16px 20px;
+    display: flex;
+    gap: 8px;
+    border-top: 1px solid var(--sds-border-subtle);
+    margin-top: auto;
+  }
+  .btn-secondary {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1.5px solid var(--sds-color-warm-gray-800);
+    background: var(--sds-bg-page);
+    color: var(--sds-text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.12s;
+  }
+  .btn-secondary:hover { background: var(--sds-bg-subtle); }
+  .btn-primary {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1.5px solid var(--sds-interactive-primary);
+    background: var(--sds-interactive-primary);
+    color: var(--sds-color-white);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.12s;
+  }
+  .btn-primary:hover { background: var(--sds-interactive-primary-hover); }
+
+  /* Minimap */
+  .minimap {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    width: 140px;
+    height: 90px;
+    border: 1px solid var(--sds-border-default);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(8px);
+    z-index: 5;
+    padding: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .minimap-viewport {
+    border: 1.5px solid var(--sds-interactive-primary);
+    border-radius: 2px;
+    background: rgba(1,61,91,0.05);
+    width: 50%;
+    height: 50%;
+    position: absolute;
+    top: 25%;
+    left: 15%;
+  }
+  .minimap-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    position: absolute;
+  }
+
+  /* Zoom controls */
+  .zoom-controls {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 5;
+  }
+  .zoom-btn {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--sds-border-default);
+    background: var(--sds-bg-page);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--sds-text-secondary);
+    transition: all 0.12s;
+  }
+  .zoom-btn:first-child { border-radius: 8px 8px 0 0; }
+  .zoom-btn:last-child { border-radius: 0 0 8px 8px; }
+  .zoom-btn:hover { background: var(--sds-bg-subtle); color: var(--sds-text-primary); }
+
+  /* Alert badge on unprotected external share */
+  .alert-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--sds-color-red-450);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 2px white;
+    z-index: 3;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ===== HEADER ===== -->
+  <header class="header">
+    <div class="header-logo">
+      <div class="header-logo-mark">
+        <svg viewBox="0 0 16 16"><path d="M8 1L2 4.5v7L8 15l6-3.5v-7L8 1z"/></svg>
+      </div>
+      <span class="header-logo-text">Beacon</span>
+    </div>
+    <div class="header-actions">
+      <button class="header-help" title="Help" aria-label="Help">?</button>
+      <div class="header-divider"></div>
+      <button class="header-profile" aria-label="User menu">
+        <span class="header-avatar">AH</span>
+        <span class="header-username">Amani Habibjon</span>
+        <span class="header-chevron">
+          <svg viewBox="0 0 14 14"><path d="M4 5.5l3 3 3-3"/></svg>
+        </span>
+      </button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- ===== SIDEBAR ===== -->
+    <nav class="sidenav" aria-label="Main navigation">
+      <a class="sidenav-item" href="#">
+        <span class="sidenav-icon">
+          <svg viewBox="0 0 18 18"><path d="M3 3h4.5v4.5H3z M10.5 3H15v4.5h-4.5z M3 10.5h4.5V15H3z M10.5 10.5H15V15h-4.5z"/></svg>
+        </span>
+        Getting started
+      </a>
+
+      <div class="sidenav-group-label">Tokenization</div>
+      <a class="sidenav-item" href="#">
+        <span class="sidenav-icon">
+          <svg viewBox="0 0 18 18"><rect x="2" y="3" width="14" height="12" rx="1.5"/><path d="M2 7h14 M6 7v8"/></svg>
+        </span>
+        Data catalog
+      </a>
+      <a class="sidenav-item active" href="#">
+        <span class="sidenav-icon">
+          <svg viewBox="0 0 18 18"><circle cx="4" cy="9" r="2"/><circle cx="14" cy="4" r="2"/><circle cx="14" cy="14" r="2"/><path d="M6 9h4l2-5 M10 9l2 5"/></svg>
+        </span>
+        Data lineage
+      </a>
+      <a class="sidenav-item" href="#">
+        <span class="sidenav-icon">
+          <svg viewBox="0 0 18 18"><rect x="3" y="2" width="12" height="14" rx="1.5"/><path d="M6 5h6 M6 8h6 M6 11h3"/></svg>
+        </span>
+        Activity
+      </a>
+      <a class="sidenav-item" href="#">
+        <span class="sidenav-icon">
+          <svg viewBox="0 0 18 18"><path d="M9 2L3 6v6.5C3 15 9 16.5 9 16.5s6-1.5 6-4.5V6L9 2z"/></svg>
+        </span>
+        Protection policies
+      </a>
+
+      <div class="sidenav-group-label">Administration</div>
+      <a class="sidenav-item" href="#">
+        <span class="sidenav-icon">
+          <svg viewBox="0 0 18 18"><path d="M6 15H3.5A1.5 1.5 0 012 13.5V13a3 3 0 013-3h1 M12 15h2.5a1.5 1.5 0 001.5-1.5V13a3 3 0 00-3-3h-1 M6 6a2.5 2.5 0 105 0 2.5 2.5 0 00-5 0z"/></svg>
+        </span>
+        Connections
+      </a>
+      <a class="sidenav-item" href="#">
+        <span class="sidenav-icon">
+          <svg viewBox="0 0 18 18"><circle cx="9" cy="6" r="3"/><path d="M3 15.5v-1A3.5 3.5 0 016.5 11h5a3.5 3.5 0 013.5 3.5v1"/></svg>
+        </span>
+        Users
+      </a>
+      <a class="sidenav-item" href="#">
+        <span class="sidenav-icon">
+          <svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M2.5 9h13 M9 2.5a10 10 0 013 6.5 10 10 0 01-3 6.5 10 10 0 01-3-6.5A10 10 0 019 2.5z"/></svg>
+        </span>
+        Domains
+      </a>
+    </nav>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="main">
+      <div class="page-header">
+        <div class="page-title">Data Lineage</div>
+      </div>
+
+      <!-- Search -->
+      <div class="search-bar">
+        <svg viewBox="0 0 18 18"><circle cx="8" cy="8" r="5.5"/><path d="M12.5 12.5L16 16"/></svg>
+        <input type="text" placeholder="Search assets, tables, pipelines, columns..." aria-label="Search lineage">
+        <span class="search-shortcut">/</span>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <span class="toolbar-label">View</span>
+        <button class="toolbar-btn active">Graph</button>
+        <button class="toolbar-btn">List</button>
+        <div class="toolbar-divider"></div>
+        <span class="toolbar-label">Level</span>
+        <button class="toolbar-btn">System</button>
+        <button class="toolbar-btn active">Table</button>
+        <button class="toolbar-btn">Column</button>
+        <div class="toolbar-divider"></div>
+        <span class="toolbar-label">Overlays</span>
+        <button class="toolbar-btn active">Protection</button>
+        <button class="toolbar-btn active">Quality</button>
+        <button class="toolbar-btn">Classifications</button>
+        <button class="toolbar-btn">Access</button>
+      </div>
+
+      <!-- Canvas + Detail Panel -->
+      <div class="canvas-area">
+        <div class="canvas">
+          <div class="canvas-dots"></div>
+
+          <!-- SVG Edges -->
+          <svg class="edges-layer" width="100%" height="100%">
+            <defs>
+              <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                <polygon points="0 0, 8 3, 0 6" class="edge-arrow"/>
+              </marker>
+              <marker id="arrow-hl" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                <polygon points="0 0, 8 3, 0 6" class="edge-arrow highlighted"/>
+              </marker>
+            </defs>
+            <!-- postgres.users -> customer_360 -->
+            <path d="M 208,95 C 280,95 280,190 340,190" class="edge-line highlighted" marker-end="url(#arrow-hl)"/>
+            <!-- salesforce.contacts -> customer_360 -->
+            <path d="M 208,230 C 280,230 280,200 340,200" class="edge-line highlighted" marker-end="url(#arrow-hl)"/>
+            <!-- s3://raw-events -> customer_360 -->
+            <path d="M 208,360 C 280,360 280,210 340,210" class="edge-line" marker-end="url(#arrow)"/>
+            <!-- customer_360 -> snowflake.analytics -->
+            <path d="M 530,190 C 600,190 600,100 650,100" class="edge-line highlighted" marker-end="url(#arrow-hl)"/>
+            <!-- customer_360 -> looker.exec_dash -->
+            <path d="M 530,200 C 600,200 600,240 650,240" class="edge-line highlighted" marker-end="url(#arrow-hl)"/>
+            <!-- customer_360 -> partner_data_share -->
+            <path d="M 530,210 C 600,210 600,370 650,370" class="edge-line" marker-end="url(#arrow)"/>
+          </svg>
+
+          <!-- Source Nodes -->
+          <div class="node" style="left: 40px; top: 60px; width: 170px;">
+            <div class="node-type-indicator source"></div>
+            <div class="node-header">
+              <div class="node-icon source">
+                <svg viewBox="0 0 16 16"><ellipse cx="8" cy="4" rx="6" ry="2.5"/><path d="M2 4v8c0 1.38 2.69 2.5 6 2.5s6-1.12 6-2.5V4"/><path d="M2 8c0 1.38 2.69 2.5 6 2.5s6-1.12 6-2.5"/></svg>
+              </div>
+              <div class="node-info">
+                <div class="node-name">postgres.users</div>
+                <div class="node-subtitle">PostgreSQL</div>
+              </div>
+            </div>
+            <div class="node-footer">
+              <span class="status-badge protected"><span class="dot"></span> Protected</span>
+              <span class="classification-tag pii">PII</span>
+            </div>
+          </div>
+
+          <div class="node" style="left: 40px; top: 195px; width: 170px;">
+            <div class="node-type-indicator source"></div>
+            <div class="node-header">
+              <div class="node-icon source">
+                <svg viewBox="0 0 16 16"><path d="M8 1L1 5l7 4 7-4-7-4z"/><path d="M1 11l7 4 7-4 M1 8l7 4 7-4"/></svg>
+              </div>
+              <div class="node-info">
+                <div class="node-name">salesforce.contacts</div>
+                <div class="node-subtitle">Salesforce API</div>
+              </div>
+            </div>
+            <div class="node-footer">
+              <span class="status-badge partial"><span class="dot"></span> Partial</span>
+              <span class="classification-tag pii">PII</span>
+            </div>
+          </div>
+
+          <div class="node" style="left: 40px; top: 325px; width: 170px;">
+            <div class="node-type-indicator source"></div>
+            <div class="node-header">
+              <div class="node-icon source">
+                <svg viewBox="0 0 16 16"><path d="M2 4h12v10H2z"/><path d="M5 4V2h6v2"/><path d="M2 8h12"/></svg>
+              </div>
+              <div class="node-info">
+                <div class="node-name">s3://raw-events</div>
+                <div class="node-subtitle">AWS S3</div>
+              </div>
+            </div>
+            <div class="node-footer">
+              <span class="status-badge unprotected"><span class="dot"></span> Unprotected</span>
+            </div>
+          </div>
+
+          <!-- Transform Node (selected) -->
+          <div class="node selected" style="left: 340px; top: 160px; width: 190px;">
+            <div class="node-type-indicator transform"></div>
+            <div class="node-header">
+              <div class="node-icon transform">
+                <svg viewBox="0 0 16 16"><path d="M2 3h5l2 3-2 3H2l2-3-2-3z"/><path d="M9 7h5l2 3-2 3H9l2-3-2-3z"/></svg>
+              </div>
+              <div class="node-info">
+                <div class="node-name">customer_360</div>
+                <div class="node-subtitle">dbt model</div>
+              </div>
+            </div>
+            <div class="node-footer">
+              <span class="status-badge protected"><span class="dot"></span> Protected</span>
+              <span class="classification-tag pii">PII</span>
+              <span class="classification-tag financial">FIN</span>
+            </div>
+          </div>
+
+          <!-- Destination Nodes -->
+          <div class="node" style="left: 650px; top: 65px; width: 185px;">
+            <div class="node-type-indicator destination"></div>
+            <div class="node-header">
+              <div class="node-icon destination">
+                <svg viewBox="0 0 16 16"><ellipse cx="8" cy="4" rx="6" ry="2.5"/><path d="M2 4v8c0 1.38 2.69 2.5 6 2.5s6-1.12 6-2.5V4"/><path d="M2 8c0 1.38 2.69 2.5 6 2.5s6-1.12 6-2.5"/></svg>
+              </div>
+              <div class="node-info">
+                <div class="node-name">snowflake.analytics</div>
+                <div class="node-subtitle">Snowflake</div>
+              </div>
+            </div>
+            <div class="node-footer">
+              <span class="status-badge protected"><span class="dot"></span> Protected</span>
+            </div>
+          </div>
+
+          <div class="node" style="left: 650px; top: 205px; width: 185px;">
+            <div class="node-type-indicator destination"></div>
+            <div class="node-header">
+              <div class="node-icon destination">
+                <svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="1.5"/><path d="M2 6h12 M6 6v8"/></svg>
+              </div>
+              <div class="node-info">
+                <div class="node-name">looker.exec_dash</div>
+                <div class="node-subtitle">Looker Dashboard</div>
+              </div>
+            </div>
+            <div class="node-footer">
+              <span class="status-badge protected"><span class="dot"></span> Protected</span>
+            </div>
+          </div>
+
+          <div class="node" style="left: 650px; top: 335px; width: 185px;">
+            <div class="alert-badge">!</div>
+            <div class="node-type-indicator alert"></div>
+            <div class="node-header">
+              <div class="node-icon" style="background: var(--sds-color-red-050); color: var(--sds-color-red-500);">
+                <svg viewBox="0 0 16 16"><path d="M2 3h12l-2 10H4L2 3z"/><path d="M6 7h4 M7 10h2"/></svg>
+              </div>
+              <div class="node-info">
+                <div class="node-name">partner_data_share</div>
+                <div class="node-subtitle">External Share</div>
+              </div>
+            </div>
+            <div class="node-footer">
+              <span class="status-badge unprotected"><span class="dot"></span> Unprotected</span>
+              <span class="classification-tag pii">PII</span>
+            </div>
+          </div>
+
+          <!-- Zoom controls -->
+          <div class="zoom-controls">
+            <button class="zoom-btn" aria-label="Zoom in">+</button>
+            <button class="zoom-btn" aria-label="Zoom out">&minus;</button>
+          </div>
+
+          <!-- Minimap -->
+          <div class="minimap">
+            <div class="minimap-viewport"></div>
+            <div class="minimap-dot" style="top: 30%; left: 20%; background: var(--sds-color-blue-350);"></div>
+            <div class="minimap-dot" style="top: 50%; left: 20%; background: var(--sds-color-blue-350);"></div>
+            <div class="minimap-dot" style="top: 70%; left: 20%; background: var(--sds-color-blue-350);"></div>
+            <div class="minimap-dot" style="top: 50%; left: 45%; background: var(--sds-color-purple-300);"></div>
+            <div class="minimap-dot" style="top: 25%; left: 70%; background: var(--sds-color-green-400);"></div>
+            <div class="minimap-dot" style="top: 50%; left: 70%; background: var(--sds-color-green-400);"></div>
+            <div class="minimap-dot" style="top: 70%; left: 70%; background: var(--sds-color-red-450);"></div>
+          </div>
+        </div>
+
+        <!-- ===== DETAIL PANEL ===== -->
+        <div class="detail-panel">
+          <div class="detail-panel-header">
+            <div class="detail-panel-close">
+              <span style="font-size: 11px; font-weight: 600; color: var(--sds-color-warm-gray-400); text-transform: uppercase; letter-spacing: 0.4px;">Asset Details</span>
+              <button class="detail-panel-close-btn" aria-label="Close panel">
+                <svg viewBox="0 0 16 16"><path d="M4 4l8 8 M12 4l-8 8"/></svg>
+              </button>
+            </div>
+            <div class="detail-panel-title">customer_360</div>
+            <div class="detail-panel-subtitle">dbt model &middot; snowflake.analytics</div>
+            <div style="display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap;">
+              <span class="status-badge protected"><span class="dot"></span> Protected</span>
+              <span class="classification-tag pii">PII</span>
+              <span class="classification-tag financial">FIN</span>
+            </div>
+          </div>
+
+          <!-- Data Quality -->
+          <div class="detail-section">
+            <div class="detail-section-title">Data Quality</div>
+            <div class="quality-score">
+              <span class="quality-score-value">94%</span>
+              <span class="quality-score-label">Healthy</span>
+            </div>
+            <div class="quality-bar">
+              <div class="quality-bar-fill" style="width: 94%;"></div>
+            </div>
+          </div>
+
+          <!-- Metadata -->
+          <div class="detail-section">
+            <div class="detail-section-title">Metadata</div>
+            <div class="detail-row">
+              <span class="detail-row-label">Owner</span>
+              <span class="detail-row-value">Data Engineering</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-row-label">Last updated</span>
+              <span class="detail-row-value">2h ago</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-row-label">Schema</span>
+              <span class="detail-row-value">42 columns</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-row-label">Row count</span>
+              <span class="detail-row-value">2.4M</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-row-label">Protection policy</span>
+              <span class="detail-row-value" style="color: var(--sds-interactive-primary); cursor: pointer;">Customer PII v2</span>
+            </div>
+          </div>
+
+          <!-- Upstream -->
+          <div class="detail-section">
+            <div class="detail-section-title">Upstream (3 sources)</div>
+            <div class="detail-dep-item">
+              <div class="detail-dep-dot source"></div>
+              <span class="detail-dep-name">postgres.users</span>
+              <span class="detail-dep-type">PostgreSQL</span>
+            </div>
+            <div class="detail-dep-item">
+              <div class="detail-dep-dot source"></div>
+              <span class="detail-dep-name">salesforce.contacts</span>
+              <span class="detail-dep-type">Salesforce</span>
+            </div>
+            <div class="detail-dep-item">
+              <div class="detail-dep-dot source"></div>
+              <span class="detail-dep-name">s3://raw-events</span>
+              <span class="detail-dep-type">AWS S3</span>
+            </div>
+          </div>
+
+          <!-- Downstream -->
+          <div class="detail-section">
+            <div class="detail-section-title">Downstream (3 consumers)</div>
+            <div class="detail-dep-item">
+              <div class="detail-dep-dot destination"></div>
+              <span class="detail-dep-name">snowflake.analytics</span>
+              <span class="detail-dep-type">Snowflake</span>
+            </div>
+            <div class="detail-dep-item">
+              <div class="detail-dep-dot destination"></div>
+              <span class="detail-dep-name">looker.exec_dash</span>
+              <span class="detail-dep-type">Looker</span>
+            </div>
+            <div class="detail-dep-item" style="background: var(--sds-color-red-050); border-radius: 6px;">
+              <div class="detail-dep-dot" style="background: var(--sds-color-red-450);"></div>
+              <span class="detail-dep-name" style="color: var(--sds-color-red-650);">partner_data_share</span>
+              <span class="detail-dep-type" style="color: var(--sds-color-red-450);">Unprotected</span>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="detail-actions">
+            <button class="btn-secondary">View in Catalog</button>
+            <button class="btn-primary">Impact Analysis</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

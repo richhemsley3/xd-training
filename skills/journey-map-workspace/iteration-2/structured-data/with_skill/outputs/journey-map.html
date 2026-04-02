@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Journey Map — B2B SaaS Purchase Journey</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    /* ─── Reset ─── */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* ─── CSS Custom Properties (from SKILL.md / Software DS) ─── */
+    :root {
+      --bg-canvas: #FAF8F5;
+      --bg-card: #FFFFFF;
+      --bg-header: #F4F1EB;
+      --bg-elevated: #FFFFFF;
+
+      --border-subtle: #EBE6DD;
+      --border-default: #E0DCD3;
+      --border-strong: #D0CBC3;
+      --border-focus: #013D5B;
+
+      --text-primary: #1C1A17;
+      --text-secondary: #54514D;
+      --text-tertiary: #6B6760;
+      --text-disabled: #B0ABA2;
+      --text-on-primary: #FFFFFF;
+
+      --interactive-primary: #013D5B;
+      --interactive-primary-hover: #05314D;
+      --interactive-primary-subtle: #D9EBED;
+
+      --phase-1: #805AA1;
+      --phase-2: #013D5B;
+      --phase-3: #0C4A69;
+      --phase-4: #7A9A01;
+
+      --emotion-positive: #7A9A01;
+      --emotion-neutral: #0C4A69;
+      --emotion-negative: #CF6253;
+
+      --accent-pain: #BF5547;
+      --accent-pain-bg: #FFEEEB;
+      --accent-opportunity: #62800B;
+      --accent-opportunity-bg: #F4FAEB;
+    }
+
+    body {
+      background: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 32px;
+    }
+
+    /* ─── Title Bar ─── */
+    .title-bar {
+      margin-bottom: 24px;
+    }
+    .title-bar h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    .title-bar p {
+      font-size: 13px;
+      color: var(--text-tertiary);
+    }
+
+    /* ─── Grid Container ─── */
+    .journey-grid-wrapper {
+      overflow-x: auto;
+      border: 1px solid var(--border-default);
+      border-radius: 12px;
+      background: var(--border-subtle);
+    }
+
+    .journey-grid {
+      display: grid;
+      gap: 1px;
+      min-width: max-content;
+    }
+
+    /* ─── Row Labels (sticky left column) ─── */
+    .row-label {
+      position: sticky;
+      left: 0;
+      z-index: 10;
+      width: 140px;
+      min-width: 140px;
+      background: var(--bg-header);
+      padding: 12px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      border-right: 1px solid var(--border-default);
+    }
+    .row-label.corner {
+      border-radius: 12px 0 0 0;
+    }
+
+    /* ─── Phase Headers ─── */
+    .phase-header {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .phase-header .phase-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.25);
+    }
+    .phase-header .phase-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-on-primary);
+    }
+
+    /* ─── Step Headers ─── */
+    .step-header {
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-card);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    /* ─── Content Cells ─── */
+    .cell {
+      background: var(--bg-card);
+      padding: 12px 14px;
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--text-secondary);
+      min-height: 64px;
+      display: flex;
+      align-items: flex-start;
+      transition: background 0.15s ease, box-shadow 0.15s ease;
+    }
+    .cell:hover {
+      background: rgba(1, 61, 91, 0.05);
+      box-shadow: inset 0 0 0 1px rgba(1, 61, 91, 0.08);
+    }
+    .cell.empty-cell {
+      border: 1px dashed var(--border-subtle);
+      color: var(--text-disabled);
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ─── Pain Point Cells ─── */
+    .cell.pain-cell {
+      background: var(--accent-pain-bg);
+    }
+    .cell.pain-cell:hover {
+      background: #ffe4df;
+    }
+    .pain-marker {
+      color: var(--accent-pain);
+      font-weight: 500;
+      line-height: 1.5;
+    }
+    .pain-marker::before {
+      content: "\26A0\FE0F ";
+    }
+
+    /* ─── Opportunity Cells ─── */
+    .cell.opportunity-cell {
+      background: var(--accent-opportunity-bg);
+    }
+    .cell.opportunity-cell:hover {
+      background: #eaf5dc;
+    }
+    .opportunity-marker {
+      color: var(--accent-opportunity);
+      font-weight: 500;
+      line-height: 1.5;
+    }
+    .opportunity-marker::before {
+      content: "\1F4A1 ";
+    }
+
+    /* ─── Emotion Row ─── */
+    .emotion-row-cell {
+      background: var(--bg-card);
+      position: relative;
+      height: 120px;
+      padding: 0;
+    }
+    .emotion-row-label {
+      position: sticky;
+      left: 0;
+      z-index: 10;
+      width: 140px;
+      min-width: 140px;
+      background: var(--bg-header);
+      padding: 12px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      border-right: 1px solid var(--border-default);
+    }
+
+    /* ─── Emotion Tooltip ─── */
+    .emotion-tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-default);
+      border-radius: 8px;
+      padding: 8px 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      font-size: 12px;
+      color: var(--text-secondary);
+      z-index: 100;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+    .emotion-tooltip.visible {
+      opacity: 1;
+    }
+    .emotion-tooltip .tooltip-step {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+    .emotion-tooltip .tooltip-score {
+      font-weight: 500;
+    }
+
+    /* ─── Phase separator ─── */
+    .phase-separator {
+      border-right: 2px solid var(--border-strong);
+    }
+
+    /* ─── Print Styles ─── */
+    @media print {
+      body { padding: 16px; background: #fff; }
+      .journey-grid-wrapper { overflow: visible; border: none; }
+      .journey-grid { min-width: unset; }
+      .row-label { position: static; }
+      .emotion-tooltip { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="title-bar">
+    <h1>B2B SaaS Purchase Journey Map</h1>
+    <p>End-to-end customer experience from discovery through implementation</p>
+  </div>
+
+  <div class="journey-grid-wrapper">
+    <div class="journey-grid" id="journeyGrid"></div>
+  </div>
+
+  <div class="emotion-tooltip" id="emotionTooltip">
+    <div class="tooltip-step"></div>
+    <div class="tooltip-score"></div>
+  </div>
+
+  <script>
+    // ─── Journey Data ───
+    const journeyData = {
+      title: "B2B SaaS Purchase Journey Map",
+      phases: [
+        {
+          id: "discovery",
+          label: "Discovery",
+          color: "#805AA1",
+          steps: [
+            {
+              id: "google-search",
+              label: "Google Search",
+              emotion: { score: 0.5, label: "Neutral" },
+              painPoints: ["Too many options"],
+              opportunities: ["Add comparison tool"]
+            },
+            {
+              id: "read-reviews",
+              label: "Read Reviews",
+              emotion: { score: 0.6, label: "Cautious" },
+              painPoints: ["Hard to trust reviews"],
+              opportunities: ["Add comparison tool"]
+            },
+            {
+              id: "visit-website",
+              label: "Visit Website",
+              emotion: { score: 0.7, label: "Interested" },
+              painPoints: [],
+              opportunities: ["Add comparison tool"]
+            }
+          ]
+        },
+        {
+          id: "evaluation",
+          label: "Evaluation",
+          color: "#013D5B",
+          steps: [
+            {
+              id: "free-trial",
+              label: "Free Trial",
+              emotion: { score: 0.8, label: "Excited" },
+              painPoints: ["Trial too short"],
+              opportunities: ["Extend trial"]
+            },
+            {
+              id: "demo-call",
+              label: "Demo Call",
+              emotion: { score: 0.7, label: "Positive" },
+              painPoints: ["Demo scheduling friction"],
+              opportunities: ["Self-serve demo"]
+            },
+            {
+              id: "internal-discussion",
+              label: "Internal Discussion",
+              emotion: { score: 0.4, label: "Anxious" },
+              painPoints: [],
+              opportunities: []
+            }
+          ]
+        },
+        {
+          id: "purchase",
+          label: "Purchase",
+          color: "#0C4A69",
+          steps: [
+            {
+              id: "procurement",
+              label: "Procurement",
+              emotion: { score: 0.3, label: "Frustrated" },
+              painPoints: ["Complex procurement process"],
+              opportunities: ["Streamline contract templates"]
+            },
+            {
+              id: "contract",
+              label: "Contract",
+              emotion: { score: 0.2, label: "Frustrated" },
+              painPoints: ["Legal review delays"],
+              opportunities: ["Streamline contract templates"]
+            },
+            {
+              id: "payment",
+              label: "Payment",
+              emotion: { score: 0.5, label: "Relieved" },
+              painPoints: [],
+              opportunities: []
+            }
+          ]
+        },
+        {
+          id: "implementation",
+          label: "Implementation",
+          color: "#7A9A01",
+          steps: [
+            {
+              id: "setup",
+              label: "Setup",
+              emotion: { score: 0.6, label: "Hopeful" },
+              painPoints: ["Integration complexity"],
+              opportunities: ["Pre-built integrations"]
+            },
+            {
+              id: "training",
+              label: "Training",
+              emotion: { score: 0.7, label: "Confident" },
+              painPoints: [],
+              opportunities: ["Pre-built integrations"]
+            },
+            {
+              id: "go-live",
+              label: "Go-Live",
+              emotion: { score: 0.9, label: "Thrilled" },
+              painPoints: [],
+              opportunities: []
+            }
+          ]
+        }
+      ]
+    };
+
+    // ─── Derived Data ───
+    const allSteps = journeyData.phases.flatMap(p => p.steps);
+    const totalSteps = allSteps.length;
+    const stepWidth = 180;
+    const rowLabelWidth = 140;
+    const totalColumns = totalSteps + 1; // +1 for row label column
+    const rows = ['phase', 'steps', 'emotion', 'pain', 'opportunity'];
+
+    // ─── Build Grid ───
+    const grid = document.getElementById('journeyGrid');
+    const colTemplate = `${rowLabelWidth}px ` + allSteps.map(() => `${stepWidth}px`).join(' ');
+    grid.style.gridTemplateColumns = colTemplate;
+
+    // ─── Row 1: Phase Headers ───
+    const phaseCorner = document.createElement('div');
+    phaseCorner.className = 'row-label corner';
+    phaseCorner.textContent = 'Phase';
+    grid.appendChild(phaseCorner);
+
+    let stepIndex = 0;
+    journeyData.phases.forEach((phase, pi) => {
+      const phaseEl = document.createElement('div');
+      phaseEl.className = 'phase-header';
+      phaseEl.style.background = phase.color;
+      phaseEl.style.gridColumn = `span ${phase.steps.length}`;
+
+      if (pi === 0) {
+        phaseEl.style.borderRadius = '12px 0 0 0';
+      }
+      if (pi === journeyData.phases.length - 1) {
+        phaseEl.style.borderRadius = '0 12px 0 0';
+      }
+
+      const icon = document.createElement('div');
+      icon.className = 'phase-icon';
+      phaseEl.appendChild(icon);
+
+      const name = document.createElement('span');
+      name.className = 'phase-name';
+      name.textContent = phase.label;
+      phaseEl.appendChild(name);
+
+      grid.appendChild(phaseEl);
+      stepIndex += phase.steps.length;
+    });
+
+    // ─── Row 2: Step Headers ───
+    const stepsLabel = document.createElement('div');
+    stepsLabel.className = 'row-label';
+    stepsLabel.textContent = 'Steps';
+    grid.appendChild(stepsLabel);
+
+    let colIdx = 0;
+    journeyData.phases.forEach((phase, pi) => {
+      phase.steps.forEach((step, si) => {
+        const stepEl = document.createElement('div');
+        stepEl.className = 'step-header';
+        stepEl.textContent = step.label;
+        // Subtle phase tint
+        stepEl.style.borderBottom = `2px solid ${phase.color}`;
+        // Phase separator on last step of each phase
+        if (si === phase.steps.length - 1 && pi < journeyData.phases.length - 1) {
+          stepEl.classList.add('phase-separator');
+        }
+        grid.appendChild(stepEl);
+        colIdx++;
+      });
+    });
+
+    // ─── Row 3: Emotion / CX Score ───
+    const emotionLabel = document.createElement('div');
+    emotionLabel.className = 'emotion-row-label';
+    emotionLabel.textContent = 'Emotion';
+    grid.appendChild(emotionLabel);
+
+    const emotionContainer = document.createElement('div');
+    emotionContainer.className = 'emotion-row-cell';
+    emotionContainer.id = 'emotionRow';
+    emotionContainer.style.gridColumn = `span ${totalSteps}`;
+    grid.appendChild(emotionContainer);
+
+    // ─── Row 4: Pain Points ───
+    const painLabel = document.createElement('div');
+    painLabel.className = 'row-label';
+    painLabel.textContent = 'Pain Points';
+    grid.appendChild(painLabel);
+
+    journeyData.phases.forEach((phase, pi) => {
+      phase.steps.forEach((step, si) => {
+        const cell = document.createElement('div');
+        if (step.painPoints && step.painPoints.length > 0) {
+          cell.className = 'cell pain-cell';
+          cell.innerHTML = step.painPoints.map(p => `<div class="pain-marker">${p}</div>`).join('');
+        } else {
+          cell.className = 'cell empty-cell';
+          cell.textContent = '—';
+        }
+        // Phase tint
+        cell.style.borderBottom = `1px solid ${phase.color}10`;
+        if (si === phase.steps.length - 1 && pi < journeyData.phases.length - 1) {
+          cell.classList.add('phase-separator');
+        }
+        grid.appendChild(cell);
+      });
+    });
+
+    // ─── Row 5: Opportunities ───
+    const oppLabel = document.createElement('div');
+    oppLabel.className = 'row-label';
+    oppLabel.textContent = 'Opportunities';
+    grid.appendChild(oppLabel);
+
+    journeyData.phases.forEach((phase, pi) => {
+      phase.steps.forEach((step, si) => {
+        const cell = document.createElement('div');
+        if (step.opportunities && step.opportunities.length > 0) {
+          cell.className = 'cell opportunity-cell';
+          cell.innerHTML = step.opportunities.map(o => `<div class="opportunity-marker">${o}</div>`).join('');
+        } else {
+          cell.className = 'cell empty-cell';
+          cell.textContent = '—';
+        }
+        if (si === phase.steps.length - 1 && pi < journeyData.phases.length - 1) {
+          cell.classList.add('phase-separator');
+        }
+        grid.appendChild(cell);
+      });
+    });
+
+    // ─── D3 Emotion Curve ───
+    const emotionRow = document.getElementById('emotionRow');
+    const chartWidth = totalSteps * stepWidth;
+    const chartHeight = 120;
+
+    const emotionSvg = d3.select(emotionRow)
+      .append('svg')
+      .attr('width', chartWidth)
+      .attr('height', chartHeight)
+      .style('display', 'block');
+
+    // Background bands
+    const bandData = [
+      { y: 0, h: chartHeight * 0.33, color: 'rgba(122,154,1, 0.05)' },
+      { y: chartHeight * 0.33, h: chartHeight * 0.34, color: 'rgba(12,74,105, 0.05)' },
+      { y: chartHeight * 0.67, h: chartHeight * 0.33, color: 'rgba(207,98,83, 0.05)' }
+    ];
+    bandData.forEach(b => {
+      emotionSvg.append('rect')
+        .attr('x', 0).attr('y', b.y)
+        .attr('width', chartWidth).attr('height', b.h)
+        .attr('fill', b.color);
+    });
+
+    // Scales
+    const xScale = d3.scaleLinear()
+      .domain([0, allSteps.length - 1])
+      .range([stepWidth / 2, chartWidth - stepWidth / 2]);
+
+    const yScale = d3.scaleLinear()
+      .domain([0, 1])
+      .range([chartHeight - 15, 15]);
+
+    // Gradient line segments
+    const lineGen = d3.line()
+      .x((d, i) => xScale(i))
+      .y(d => yScale(d.emotion.score))
+      .curve(d3.curveMonotoneX);
+
+    // Draw line
+    emotionSvg.append('path')
+      .datum(allSteps)
+      .attr('d', lineGen)
+      .attr('fill', 'none')
+      .attr('stroke', '#0C4A69')
+      .attr('stroke-width', 2.5);
+
+    // Emoji helper
+    function getEmoji(score) {
+      if (score > 0.6) return '\u{1F60A}';
+      if (score > 0.3) return '\u{1F610}';
+      return '\u{1F61E}';
+    }
+
+    function getEmotionColor(score) {
+      if (score > 0.6) return '#7A9A01';
+      if (score > 0.3) return '#0C4A69';
+      return '#CF6253';
+    }
+
+    // Draw data points
+    emotionSvg.selectAll('.emotion-dot')
+      .data(allSteps)
+      .join('circle')
+      .attr('class', 'emotion-dot')
+      .attr('cx', (d, i) => xScale(i))
+      .attr('cy', d => yScale(d.emotion.score))
+      .attr('r', 5)
+      .attr('fill', d => getEmotionColor(d.emotion.score))
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 2)
+      .style('cursor', 'pointer')
+      .on('mouseenter', function(event, d) {
+        d3.select(this).transition().duration(150).attr('r', 8);
+        const tooltip = document.getElementById('emotionTooltip');
+        tooltip.querySelector('.tooltip-step').textContent = d.label;
+        tooltip.querySelector('.tooltip-score').innerHTML =
+          `${getEmoji(d.emotion.score)} Score: ${d.emotion.score} — ${d.emotion.label}`;
+        tooltip.classList.add('visible');
+
+        const rect = emotionRow.getBoundingClientRect();
+        const cx = xScale(allSteps.indexOf(d));
+        const cy = yScale(d.emotion.score);
+        tooltip.style.left = (rect.left + cx + rowLabelWidth - tooltip.offsetWidth / 2) + 'px';
+        tooltip.style.top = (rect.top + cy - 50 + window.scrollY) + 'px';
+      })
+      .on('mouseleave', function() {
+        d3.select(this).transition().duration(150).attr('r', 5);
+        document.getElementById('emotionTooltip').classList.remove('visible');
+      });
+
+    // Emoji labels above dots
+    emotionSvg.selectAll('.emotion-emoji')
+      .data(allSteps)
+      .join('text')
+      .attr('class', 'emotion-emoji')
+      .attr('x', (d, i) => xScale(i))
+      .attr('y', d => yScale(d.emotion.score) - 14)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '14px')
+      .text(d => getEmoji(d.emotion.score));
+
+    // Phase divider lines in emotion chart
+    let phaseStepCount = 0;
+    journeyData.phases.forEach((phase, pi) => {
+      if (pi > 0) {
+        const dividerX = phaseStepCount * stepWidth;
+        emotionSvg.append('line')
+          .attr('x1', dividerX).attr('y1', 0)
+          .attr('x2', dividerX).attr('y2', chartHeight)
+          .attr('stroke', '#D0CBC3')
+          .attr('stroke-width', 2)
+          .attr('stroke-dasharray', '4,3');
+      }
+      phaseStepCount += phase.steps.length;
+    });
+
+    // ─── Column Hover Highlighting ───
+    const allCells = grid.querySelectorAll('.cell, .step-header, .emotion-row-cell');
+  </script>
+</body>
+</html>

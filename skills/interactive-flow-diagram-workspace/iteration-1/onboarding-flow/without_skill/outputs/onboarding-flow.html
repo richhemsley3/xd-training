@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Onboarding Flow</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f0f2f5;
+    color: #1a1a2e;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #1a1a2e;
+  }
+
+  .subtitle {
+    font-size: 15px;
+    color: #6b7280;
+    margin-bottom: 48px;
+  }
+
+  .flow-container {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 48px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .step-wrapper {
+    display: flex;
+    align-items: center;
+  }
+
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+
+  .step:hover { transform: translateY(-4px); }
+
+  .step-circle {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    border: 3px solid #d1d5db;
+    background: #fff;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .step.active .step-circle {
+    border-color: #4f46e5;
+    background: #4f46e5;
+    box-shadow: 0 4px 16px rgba(79, 70, 229, 0.35);
+  }
+
+  .step-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #6b7280;
+    text-align: center;
+    max-width: 90px;
+    transition: color 0.3s ease;
+  }
+
+  .step.active .step-label { color: #4f46e5; }
+
+  .step-number {
+    font-size: 11px;
+    font-weight: 700;
+    color: #9ca3af;
+    transition: color 0.3s ease;
+  }
+
+  .step.active .step-number { color: #818cf8; }
+
+  .arrow {
+    width: 48px;
+    height: 2px;
+    background: #d1d5db;
+    position: relative;
+    margin: 0 4px;
+    margin-bottom: 36px;
+    transition: background 0.3s ease;
+  }
+
+  .arrow::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -4px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid #d1d5db;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    transition: border-color 0.3s ease;
+  }
+
+  .arrow.visited {
+    background: #4f46e5;
+  }
+
+  .arrow.visited::after {
+    border-left-color: #4f46e5;
+  }
+
+  .detail-panel {
+    width: 100%;
+    max-width: 640px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .detail-header {
+    padding: 24px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .detail-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    background: #eef2ff;
+  }
+
+  .detail-title-group { flex: 1; }
+
+  .detail-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a2e;
+  }
+
+  .detail-step-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #4f46e5;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .detail-body { padding: 24px 32px; }
+
+  .detail-description {
+    font-size: 15px;
+    line-height: 1.6;
+    color: #4b5563;
+    margin-bottom: 20px;
+  }
+
+  .detail-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .detail-features li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    color: #374151;
+    line-height: 1.5;
+  }
+
+  .detail-features li::before {
+    content: '✓';
+    color: #4f46e5;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .detail-footer {
+    padding: 16px 32px;
+    border-top: 1px solid #f3f4f6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .nav-btn {
+    padding: 8px 20px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .nav-btn:hover { background: #f9fafb; border-color: #9ca3af; }
+
+  .nav-btn.primary {
+    background: #4f46e5;
+    color: #fff;
+    border-color: #4f46e5;
+  }
+
+  .nav-btn.primary:hover { background: #4338ca; }
+
+  .nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .progress-bar {
+    width: 100%;
+    max-width: 640px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 4px;
+    background: #e5e7eb;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: #4f46e5;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-text {
+    font-size: 12px;
+    color: #9ca3af;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 600px) {
+    .arrow { width: 24px; }
+    .step-circle { width: 56px; height: 56px; font-size: 22px; }
+    .step-label { font-size: 11px; max-width: 64px; }
+    .detail-header, .detail-body, .detail-footer { padding-left: 20px; padding-right: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>User Onboarding Flow</h1>
+<p class="subtitle">Click each step to view screen details</p>
+
+<div class="flow-container" id="flowContainer"></div>
+
+<div class="progress-bar">
+  <div class="progress-track">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+  <span class="progress-text" id="progressText"></span>
+</div>
+
+<div class="detail-panel" id="detailPanel"></div>
+
+<script>
+const steps = [
+  {
+    id: 'welcome',
+    icon: '👋',
+    label: 'Welcome',
+    title: 'Welcome Screen',
+    description: 'The first screen users see after signing up. It sets the tone for the product experience and gives users a clear path forward.',
+    features: [
+      'Personalized greeting with the user\'s name',
+      'Brief value proposition highlighting key benefits',
+      'Animated product preview or hero illustration',
+      'Single prominent "Get Started" call-to-action button',
+      'Option to skip onboarding for returning users'
+    ]
+  },
+  {
+    id: 'profile',
+    icon: '👤',
+    label: 'Profile Setup',
+    title: 'Profile Setup',
+    description: 'Users provide basic information to personalize their experience. Keeps friction low by only asking for essentials.',
+    features: [
+      'Avatar upload with drag-and-drop support',
+      'Display name and job title fields',
+      'Team or organization selection',
+      'Role-based preferences (admin, member, viewer)',
+      'Progress indicator showing completion percentage'
+    ]
+  },
+  {
+    id: 'connect',
+    icon: '🔗',
+    label: 'Connect Account',
+    title: 'Connect Account',
+    description: 'Users link external services to unlock the full power of the platform. Supports major third-party integrations.',
+    features: [
+      'OAuth-based single-click connection for popular services',
+      'Visual list of available integrations with status indicators',
+      'Secure credential handling with encryption badges',
+      'Test connection button with real-time validation feedback',
+      'Option to connect additional accounts later from settings'
+    ]
+  },
+  {
+    id: 'tutorial',
+    icon: '📖',
+    label: 'Tutorial',
+    title: 'Interactive Tutorial',
+    description: 'A guided walkthrough of core features that helps users understand key workflows before diving into the product.',
+    features: [
+      'Step-by-step interactive walkthrough with tooltips',
+      'Highlighted UI elements with contextual explanations',
+      'Short embedded video demos for complex features',
+      'Practice tasks users can try in a sandbox environment',
+      'Bookmark feature to revisit specific tutorial sections later'
+    ]
+  },
+  {
+    id: 'dashboard',
+    icon: '📊',
+    label: 'Dashboard',
+    title: 'Dashboard',
+    description: 'The main landing screen after onboarding is complete. Users arrive here ready to start using the product.',
+    features: [
+      'Personalized dashboard with widgets based on user role',
+      'Quick-action cards for common first tasks',
+      'Onboarding checklist sidebar showing remaining setup items',
+      'Contextual help button linking back to relevant tutorials',
+      'Celebration animation confirming onboarding completion'
+    ]
+  }
+];
+
+let activeIndex = 0;
+
+function render() {
+  renderFlow();
+  renderDetail();
+  renderProgress();
+}
+
+function renderFlow() {
+  const container = document.getElementById('flowContainer');
+  container.innerHTML = '';
+
+  steps.forEach((step, i) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'step-wrapper';
+
+    const stepEl = document.createElement('div');
+    stepEl.className = 'step' + (i === activeIndex ? ' active' : '');
+    stepEl.onclick = () => { activeIndex = i; render(); };
+
+    stepEl.innerHTML = `
+      <span class="step-number">Step ${i + 1}</span>
+      <div class="step-circle">${step.icon}</div>
+      <span class="step-label">${step.label}</span>
+    `;
+
+    wrapper.appendChild(stepEl);
+
+    if (i < steps.length - 1) {
+      const arrow = document.createElement('div');
+      arrow.className = 'arrow' + (i < activeIndex ? ' visited' : '');
+      wrapper.appendChild(arrow);
+    }
+
+    container.appendChild(wrapper);
+  });
+}
+
+function renderDetail() {
+  const panel = document.getElementById('detailPanel');
+  const step = steps[activeIndex];
+
+  let featuresHTML = step.features.map(f => `<li>${f}</li>`).join('');
+
+  panel.innerHTML = `
+    <div class="detail-header">
+      <div class="detail-icon">${step.icon}</div>
+      <div class="detail-title-group">
+        <div class="detail-step-label">Step ${activeIndex + 1} of ${steps.length}</div>
+        <div class="detail-title">${step.title}</div>
+      </div>
+    </div>
+    <div class="detail-body">
+      <p class="detail-description">${step.description}</p>
+      <ul class="detail-features">${featuresHTML}</ul>
+    </div>
+    <div class="detail-footer">
+      <button class="nav-btn" id="prevBtn" ${activeIndex === 0 ? 'disabled' : ''}>← Previous</button>
+      <button class="nav-btn primary" id="nextBtn" ${activeIndex === steps.length - 1 ? 'disabled' : ''}>Next →</button>
+    </div>
+  `;
+
+  document.getElementById('prevBtn').onclick = () => {
+    if (activeIndex > 0) { activeIndex--; render(); }
+  };
+  document.getElementById('nextBtn').onclick = () => {
+    if (activeIndex < steps.length - 1) { activeIndex++; render(); }
+  };
+}
+
+function renderProgress() {
+  const pct = ((activeIndex + 1) / steps.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${activeIndex + 1} / ${steps.length}`;
+}
+
+render();
+</script>
+</body>
+</html>

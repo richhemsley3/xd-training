@@ -1,0 +1,57 @@
+{
+  "eval_name": "food-delivery-flow",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "HTML file exists",
+      "passed": true,
+      "evidence": "screen-flow.html exists in outputs directory"
+    },
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": false,
+      "evidence": "Missing: d3js.org; File uses cdn.jsdelivr.net/npm/d3@7 instead"
+    },
+    {
+      "text": "All 5 screens present",
+      "passed": true,
+      "evidence": "Found: Home Feed, Restaurant Detail, Cart, Checkout Form (contains 'Checkout'), Order Confirmation (contains 'Confirmation')"
+    },
+    {
+      "text": "Green accent color",
+      "passed": true,
+      "evidence": "Found: #66BB6A used extensively for connectors, pills, and buttons"
+    },
+    {
+      "text": "Mobile screen proportions",
+      "passed": true,
+      "evidence": "Found: SCREEN_H = 280"
+    },
+    {
+      "text": "Wireframe content elements",
+      "passed": true,
+      "evidence": "Found: rect used throughout for wireframe content rendering"
+    },
+    {
+      "text": "Action labels on connectors",
+      "passed": true,
+      "evidence": "Found: action-pill class used for connector labels"
+    },
+    {
+      "text": "SVG rendering",
+      "passed": true,
+      "evidence": "Found: <svg id=\"flow-svg\">"
+    },
+    {
+      "text": "Back navigation",
+      "passed": true,
+      "evidence": "Found: hasBack property and Go Back exit actions"
+    },
+    {
+      "text": "Interactive behavior",
+      "passed": false,
+      "evidence": "Missing: addEventListener; File uses D3 .on() event binding instead"
+    }
+  ],
+  "pass_rate": 0.8
+}

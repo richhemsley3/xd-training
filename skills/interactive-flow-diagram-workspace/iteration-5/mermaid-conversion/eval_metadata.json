@@ -1,0 +1,56 @@
+{
+  "prompt": "Turn this into an interactive flow diagram:\n\n```mermaid\nflowchart LR\n    A([Start]) --> B[Search Products]\n    B --> C{Found results?}\n    C -->|Yes| D[Product Detail]\n    C -->|No| E[No Results Page]\n    E --> B\n    D --> F{In Stock?}\n    F -->|Yes| G[Add to Cart]\n    F -->|No| H[Notify When Available]\n    G --> I[Checkout]\n    I --> J([Order Confirmed])\n```",
+  "expected_output": "A standalone HTML file converting the Mermaid diagram into an interactive D3 visualization with proper node types (start/end as pills, decisions as diamonds, screens as rectangles). Figma-matched node colors on warm canvas.",
+  "assertions": [
+    {
+      "type": "file_exists",
+      "name": "HTML file exists",
+      "pattern": "*.html"
+    },
+    {
+      "type": "contains",
+      "name": "Uses D3.js from CDN",
+      "text": "d3@7"
+    },
+    {
+      "type": "contains",
+      "name": "Start node present",
+      "text": "Start"
+    },
+    {
+      "type": "contains",
+      "name": "Search Products node",
+      "text": "Search Products"
+    },
+    {
+      "type": "contains",
+      "name": "Decision: Found results",
+      "text": "Found results"
+    },
+    {
+      "type": "contains",
+      "name": "Decision: In Stock",
+      "text": "In Stock"
+    },
+    {
+      "type": "contains",
+      "name": "End node: Order Confirmed",
+      "text": "Order Confirmed"
+    },
+    {
+      "type": "contains",
+      "name": "Warm canvas background",
+      "text": "#FAF8F5"
+    },
+    {
+      "type": "contains",
+      "name": "Decision node fill",
+      "text": "#E6E6E6"
+    },
+    {
+      "type": "contains",
+      "name": "SVG rendering",
+      "text": "<svg"
+    }
+  ]
+}

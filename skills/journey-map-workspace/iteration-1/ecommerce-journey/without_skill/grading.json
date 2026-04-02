@@ -1,0 +1,47 @@
+{
+  "eval_name": "ecommerce-journey",
+  "configuration": "without_skill",
+  "expectations": [
+    {
+      "text": "HTML file exists",
+      "passed": true,
+      "evidence": "journey-map.html exists in outputs directory"
+    },
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": false,
+      "evidence": "File uses cdn.jsdelivr.net/npm/d3@7 instead of d3js.org"
+    },
+    {
+      "text": "Has 5 phases",
+      "passed": true,
+      "evidence": "Contains 'Browse', 'Compare', 'Purchase', 'Delivery', and 'Post-Purchase' in phase card data"
+    },
+    {
+      "text": "Role badges present",
+      "passed": true,
+      "evidence": "'Marketing', 'Support', and 'Logistics' all present in phase role arrays"
+    },
+    {
+      "text": "Touchpoints present",
+      "passed": true,
+      "evidence": "'touchpoint' appears in CSS class name 'touchpoint-tag' and 'Touchpoints' section labels"
+    },
+    {
+      "text": "Emotion/sentiment curve",
+      "passed": true,
+      "evidence": "d3.curveMonotoneX used in sentiment line generator at line 244"
+    },
+    {
+      "text": "Pain points for checkout",
+      "passed": true,
+      "evidence": "'checkout steps' found in painPoints array for Purchase phase"
+    },
+    {
+      "text": "Pain points for delivery",
+      "passed": true,
+      "evidence": "'Delivery delays' found in painPoints array for Delivery phase"
+    }
+  ],
+  "pass_rate": 0.875
+}

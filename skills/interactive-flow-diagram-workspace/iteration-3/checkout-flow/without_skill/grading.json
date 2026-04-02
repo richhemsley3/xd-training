@@ -1,0 +1,75 @@
+{
+  "eval_id": 1,
+  "eval_name": "checkout-flow",
+  "variant": "without_skill",
+  "pass_rate": 0.85,
+  "passed": 11,
+  "total": 13,
+  "expectations": [
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": false,
+      "evidence": "Not found in checkout-flow.html"
+    },
+    {
+      "text": "Single standalone HTML file",
+      "passed": true,
+      "evidence": "Found: ...<!DOCTYPE html> <html lang=\"e..."
+    },
+    {
+      "text": "Nodes are clickable (click handlers)",
+      "passed": true,
+      "evidence": "Found: ...tton id=\"btn-happy\" onclick=\"toggleHappyPath()\"..."
+    },
+    {
+      "text": "Multiple zoom levels (at least 2 distinct views)",
+      "passed": true,
+      "evidence": "Found in checkout-flow.html"
+    },
+    {
+      "text": "Breadcrumb or back navigation",
+      "passed": false,
+      "evidence": "Not found in checkout-flow.html"
+    },
+    {
+      "text": "Custom styled nodes (not default SVG)",
+      "passed": true,
+      "evidence": "Found: ...4a; color: #b0b5c3; border-radius: 6px;     padding: 6px 1..."
+    },
+    {
+      "text": "Smooth transitions between states",
+      "passed": true,
+      "evidence": "Found: ...x; cursor: pointer; transition: all 0.15s;   }   .toolbar but..."
+    },
+    {
+      "text": "Dark theme styling (#0F0F0F or similar dark background)",
+      "passed": true,
+      "evidence": "Found: ...Roboto, sans-serif; background: #0f1117; color: #e1e4ea; ov..."
+    },
+    {
+      "text": "Orthogonal connectors (right-angle paths)",
+      "passed": true,
+      "evidence": "Found: ...vents: none;   }   .connectors path, .connectors line {     fill: none; s..."
+    },
+    {
+      "text": "Action pills on connectors",
+      "passed": true,
+      "evidence": "Found in checkout-flow.html"
+    },
+    {
+      "text": "Decision diamonds for validation steps",
+      "passed": true,
+      "evidence": "Found: ...}   .legend-swatch.diamond {     width: 16px;..."
+    },
+    {
+      "text": "Error paths with distinct red styling",
+      "passed": true,
+      "evidence": "Found: ...ddd; }   .connector-error { stroke: #e5484d; stroke-dasharr..."
+    },
+    {
+      "text": "Happy path visually highlighted",
+      "passed": true,
+      "evidence": "Found: ...ecap: round;   }   .connector-happy { stroke: #3b7ddd;..."
+    }
+  ]
+}

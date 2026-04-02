@@ -1,0 +1,79 @@
+{
+  "skill_name": "interactive-flow-diagram",
+  "iteration": 3,
+  "configurations": [
+    {
+      "name": "with_skill",
+      "evals": [
+        {
+          "eval_name": "onboarding-flow",
+          "pass_rate": 1.0,
+          "passed": 12,
+          "total": 12,
+          "tokens": null,
+          "time_seconds": null
+        },
+        {
+          "eval_name": "checkout-flow",
+          "pass_rate": 1.0,
+          "passed": 15,
+          "total": 15,
+          "tokens": null,
+          "time_seconds": null
+        },
+        {
+          "eval_name": "mermaid-conversion",
+          "pass_rate": 1.0,
+          "passed": 15,
+          "total": 15,
+          "tokens": null,
+          "time_seconds": null
+        }
+      ],
+      "aggregate": {
+        "pass_rate": 1.0,
+        "pass_rate_stddev": 0.0,
+        "mean_tokens": null,
+        "mean_time_seconds": null
+      }
+    },
+    {
+      "name": "without_skill",
+      "evals": [
+        {
+          "eval_name": "onboarding-flow",
+          "pass_rate": 0.9,
+          "passed": 9,
+          "total": 10,
+          "tokens": 32450,
+          "time_seconds": 110.1
+        },
+        {
+          "eval_name": "checkout-flow",
+          "pass_rate": 0.8462,
+          "passed": 11,
+          "total": 13,
+          "tokens": null,
+          "time_seconds": null
+        },
+        {
+          "eval_name": "mermaid-conversion",
+          "pass_rate": 0.8462,
+          "passed": 11,
+          "total": 13,
+          "tokens": 29964,
+          "time_seconds": 76.3
+        }
+      ],
+      "aggregate": {
+        "pass_rate": 0.8641,
+        "pass_rate_stddev": 0.0254,
+        "mean_tokens": 31207,
+        "mean_time_seconds": 93.2
+      }
+    }
+  ],
+  "delta": {
+    "pass_rate": 0.1359
+  }
+}

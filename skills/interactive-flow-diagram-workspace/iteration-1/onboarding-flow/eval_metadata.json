@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "onboarding-flow",
+  "prompt": "Create an interactive flow diagram for a user onboarding flow: Welcome → Profile Setup → Connect Account → Tutorial → Dashboard. Each step should be clickable to see details about what happens on that screen.",
+  "assertions": []
+}

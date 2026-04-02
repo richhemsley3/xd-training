@@ -1,0 +1,18 @@
+{
+  "skill": "journey-map",
+  "iteration": "iteration-3",
+  "with_skill_avg": 100.0,
+  "without_skill_avg": 82.5,
+  "delta": 17.5,
+  "eval_count": 3,
+  "with_rates": [
+    100.0,
+    100.0,
+    100.0
+  ],
+  "without_rates": [
+    80.0,
+    87.5,
+    80.0
+  ]
+}

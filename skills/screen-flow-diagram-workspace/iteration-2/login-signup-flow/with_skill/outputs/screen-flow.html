@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login / Sign Up Flow — Screen Flow</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #FAF8F5;
+      color: #1C1A17;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+    }
+
+    /* Title bar */
+    .title-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: #FFFFFF;
+      border-bottom: 1px solid #E0DCD3;
+      display: flex;
+      align-items: center;
+      padding: 0 32px;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .title-bar h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1C1A17;
+    }
+    .title-bar p {
+      font-size: 14px;
+      font-weight: 400;
+      color: #54514D;
+      margin-left: 24px;
+    }
+
+    /* SVG canvas */
+    #flow-svg {
+      position: fixed;
+      top: 64px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      cursor: grab;
+    }
+    #flow-svg:active {
+      cursor: grabbing;
+    }
+
+    /* Detail panel */
+    .detail-panel {
+      position: fixed;
+      top: 64px;
+      right: 0;
+      width: 320px;
+      bottom: 0;
+      background: #FFFFFF;
+      border-left: 1px solid #E0DCD3;
+      box-shadow: -4px 0 16px rgba(0,0,0,0.06);
+      z-index: 200;
+      transform: translateX(100%);
+      transition: transform 0.25s ease;
+      overflow-y: auto;
+      padding: 28px 24px;
+    }
+    .detail-panel.open {
+      transform: translateX(0);
+    }
+    .detail-panel .close-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 28px;
+      height: 28px;
+      border: 1px solid #E0DCD3;
+      border-radius: 8px;
+      background: #FAF8F5;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #54514D;
+    }
+    .detail-panel .close-btn:hover {
+      background: #F4F1EB;
+      border-color: #D0CBC3;
+    }
+    .detail-panel h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1C1A17;
+      margin-bottom: 8px;
+      padding-right: 36px;
+    }
+    .detail-panel .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #D9EBED;
+      color: #013D5B;
+      margin-bottom: 16px;
+    }
+    .detail-panel .desc {
+      font-size: 13px;
+      color: #54514D;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .detail-panel h3 {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6B6760;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    .detail-panel ul {
+      list-style: none;
+      margin-bottom: 20px;
+    }
+    .detail-panel ul li {
+      font-size: 13px;
+      color: #1C1A17;
+      padding: 6px 0;
+      border-bottom: 1px solid #EBE6DD;
+    }
+    .detail-panel ul li:last-child {
+      border-bottom: none;
+    }
+    .detail-panel .exit-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .detail-panel .exit-action {
+      background: #013D5B;
+      color: white;
+      font-size: 10px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 8px;
+    }
+    .detail-panel .exit-target {
+      color: #54514D;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="title-bar">
+    <h1>Login / Sign Up Flow</h1>
+    <p>Authentication screen flow with login and registration paths</p>
+  </div>
+
+  <svg id="flow-svg"></svg>
+
+  <div class="detail-panel" id="detailPanel">
+    <div class="close-btn" id="closePanel">&#x2715;</div>
+    <h2 id="panelName"></h2>
+    <div class="badge" id="panelType"></div>
+    <div class="desc" id="panelDesc"></div>
+    <h3>UI Elements</h3>
+    <ul id="panelElements"></ul>
+    <h3>Exits</h3>
+    <ul id="panelExits"></ul>
+  </div>
+
+  <script>
+    // ─── Flow Data ───
+    const flowData = {
+      title: "Login / Sign Up Flow",
+      description: "Authentication screen flow with login and registration paths",
+      deviceType: "mobile",
+      screens: [
+        {
+          id: "landing",
+          name: "Landing Page",
+          type: "empty",
+          description: "Welcome screen with branding and two primary calls to action: Log In and Sign Up.",
+          navTitle: "Welcome",
+          x: 80,
+          y: 300,
+          elements: [
+            { type: "navbar", content: "Welcome" },
+            { type: "logo-placeholder" },
+            { type: "text-block", lines: 2, content: "Welcome to the app" },
+            { type: "button", content: "Log In", isAction: true },
+            { type: "button", content: "Sign Up", isAction: true }
+          ],
+          exits: [
+            { action: "Tap Log In", target: "login" },
+            { action: "Tap Sign Up", target: "signup" }
+          ]
+        },
+        {
+          id: "login",
+          name: "Login Form",
+          type: "login",
+          description: "Standard login form with email and password fields. Submitting with valid credentials navigates to the Dashboard. Invalid credentials show an error screen.",
+          navTitle: "← Log In",
+          x: 460,
+          y: 100,
+          elements: [
+            { type: "navbar", content: "← Log In", hasBack: true },
+            { type: "logo-placeholder" },
+            { type: "input-field", content: "Email" },
+            { type: "input-field", content: "Password" },
+            { type: "button", content: "Log In", isAction: true }
+          ],
+          exits: [
+            { action: "Submit (Success)", target: "dashboard" },
+            { action: "Submit (Invalid)", target: "error" }
+          ]
+        },
+        {
+          id: "error",
+          name: "Invalid Credentials",
+          type: "modal",
+          description: "Error state displayed when the user submits incorrect login credentials. Shows an error message and prompts the user to try again.",
+          navTitle: "Error",
+          x: 460,
+          y: 530,
+          isError: true,
+          elements: [
+            { type: "navbar", content: "← Log In", hasBack: true },
+            { type: "error-icon" },
+            { type: "text-block", lines: 2, content: "Invalid credentials" },
+            { type: "button", content: "Try Again", isAction: true }
+          ],
+          exits: [
+            { action: "Tap Try Again", target: "login" }
+          ]
+        },
+        {
+          id: "signup",
+          name: "Sign Up Form",
+          type: "form",
+          description: "Registration form collecting user details: name, email, and password. On submission, the user proceeds to email verification.",
+          navTitle: "← Sign Up",
+          x: 460,
+          y: 960,
+          elements: [
+            { type: "navbar", content: "← Sign Up", hasBack: true },
+            { type: "input-field", content: "Full Name" },
+            { type: "input-field", content: "Email" },
+            { type: "input-field", content: "Password" },
+            { type: "input-field", content: "Confirm Password" },
+            { type: "button", content: "Create Account", isAction: true }
+          ],
+          exits: [
+            { action: "Submit Form", target: "verification" }
+          ]
+        },
+        {
+          id: "verification",
+          name: "Email Verification",
+          type: "empty",
+          description: "Confirmation screen telling the user to check their email inbox for a verification link. Once verified, the user is taken to the Dashboard.",
+          navTitle: "Verify Email",
+          x: 840,
+          y: 960,
+          elements: [
+            { type: "navbar", content: "Verify Email" },
+            { type: "icon-placeholder" },
+            { type: "text-block", lines: 2, content: "Check your email" },
+            { type: "text-block", lines: 1, content: "We sent a verification link" },
+            { type: "button", content: "Open Email App", isAction: true }
+          ],
+          exits: [
+            { action: "Email Verified", target: "dashboard" }
+          ]
+        },
+        {
+          id: "dashboard",
+          name: "Dashboard",
+          type: "dashboard",
+          description: "Main application dashboard displayed after successful authentication. Shows key metrics and recent activity.",
+          navTitle: "Dashboard",
+          x: 1220,
+          y: 300,
+          elements: [
+            { type: "navbar", content: "Dashboard" },
+            { type: "metric-card", content: "Metric 1" },
+            { type: "metric-card", content: "Metric 2" },
+            { type: "metric-card", content: "Metric 3" },
+            { type: "metric-card", content: "Metric 4" },
+            { type: "chart-area" }
+          ],
+          exits: []
+        }
+      ]
+    };
+
+    // ─── Connections ───
+    const connections = [
+      { from: "landing", to: "login", action: "Tap Log In", direction: "right-up" },
+      { from: "landing", to: "signup", action: "Tap Sign Up", direction: "right-down" },
+      { from: "login", to: "dashboard", action: "Submit (Success)", direction: "right" },
+      { from: "login", to: "error", action: "Submit (Invalid)", direction: "down" },
+      { from: "error", to: "login", action: "Tap Try Again", direction: "loop-up" },
+      { from: "signup", to: "verification", action: "Submit Form", direction: "right" },
+      { from: "verification", to: "dashboard", action: "Email Verified", direction: "right-up" }
+    ];
+
+    // ─── Constants ───
+    const SCREEN_W = 160;
+    const SCREEN_H = 280;
+
+    // ─── SVG Setup ───
+    const width = window.innerWidth;
+    const height = window.innerHeight - 64;
+
+    const svg = d3.select('#flow-svg')
+      .attr('width', width)
+      .attr('height', height);
+
+    // Drop shadow filter
+    const defs = svg.append('defs');
+
+    const filter = defs.append('filter')
+      .attr('id', 'screenShadow')
+      .attr('x', '-10%').attr('y', '-10%')
+      .attr('width', '130%').attr('height', '130%');
+    filter.append('feDropShadow')
+      .attr('dx', 0).attr('dy', 2)
+      .attr('stdDeviation', 4)
+      .attr('flood-color', 'rgba(0,0,0,0.06)');
+
+    const filterHover = defs.append('filter')
+      .attr('id', 'screenShadowHover')
+      .attr('x', '-10%').attr('y', '-10%')
+      .attr('width', '130%').attr('height', '130%');
+    filterHover.append('feDropShadow')
+      .attr('dx', 0).attr('dy', 3)
+      .attr('stdDeviation', 6)
+      .attr('flood-color', 'rgba(0,0,0,0.10)');
+
+    // Error screen shadow
+    const filterError = defs.append('filter')
+      .attr('id', 'screenShadowError')
+      .attr('x', '-10%').attr('y', '-10%')
+      .attr('width', '130%').attr('height', '130%');
+    filterError.append('feDropShadow')
+      .attr('dx', 0).attr('dy', 2)
+      .attr('stdDeviation', 4)
+      .attr('flood-color', 'rgba(207,98,83,0.12)');
+
+    // Arrowhead marker
+    defs.append('marker')
+      .attr('id', 'arrowhead')
+      .attr('viewBox', '0 0 8 6')
+      .attr('refX', 8).attr('refY', 3)
+      .attr('markerWidth', 8).attr('markerHeight', 6)
+      .attr('orient', 'auto-start-reverse')
+      .append('path')
+      .attr('d', 'M 0 0 L 8 3 L 0 6 Z')
+      .attr('fill', '#013D5B');
+
+    // Error arrowhead
+    defs.append('marker')
+      .attr('id', 'arrowheadError')
+      .attr('viewBox', '0 0 8 6')
+      .attr('refX', 8).attr('refY', 3)
+      .attr('markerWidth', 8).attr('markerHeight', 6)
+      .attr('orient', 'auto-start-reverse')
+      .append('path')
+      .attr('d', 'M 0 0 L 8 3 L 0 6 Z')
+      .attr('fill', '#CF6253');
+
+    const container = svg.append('g');
+
+    // Zoom
+    const zoomBehavior = d3.zoom()
+      .scaleExtent([0.15, 3])
+      .on('zoom', (event) => container.attr('transform', event.transform));
+    svg.call(zoomBehavior);
+
+    // ─── Screen lookup ───
+    const screenMap = {};
+    flowData.screens.forEach(s => { screenMap[s.id] = s; });
+
+    // ─── Draw Connectors ───
+    const connectorsGroup = container.append('g').attr('class', 'connectors');
+
+    connections.forEach(conn => {
+      const src = screenMap[conn.from];
+      const tgt = screenMap[conn.to];
+      if (!src || !tgt) return;
+
+      const isError = conn.from === 'login' && conn.to === 'error';
+      const isErrorReturn = conn.from === 'error' && conn.to === 'login';
+      const lineColor = (isError || isErrorReturn) ? '#CF6253' : '#013D5B';
+      const markerUrl = (isError || isErrorReturn) ? 'url(#arrowheadError)' : 'url(#arrowhead)';
+      const pillColor = (isError || isErrorReturn) ? '#CF6253' : '#013D5B';
+
+      let exitX, exitY, entryX, entryY, pathD, midX, midY;
+
+      if (conn.direction === 'right') {
+        exitX = src.x + SCREEN_W;
+        exitY = src.y + SCREEN_H / 2;
+        entryX = tgt.x;
+        entryY = tgt.y + SCREEN_H / 2;
+        midX = (exitX + entryX) / 2;
+        midY = (exitY + entryY) / 2;
+        pathD = `M ${exitX},${exitY} H ${midX} V ${entryY} H ${entryX}`;
+      } else if (conn.direction === 'right-up') {
+        exitX = src.x + SCREEN_W;
+        exitY = src.y + SCREEN_H * 0.35;
+        entryX = tgt.x;
+        entryY = tgt.y + SCREEN_H / 2;
+        midX = (exitX + entryX) / 2;
+        midY = (exitY + entryY) / 2;
+        pathD = `M ${exitX},${exitY} H ${midX} V ${entryY} H ${entryX}`;
+      } else if (conn.direction === 'right-down') {
+        exitX = src.x + SCREEN_W;
+        exitY = src.y + SCREEN_H * 0.65;
+        entryX = tgt.x;
+        entryY = tgt.y + SCREEN_H / 2;
+        midX = (exitX + entryX) / 2;
+        midY = (exitY + entryY) / 2;
+        pathD = `M ${exitX},${exitY} H ${midX} V ${entryY} H ${entryX}`;
+      } else if (conn.direction === 'down') {
+        exitX = src.x + SCREEN_W / 2;
+        exitY = src.y + SCREEN_H;
+        entryX = tgt.x + SCREEN_W / 2;
+        entryY = tgt.y;
+        midX = (exitX + entryX) / 2;
+        midY = (exitY + entryY) / 2;
+        pathD = `M ${exitX},${exitY} V ${midY} H ${entryX} V ${entryY}`;
+      } else if (conn.direction === 'loop-up') {
+        // Error → Login: loop back up on the left side
+        exitX = src.x;
+        exitY = src.y + SCREEN_H * 0.4;
+        entryX = tgt.x;
+        entryY = tgt.y + SCREEN_H * 0.8;
+        const loopX = src.x - 60;
+        midX = loopX;
+        midY = (exitY + entryY) / 2;
+        pathD = `M ${exitX},${exitY} H ${loopX} V ${entryY} H ${entryX}`;
+      }
+
+      // Draw path
+      connectorsGroup.append('path')
+        .attr('d', pathD)
+        .attr('stroke', lineColor)
+        .attr('stroke-width', 2)
+        .attr('fill', 'none')
+        .attr('marker-end', markerUrl);
+
+      // Exit port
+      connectorsGroup.append('circle')
+        .attr('cx', exitX).attr('cy', exitY)
+        .attr('r', 5).attr('fill', lineColor)
+        .attr('stroke', 'white').attr('stroke-width', 2);
+
+      // Entry port
+      connectorsGroup.append('circle')
+        .attr('cx', entryX).attr('cy', entryY)
+        .attr('r', 5).attr('fill', lineColor)
+        .attr('stroke', 'white').attr('stroke-width', 2);
+
+      // Action pill at midpoint
+      const pillG = connectorsGroup.append('g')
+        .attr('transform', `translate(${midX}, ${midY})`)
+        .style('cursor', 'pointer');
+
+      const textWidth = conn.action.length * 6.5 + 24;
+      pillG.append('rect')
+        .attr('x', -textWidth / 2).attr('y', -12)
+        .attr('width', textWidth).attr('height', 24)
+        .attr('rx', 12)
+        .attr('fill', pillColor);
+
+      pillG.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '0.35em')
+        .attr('fill', 'white')
+        .attr('font-size', '11px')
+        .attr('font-weight', '500')
+        .attr('font-family', "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif")
+        .text(conn.action);
+
+      // Pill hover
+      pillG.on('mouseenter', function() {
+        d3.select(this).select('rect').attr('fill', (isError || isErrorReturn) ? '#BF5547' : '#05314D');
+      }).on('mouseleave', function() {
+        d3.select(this).select('rect').attr('fill', pillColor);
+      });
+    });
+
+    // ─── Draw Screens ───
+    const screensGroup = container.append('g').attr('class', 'screens');
+
+    function drawScreenMockup(screen) {
+      const g = screensGroup.append('g')
+        .attr('transform', `translate(${screen.x}, ${screen.y})`)
+        .style('cursor', 'pointer');
+
+      const isError = screen.isError;
+      const bgFill = isError ? '#FFEEEB' : '#FFFFFF';
+      const borderColor = isError ? '#CF6253' : '#E0DCD3';
+      const shadowId = isError ? 'screenShadowError' : 'screenShadow';
+
+      // Frame
+      g.append('rect')
+        .attr('width', SCREEN_W).attr('height', SCREEN_H)
+        .attr('rx', 16).attr('ry', 16)
+        .attr('fill', bgFill)
+        .attr('stroke', borderColor)
+        .attr('stroke-width', 1)
+        .attr('filter', `url(#${shadowId})`)
+        .attr('class', 'screen-frame');
+
+      // Status bar dots
+      const dotY = 14;
+      [20, 30, 40].forEach(dx => {
+        g.append('circle')
+          .attr('cx', dx).attr('cy', dotY)
+          .attr('r', 2.5)
+          .attr('fill', '#D0CBC3');
+      });
+
+      // Nav bar
+      const navY = 26;
+      g.append('rect')
+        .attr('x', 8).attr('y', navY)
+        .attr('width', SCREEN_W - 16).attr('height', 24)
+        .attr('rx', 4)
+        .attr('fill', isError ? '#FFE0DB' : '#F4F1EB');
+
+      g.append('text')
+        .attr('x', 16).attr('y', navY + 15)
+        .attr('font-size', '10px')
+        .attr('font-weight', '600')
+        .attr('fill', '#1C1A17')
+        .attr('font-family', "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif")
+        .text(screen.navTitle || screen.name);
+
+      // Menu dots
+      g.append('text')
+        .attr('x', SCREEN_W - 20).attr('y', navY + 15)
+        .attr('font-size', '10px')
+        .attr('fill', '#6B6760')
+        .text('⋮');
+
+      // Content area — varies by type
+      const contentY = 58;
+      const contentW = SCREEN_W - 16;
+      const contentX = 8;
+
+      if (screen.type === 'login') {
+        // Logo placeholder
+        g.append('rect')
+          .attr('x', contentX + (contentW - 50) / 2).attr('y', contentY + 5)
+          .attr('width', 50).attr('height', 30)
+          .attr('rx', 6)
+          .attr('fill', '#EBE6DD');
+        g.append('text')
+          .attr('x', contentX + contentW / 2).attr('y', contentY + 24)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '8px')
+          .attr('fill', '#B0ABA2')
+          .text('LOGO');
+
+        // Email input
+        g.append('rect')
+          .attr('x', contentX + 6).attr('y', contentY + 48)
+          .attr('width', contentW - 12).attr('height', 26)
+          .attr('rx', 6)
+          .attr('fill', '#FFFFFF')
+          .attr('stroke', '#E0DCD3');
+        g.append('text')
+          .attr('x', contentX + 14).attr('y', contentY + 65)
+          .attr('font-size', '8px')
+          .attr('fill', '#B0ABA2')
+          .text('Email');
+
+        // Password input
+        g.append('rect')
+          .attr('x', contentX + 6).attr('y', contentY + 82)
+          .attr('width', contentW - 12).attr('height', 26)
+          .attr('rx', 6)
+          .attr('fill', '#FFFFFF')
+          .attr('stroke', '#E0DCD3');
+        g.append('text')
+          .attr('x', contentX + 14).attr('y', contentY + 99)
+          .attr('font-size', '8px')
+          .attr('fill', '#B0ABA2')
+          .text('Password');
+
+        // Login button
+        g.append('rect')
+          .attr('x', contentX + 6).attr('y', contentY + 120)
+          .attr('width', contentW - 12).attr('height', 28)
+          .attr('rx', 8)
+          .attr('fill', '#013D5B');
+        g.append('text')
+          .attr('x', contentX + contentW / 2).attr('y', contentY + 138)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '10px')
+          .attr('font-weight', '600')
+          .attr('fill', 'white')
+          .text('Log In');
+
+      } else if (screen.type === 'form') {
+        // Sign up form fields
+        const fields = ['Full Name', 'Email', 'Password', 'Confirm Password'];
+        fields.forEach((label, i) => {
+          const fy = contentY + 6 + i * 34;
+          g.append('rect')
+            .attr('x', contentX + 6).attr('y', fy)
+            .attr('width', contentW - 12).attr('height', 26)
+            .attr('rx', 6)
+            .attr('fill', '#FFFFFF')
+            .attr('stroke', '#E0DCD3');
+          g.append('text')
+            .attr('x', contentX + 14).attr('y', fy + 17)
+            .attr('font-size', '8px')
+            .attr('fill', '#B0ABA2')
+            .text(label);
+        });
+
+        // Submit button
+        g.append('rect')
+          .attr('x', contentX + 6).attr('y', contentY + 148)
+          .attr('width', contentW - 12).attr('height', 28)
+          .attr('rx', 8)
+          .attr('fill', '#013D5B');
+        g.append('text')
+          .attr('x', contentX + contentW / 2).attr('y', contentY + 166)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '10px')
+          .attr('font-weight', '600')
+          .attr('fill', 'white')
+          .text('Create Account');
+
+      } else if (screen.type === 'dashboard') {
+        // 2x2 metric grid
+        const cardW = (contentW - 14) / 2;
+        const cardH = 40;
+        for (let r = 0; r < 2; r++) {
+          for (let c = 0; c < 2; c++) {
+            const cx = contentX + 4 + c * (cardW + 6);
+            const cy = contentY + 4 + r * (cardH + 6);
+            g.append('rect')
+              .attr('x', cx).attr('y', cy)
+              .attr('width', cardW).attr('height', cardH)
+              .attr('rx', 6)
+              .attr('fill', '#EBE6DD');
+            g.append('rect')
+              .attr('x', cx + 6).attr('y', cy + 8)
+              .attr('width', cardW * 0.5).attr('height', 6)
+              .attr('rx', 3)
+              .attr('fill', '#D0CBC3');
+            g.append('rect')
+              .attr('x', cx + 6).attr('y', cy + 20)
+              .attr('width', cardW * 0.7).attr('height', 10)
+              .attr('rx', 3)
+              .attr('fill', '#D9EBED');
+          }
+        }
+
+        // Chart area
+        g.append('rect')
+          .attr('x', contentX + 4).attr('y', contentY + 100)
+          .attr('width', contentW - 8).attr('height', 80)
+          .attr('rx', 6)
+          .attr('fill', '#EBE6DD');
+        // Chart bars
+        for (let i = 0; i < 6; i++) {
+          const barH = 15 + Math.sin(i * 1.2) * 20 + 15;
+          g.append('rect')
+            .attr('x', contentX + 14 + i * 20).attr('y', contentY + 170 - barH)
+            .attr('width', 12).attr('height', barH)
+            .attr('rx', 2)
+            .attr('fill', '#D9EBED');
+        }
+
+      } else if (screen.type === 'empty' && screen.id === 'landing') {
+        // Landing page: logo + text + 2 buttons
+        g.append('rect')
+          .attr('x', contentX + (contentW - 60) / 2).attr('y', contentY + 10)
+          .attr('width', 60).attr('height', 40)
+          .attr('rx', 8)
+          .attr('fill', '#EBE6DD');
+        g.append('text')
+          .attr('x', contentX + contentW / 2).attr('y', contentY + 35)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '9px')
+          .attr('fill', '#B0ABA2')
+          .text('LOGO');
+
+        // Text lines
+        g.append('rect')
+          .attr('x', contentX + 16).attr('y', contentY + 65)
+          .attr('width', contentW - 32).attr('height', 8)
+          .attr('rx', 4)
+          .attr('fill', '#E0DCD3');
+        g.append('rect')
+          .attr('x', contentX + 28).attr('y', contentY + 79)
+          .attr('width', contentW - 56).attr('height', 8)
+          .attr('rx', 4)
+          .attr('fill', '#E0DCD3');
+
+        // Log In button
+        g.append('rect')
+          .attr('x', contentX + 12).attr('y', contentY + 108)
+          .attr('width', contentW - 24).attr('height', 28)
+          .attr('rx', 8)
+          .attr('fill', '#013D5B');
+        g.append('text')
+          .attr('x', contentX + contentW / 2).attr('y', contentY + 126)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '10px')
+          .attr('font-weight', '600')
+          .attr('fill', 'white')
+          .text('Log In');
+
+        // Sign Up button (outline)
+        g.append('rect')
+          .attr('x', contentX + 12).attr('y', contentY + 146)
+          .attr('width', contentW - 24).attr('height', 28)
+          .attr('rx', 8)
+          .attr('fill', '#FFFFFF')
+          .attr('stroke', '#013D5B')
+          .attr('stroke-width', 1.5);
+        g.append('text')
+          .attr('x', contentX + contentW / 2).attr('y', contentY + 164)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '10px')
+          .attr('font-weight', '600')
+          .attr('fill', '#013D5B')
+          .text('Sign Up');
+
+      } else if (screen.type === 'empty' && screen.id === 'verification') {
+        // Email verification screen
+        // Icon placeholder (envelope)
+        g.append('circle')
+          .attr('cx', contentX + contentW / 2).attr('cy', contentY + 35)
+          .attr('r', 22)
+          .attr('fill', '#D9EBED');
+        g.append('text')
+          .attr('x', contentX + contentW / 2).attr('y', contentY + 40)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '18px')
+          .attr('fill', '#013D5B')
+          .text('✉');
+
+        // Text lines
+        g.append('rect')
+          .attr('x', contentX + 16).attr('y', contentY + 72)
+          .attr('width', contentW - 32).attr('height', 8)
+          .attr('rx', 4)
+          .attr('fill', '#E0DCD3');
+        g.append('text')
+          .attr('x', contentX + contentW / 2).attr('y', contentY + 79)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '8px')
+          .attr('fill', '#B0ABA2')
+          .text('Check your email');
+
+        g.append('rect')
+          .attr('x', contentX + 20).attr('y', contentY + 90)
+          .attr('width', contentW - 40).attr('height', 6)
+          .attr('rx', 3)
+          .attr('fill', '#E0DCD3');
+
+        // CTA button
+        g.append('rect')
+          .attr('x', contentX + 12).attr('y', contentY + 116)
+          .attr('width', contentW - 24).attr('height', 28)
+          .attr('rx', 8)
+          .attr('fill', '#013D5B');
+        g.append('text')
+          .attr('x', contentX + contentW / 2).attr('y', contentY + 134)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '10px')
+          .attr('font-weight', '600')
+          .attr('fill', 'white')
+          .text('Open Email App');
+
+      } else if (screen.type === 'modal' && screen.isError) {
+        // Error screen
+        // Dimmed / red-tinted background area
+        g.append('rect')
+          .attr('x', contentX + 6).attr('y', contentY + 8)
+          .attr('width', contentW - 12).attr('height', 26)
+          .attr('rx', 6)
+          .attr('fill', '#EBE6DD')
+          .attr('opacity', 0.5);
+        g.append('rect')
+          .attr('x', contentX + 6).attr('y', contentY + 40)
+          .attr('width', contentW - 12).attr('height', 26)
+          .attr('rx', 6)
+          .attr('fill', '#EBE6DD')
+          .attr('opacity', 0.5);
+
+        // Error modal overlay
+        const modalX = contentX + 12;
+        const modalY = contentY + 76;
+        const modalW = contentW - 24;
+        const modalH = 100;
+        g.append('rect')
+          .attr('x', modalX).attr('y', modalY)
+          .attr('width', modalW).attr('height', modalH)
+          .attr('rx', 10)
+          .attr('fill', '#FFFFFF')
+          .attr('stroke', '#CF6253')
+          .attr('stroke-width', 1.5);
+
+        // Error icon
+        g.append('circle')
+          .attr('cx', modalX + modalW / 2).attr('cy', modalY + 24)
+          .attr('r', 14)
+          .attr('fill', '#FFEEEB');
+        g.append('text')
+          .attr('x', modalX + modalW / 2).attr('y', modalY + 29)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '14px')
+          .attr('fill', '#CF6253')
+          .text('✕');
+
+        // Error text
+        g.append('text')
+          .attr('x', modalX + modalW / 2).attr('y', modalY + 52)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '8px')
+          .attr('font-weight', '600')
+          .attr('fill', '#BF5547')
+          .text('Invalid Credentials');
+
+        // Text line
+        g.append('rect')
+          .attr('x', modalX + 12).attr('y', modalY + 60)
+          .attr('width', modalW - 24).attr('height', 5)
+          .attr('rx', 2)
+          .attr('fill', '#E0DCD3');
+
+        // Try Again button
+        g.append('rect')
+          .attr('x', modalX + 10).attr('y', modalY + 74)
+          .attr('width', modalW - 20).attr('height', 20)
+          .attr('rx', 6)
+          .attr('fill', '#CF6253');
+        g.append('text')
+          .attr('x', modalX + modalW / 2).attr('y', modalY + 87)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '9px')
+          .attr('font-weight', '600')
+          .attr('fill', 'white')
+          .text('Try Again');
+      }
+
+      // Screen name label below the frame
+      g.append('text')
+        .attr('x', SCREEN_W / 2)
+        .attr('y', SCREEN_H + 20)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '13px')
+        .attr('font-weight', '600')
+        .attr('fill', isError ? '#BF5547' : '#1C1A17')
+        .attr('font-family', "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif")
+        .text(screen.name);
+
+      // Hover effects
+      g.on('mouseenter', function() {
+        d3.select(this).select('.screen-frame')
+          .attr('stroke', isError ? '#BF5547' : '#D0CBC3')
+          .attr('filter', `url(#screenShadowHover)`)
+          .transition().duration(150)
+          .attr('transform', 'scale(1.01)');
+      }).on('mouseleave', function() {
+        d3.select(this).select('.screen-frame')
+          .attr('stroke', borderColor)
+          .attr('filter', `url(#${shadowId})`)
+          .transition().duration(150)
+          .attr('transform', 'scale(1)');
+      });
+
+      // Click to open detail panel
+      g.on('click', function(event) {
+        event.stopPropagation();
+        openDetailPanel(screen);
+      });
+    }
+
+    flowData.screens.forEach(drawScreenMockup);
+
+    // ─── Detail Panel ───
+    function openDetailPanel(screen) {
+      const panel = document.getElementById('detailPanel');
+      document.getElementById('panelName').textContent = screen.name;
+
+      const typeLabels = {
+        list: 'List View', detail: 'Detail View', form: 'Form',
+        dashboard: 'Dashboard', empty: 'Empty State', settings: 'Settings',
+        modal: 'Modal / Dialog', login: 'Login'
+      };
+      document.getElementById('panelType').textContent = typeLabels[screen.type] || screen.type;
+      if (screen.isError) {
+        document.getElementById('panelType').textContent = 'Error Screen';
+        document.getElementById('panelType').style.background = '#FFEEEB';
+        document.getElementById('panelType').style.color = '#BF5547';
+      } else {
+        document.getElementById('panelType').style.background = '#D9EBED';
+        document.getElementById('panelType').style.color = '#013D5B';
+      }
+
+      document.getElementById('panelDesc').textContent = screen.description;
+
+      const elList = document.getElementById('panelElements');
+      elList.innerHTML = '';
+      screen.elements.forEach(el => {
+        const li = document.createElement('li');
+        li.textContent = el.content || el.type;
+        elList.appendChild(li);
+      });
+
+      const exitList = document.getElementById('panelExits');
+      exitList.innerHTML = '';
+      if (screen.exits.length === 0) {
+        const li = document.createElement('li');
+        li.textContent = 'End of flow';
+        li.style.color = '#6B6760';
+        li.style.fontStyle = 'italic';
+        exitList.appendChild(li);
+      } else {
+        screen.exits.forEach(exit => {
+          const li = document.createElement('li');
+          li.className = 'exit-item';
+          li.innerHTML = `<span class="exit-action">${exit.action}</span><span class="exit-target">→ ${screenMap[exit.target]?.name || exit.target}</span>`;
+          exitList.appendChild(li);
+        });
+      }
+
+      panel.classList.add('open');
+    }
+
+    document.getElementById('closePanel').addEventListener('click', () => {
+      document.getElementById('detailPanel').classList.remove('open');
+    });
+
+    svg.on('click', () => {
+      document.getElementById('detailPanel').classList.remove('open');
+    });
+
+    // ─── Fit to Content ───
+    function fitToContent() {
+      const padding = 80;
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      flowData.screens.forEach(s => {
+        minX = Math.min(minX, s.x);
+        minY = Math.min(minY, s.y);
+        maxX = Math.max(maxX, s.x + SCREEN_W);
+        maxY = Math.max(maxY, s.y + SCREEN_H + 30);
+      });
+
+      // Account for the error loop connector on the left
+      minX = Math.min(minX, screenMap['error'].x - 70);
+
+      const contentW = maxX - minX + padding * 2;
+      const contentH = maxY - minY + padding * 2;
+      const scale = Math.min(width / contentW, height / contentH, 1);
+      const tx = (width - contentW * scale) / 2 - minX * scale + padding * scale;
+      const ty = (height - contentH * scale) / 2 - minY * scale + padding * scale;
+
+      svg.transition().duration(600)
+        .call(zoomBehavior.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+    }
+
+    fitToContent();
+
+    // Double-click empty canvas to re-fit
+    svg.on('dblclick.zoom', null);
+    svg.on('dblclick', (event) => {
+      if (event.target === svg.node()) {
+        fitToContent();
+      }
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+      const currentTransform = d3.zoomTransform(svg.node());
+      const step = 50;
+      if (e.key === 'ArrowLeft') {
+        svg.call(zoomBehavior.transform, currentTransform.translate(step, 0));
+      } else if (e.key === 'ArrowRight') {
+        svg.call(zoomBehavior.transform, currentTransform.translate(-step, 0));
+      } else if (e.key === 'ArrowUp') {
+        svg.call(zoomBehavior.transform, currentTransform.translate(0, step));
+      } else if (e.key === 'ArrowDown') {
+        svg.call(zoomBehavior.transform, currentTransform.translate(0, -step));
+      } else if (e.key === '+' || e.key === '=') {
+        svg.transition().duration(200).call(zoomBehavior.scaleBy, 1.2);
+      } else if (e.key === '-') {
+        svg.transition().duration(200).call(zoomBehavior.scaleBy, 0.8);
+      }
+    });
+
+    // Resize handler
+    window.addEventListener('resize', () => {
+      svg.attr('width', window.innerWidth).attr('height', window.innerHeight - 64);
+      fitToContent();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-Commerce Checkout Flow</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f1117;
+    color: #e1e4e8;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Top bar */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    background: #161822;
+    border-bottom: 1px solid #2a2d3a;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+  }
+  .topbar h1 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #c9d1d9;
+    letter-spacing: -0.2px;
+  }
+  .topbar-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .legend {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    font-size: 12px;
+    color: #8b949e;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+  .legend-dot.happy { background: #58a6ff; }
+  .legend-dot.error { background: #f85149; }
+  .legend-dot.decision { background: #d2a8ff; transform: rotate(45deg); width: 8px; height: 8px; }
+
+  .btn-reset {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid #30363d;
+    background: #21262d;
+    color: #c9d1d9;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-reset:hover { background: #30363d; }
+
+  /* Canvas area */
+  .canvas-wrap {
+    position: fixed;
+    top: 49px;
+    left: 0; right: 0; bottom: 0;
+    overflow: hidden;
+    cursor: grab;
+  }
+  .canvas-wrap.dragging { cursor: grabbing; }
+  .canvas {
+    position: absolute;
+    transform-origin: 0 0;
+    width: 2400px;
+    height: 1800px;
+  }
+
+  /* SVG connectors layer */
+  svg.connectors {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  svg.connectors path {
+    fill: none;
+    stroke-width: 2;
+    transition: stroke 0.3s, stroke-width 0.3s, opacity 0.3s;
+  }
+  svg.connectors path.happy { stroke: #58a6ff; }
+  svg.connectors path.error { stroke: #f85149; }
+  svg.connectors path.dimmed { opacity: 0.12; }
+  svg.connectors path.highlighted { stroke-width: 3; }
+
+  /* Arrow markers */
+  svg.connectors marker path { stroke: none; }
+
+  /* Connector labels */
+  .conn-label {
+    position: absolute;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+  }
+  .conn-label.happy { background: rgba(88,166,255,0.15); color: #58a6ff; }
+  .conn-label.error { background: rgba(248,81,73,0.15); color: #f85149; }
+  .conn-label.dimmed { opacity: 0.12; }
+
+  /* Nodes */
+  .node {
+    position: absolute;
+    cursor: pointer;
+    transition: transform 0.18s, box-shadow 0.18s, opacity 0.3s;
+    user-select: none;
+  }
+  .node:hover { transform: translateY(-2px); }
+  .node.dimmed { opacity: 0.15; }
+  .node.active { z-index: 10; }
+
+  .node-inner {
+    border-radius: 12px;
+    padding: 20px 24px;
+    min-width: 170px;
+    text-align: center;
+    position: relative;
+    border: 1.5px solid #30363d;
+    background: #161822;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .node.active .node-inner,
+  .node:hover .node-inner {
+    border-color: #58a6ff;
+    box-shadow: 0 0 20px rgba(88,166,255,0.15);
+  }
+
+  /* Happy path glow for active step */
+  .node.happy-active .node-inner {
+    border-color: #58a6ff;
+    box-shadow: 0 0 24px rgba(88,166,255,0.25);
+  }
+
+  /* Start/End nodes */
+  .node.start .node-inner,
+  .node.end .node-inner {
+    border-radius: 40px;
+    min-width: 140px;
+  }
+  .node.start .node-inner { border-color: #3fb950; background: rgba(63,185,80,0.08); }
+  .node.end .node-inner { border-color: #58a6ff; background: rgba(88,166,255,0.08); }
+  .node.end.error-end .node-inner { border-color: #f85149; background: rgba(248,81,73,0.08); }
+
+  /* Decision diamond */
+  .node.decision .node-inner {
+    border-radius: 4px;
+    transform: rotate(45deg);
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-color: #d2a8ff;
+    background: rgba(210,168,255,0.06);
+  }
+  .node.decision:hover .node-inner {
+    border-color: #d2a8ff;
+    box-shadow: 0 0 20px rgba(210,168,255,0.2);
+  }
+  .node.decision .node-inner .label {
+    transform: rotate(-45deg);
+    font-size: 12px;
+    line-height: 1.3;
+    width: 100px;
+    text-align: center;
+  }
+
+  /* Node label */
+  .node-inner .label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e1e4e8;
+  }
+  .node-inner .sublabel {
+    font-size: 11px;
+    color: #8b949e;
+    margin-top: 4px;
+  }
+
+  /* Step indicator on happy path nodes */
+  .step-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #58a6ff;
+    color: #0f1117;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #0f1117;
+  }
+
+  /* Detail panel */
+  .detail-panel {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120%);
+    background: #161822;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 20px 28px;
+    max-width: 480px;
+    width: 90%;
+    z-index: 50;
+    transition: transform 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .detail-panel.visible {
+    transform: translateX(-50%) translateY(0);
+  }
+  .detail-panel h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e1e4e8;
+    margin-bottom: 6px;
+  }
+  .detail-panel p {
+    font-size: 12px;
+    color: #8b949e;
+    line-height: 1.5;
+  }
+  .detail-panel .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-right: 6px;
+    margin-top: 8px;
+  }
+  .tag.happy-tag { background: rgba(88,166,255,0.15); color: #58a6ff; }
+  .tag.error-tag { background: rgba(248,81,73,0.15); color: #f85149; }
+  .tag.decision-tag { background: rgba(210,168,255,0.15); color: #d2a8ff; }
+  .tag.step-tag { background: rgba(63,185,80,0.15); color: #3fb950; }
+
+  .detail-close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    background: none;
+    border: none;
+    color: #8b949e;
+    font-size: 16px;
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  /* Zoom controls */
+  .zoom-controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 50;
+  }
+  .zoom-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid #30363d;
+    background: #21262d;
+    color: #c9d1d9;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+  }
+  .zoom-btn:hover { background: #30363d; }
+  .zoom-label {
+    font-size: 10px;
+    color: #8b949e;
+    text-align: center;
+    padding: 2px 0;
+  }
+
+  /* Minimap */
+  .minimap {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 200px;
+    height: 140px;
+    background: #161822;
+    border: 1px solid #2a2d3a;
+    border-radius: 8px;
+    overflow: hidden;
+    z-index: 50;
+  }
+  .minimap canvas { width: 100%; height: 100%; }
+  .minimap-viewport {
+    position: absolute;
+    border: 1.5px solid #58a6ff;
+    background: rgba(88,166,255,0.06);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  /* Animate pulse on happy path */
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 8px rgba(88,166,255,0.2); }
+    50% { box-shadow: 0 0 20px rgba(88,166,255,0.4); }
+  }
+  .node.happy-active .node-inner {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  /* Tooltip for hovering connectors */
+  .flow-tooltip {
+    position: fixed;
+    background: #21262d;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 11px;
+    color: #c9d1d9;
+    pointer-events: none;
+    z-index: 200;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>E-Commerce Checkout Flow</h1>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot happy"></div> Happy Path</div>
+    <div class="legend-item"><div class="legend-dot error"></div> Error Path</div>
+    <div class="legend-item"><div class="legend-dot decision"></div> Decision</div>
+  </div>
+  <div class="topbar-actions">
+    <button class="btn-reset" onclick="toggleHappyPath()">Toggle Happy Path</button>
+    <button class="btn-reset" onclick="resetView()">Reset View</button>
+  </div>
+</div>
+
+<div class="canvas-wrap" id="canvasWrap">
+  <div class="canvas" id="canvas">
+    <svg class="connectors" id="connectorsSvg">
+      <defs>
+        <marker id="arrow-happy" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <path d="M0,0 L8,3 L0,6 Z" fill="#58a6ff"/>
+        </marker>
+        <marker id="arrow-error" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <path d="M0,0 L8,3 L0,6 Z" fill="#f85149"/>
+        </marker>
+      </defs>
+    </svg>
+  </div>
+</div>
+
+<div class="detail-panel" id="detailPanel">
+  <button class="detail-close" onclick="closeDetail()">&times;</button>
+  <h3 id="detailTitle"></h3>
+  <p id="detailDesc"></p>
+  <div id="detailTags"></div>
+</div>
+
+<div class="zoom-controls">
+  <button class="zoom-btn" onclick="zoomIn()">+</button>
+  <div class="zoom-label" id="zoomLabel">100%</div>
+  <button class="zoom-btn" onclick="zoomOut()">&minus;</button>
+  <button class="zoom-btn" onclick="fitToView()" style="font-size:12px;margin-top:4px">Fit</button>
+</div>
+
+<div class="minimap" id="minimap">
+  <canvas id="minimapCanvas"></canvas>
+  <div class="minimap-viewport" id="minimapViewport"></div>
+</div>
+
+<script>
+// ---- DATA ----
+const nodes = [
+  { id: 'start', type: 'start', label: 'Start', sublabel: 'User arrives', x: 160, y: 360, happy: true, step: null,
+    detail: 'The user enters the e-commerce site. This is the beginning of the checkout journey.' },
+  { id: 'browse', type: 'process', label: 'Browse Products', sublabel: 'Catalog & search', x: 400, y: 360, happy: true, step: 1,
+    detail: 'User browses the product catalog, uses search and filters, and views product detail pages.' },
+  { id: 'cart', type: 'process', label: 'Shopping Cart', sublabel: 'Review items', x: 660, y: 360, happy: true, step: 2,
+    detail: 'User reviews selected items, adjusts quantities, removes products, and sees the order subtotal.' },
+  { id: 'shipping', type: 'process', label: 'Shipping Info', sublabel: 'Enter address', x: 920, y: 360, happy: true, step: 3,
+    detail: 'User enters their shipping address, selects a delivery method, and proceeds to address validation.' },
+  { id: 'validate-addr', type: 'decision', label: 'Address\nValid?', x: 1170, y: 360, happy: true, step: null,
+    detail: 'The system validates the shipping address against a postal database. Checks for completeness, formatting, and deliverability.' },
+  { id: 'addr-error', type: 'process', label: 'Address Error', sublabel: 'Show correction', x: 1170, y: 580, happy: false, step: null,
+    detail: 'The address failed validation. The user is shown specific errors (missing zip, invalid state, etc.) and prompted to correct them.' },
+  { id: 'payment', type: 'process', label: 'Payment', sublabel: 'Enter card details', x: 1430, y: 360, happy: true, step: 4,
+    detail: 'User enters payment information: card number, expiration, CVV, and billing address. Supports saved payment methods.' },
+  { id: 'validate-pay', type: 'decision', label: 'Payment\nValid?', x: 1680, y: 360, happy: true, step: null,
+    detail: 'The payment processor authorizes the transaction. Checks card validity, sufficient funds, fraud detection, and 3D Secure if required.' },
+  { id: 'pay-error', type: 'process', label: 'Payment Failed', sublabel: 'Retry or change', x: 1680, y: 580, happy: false, step: null,
+    detail: 'Payment was declined. Possible reasons: insufficient funds, expired card, fraud flag. User can retry with same or different payment method.' },
+  { id: 'retry-decide', type: 'decision', label: 'Retry\nCount?', x: 1680, y: 780, happy: false, step: null,
+    detail: 'Check how many payment attempts the user has made. After 3 failed attempts, the session is flagged and the user is directed to support.' },
+  { id: 'max-retries', type: 'end', label: 'Session Ended', sublabel: 'Contact support', x: 1920, y: 780, happy: false, isError: true, step: null,
+    detail: 'Maximum payment retries exceeded. The user is advised to contact customer support or try again later. Order is saved in cart.' },
+  { id: 'confirmation', type: 'process', label: 'Confirmation', sublabel: 'Order placed!', x: 1940, y: 360, happy: true, step: 5,
+    detail: 'Order is confirmed. User sees order number, estimated delivery, and a summary. Confirmation email is sent.' },
+  { id: 'end', type: 'end', label: 'Done', sublabel: 'Order complete', x: 2160, y: 360, happy: true, step: null,
+    detail: 'The checkout flow is complete. The user can track their order or continue shopping.' },
+];
+
+const edges = [
+  { from: 'start', to: 'browse', type: 'happy' },
+  { from: 'browse', to: 'cart', type: 'happy', label: 'Add to cart' },
+  { from: 'cart', to: 'shipping', type: 'happy', label: 'Checkout' },
+  { from: 'shipping', to: 'validate-addr', type: 'happy' },
+  { from: 'validate-addr', to: 'payment', type: 'happy', label: 'Yes' },
+  { from: 'validate-addr', to: 'addr-error', type: 'error', label: 'No' },
+  { from: 'addr-error', to: 'shipping', type: 'error', label: 'Re-enter' },
+  { from: 'payment', to: 'validate-pay', type: 'happy' },
+  { from: 'validate-pay', to: 'confirmation', type: 'happy', label: 'Yes' },
+  { from: 'validate-pay', to: 'pay-error', type: 'error', label: 'No' },
+  { from: 'pay-error', to: 'retry-decide', type: 'error' },
+  { from: 'retry-decide', to: 'payment', type: 'error', label: '< 3 tries' },
+  { from: 'retry-decide', to: 'max-retries', type: 'error', label: '>= 3 tries' },
+  { from: 'confirmation', to: 'end', type: 'happy' },
+];
+
+// ---- RENDER NODES ----
+const canvas = document.getElementById('canvas');
+const nodeMap = {};
+
+nodes.forEach(n => {
+  nodeMap[n.id] = n;
+  const el = document.createElement('div');
+  el.className = 'node' + (n.type === 'start' ? ' start' : '') + (n.type === 'end' ? ' end' : '') + (n.type === 'decision' ? ' decision' : '') + (n.isError ? ' error-end' : '');
+  el.id = 'node-' + n.id;
+  el.dataset.nodeId = n.id;
+  if (n.happy) el.classList.add('happy-node');
+
+  let inner = '<div class="node-inner">';
+  if (n.step) inner += '<div class="step-badge">' + n.step + '</div>';
+  inner += '<div class="label">' + n.label.replace(/\n/g, '<br>') + '</div>';
+  if (n.sublabel) inner += '<div class="sublabel">' + n.sublabel + '</div>';
+  inner += '</div>';
+  el.innerHTML = inner;
+
+  // Position: for decisions, offset so center of rotated square aligns
+  if (n.type === 'decision') {
+    el.style.left = (n.x - 60) + 'px';
+    el.style.top = (n.y - 60) + 'px';
+  } else {
+    el.style.left = n.x + 'px';
+    el.style.top = n.y + 'px';
+  }
+
+  el.addEventListener('click', (e) => {
+    e.stopPropagation();
+    selectNode(n.id);
+  });
+
+  canvas.appendChild(el);
+});
+
+// ---- RENDER EDGES ----
+const svg = document.getElementById('connectorsSvg');
+const connLabels = [];
+
+function getNodeCenter(id) {
+  const n = nodeMap[id];
+  const el = document.getElementById('node-' + id);
+  if (n.type === 'decision') {
+    return { x: n.x, y: n.y };
+  }
+  return { x: n.x + el.offsetWidth / 2, y: n.y + el.offsetHeight / 2 };
+}
+
+function getNodePort(id, side) {
+  const n = nodeMap[id];
+  const el = document.getElementById('node-' + id);
+  const c = getNodeCenter(id);
+  if (n.type === 'decision') {
+    const half = 60; // half diagonal
+    if (side === 'right') return { x: c.x + half, y: c.y };
+    if (side === 'left') return { x: c.x - half, y: c.y };
+    if (side === 'bottom') return { x: c.x, y: c.y + half };
+    if (side === 'top') return { x: c.x, y: c.y - half };
+  }
+  const w = el.offsetWidth;
+  const h = el.offsetHeight;
+  if (side === 'right') return { x: n.x + w, y: n.y + h / 2 };
+  if (side === 'left') return { x: n.x, y: n.y + h / 2 };
+  if (side === 'bottom') return { x: n.x + w / 2, y: n.y + h };
+  if (side === 'top') return { x: n.x + w / 2, y: n.y };
+}
+
+function determinePorts(fromId, toId) {
+  const f = nodeMap[fromId], t = nodeMap[toId];
+  const fx = f.x, fy = f.y, tx = t.x, ty = t.y;
+
+  // Special cases
+  if (fromId === 'validate-addr' && toId === 'addr-error') return ['bottom', 'top'];
+  if (fromId === 'addr-error' && toId === 'shipping') return ['left', 'bottom'];
+  if (fromId === 'validate-pay' && toId === 'pay-error') return ['bottom', 'top'];
+  if (fromId === 'pay-error' && toId === 'retry-decide') return ['bottom', 'top'];
+  if (fromId === 'retry-decide' && toId === 'payment') return ['left', 'bottom'];
+  if (fromId === 'retry-decide' && toId === 'max-retries') return ['right', 'left'];
+
+  if (tx > fx + 50) return ['right', 'left'];
+  if (tx < fx - 50) return ['left', 'right'];
+  if (ty > fy) return ['bottom', 'top'];
+  return ['top', 'bottom'];
+}
+
+edges.forEach((e, i) => {
+  const [fromSide, toSide] = determinePorts(e.from, e.to);
+  const p1 = getNodePort(e.from, fromSide);
+  const p2 = getNodePort(e.to, toSide);
+
+  let d;
+  // For the retry-decide -> payment (loop back up and left)
+  if (e.from === 'retry-decide' && e.to === 'payment') {
+    const midX = p1.x - 180;
+    const midY = (p1.y + p2.y) / 2;
+    d = `M${p1.x},${p1.y} C${p1.x - 80},${p1.y} ${midX},${p1.y} ${midX},${midY} S${midX},${p2.y} ${p2.x},${p2.y}`;
+  }
+  // addr-error -> shipping (loop back left and up)
+  else if (e.from === 'addr-error' && e.to === 'shipping') {
+    const midY = p2.y + 60;
+    d = `M${p1.x},${p1.y} C${p1.x},${p1.y} ${p1.x - 120},${p1.y} ${p1.x - 120},${midY} S${p2.x},${p2.y + 40} ${p2.x},${p2.y}`;
+  }
+  else {
+    // Cubic bezier
+    const dx = Math.abs(p2.x - p1.x);
+    const dy = Math.abs(p2.y - p1.y);
+    const tension = Math.max(dx, dy) * 0.4;
+
+    let cp1, cp2;
+    if (fromSide === 'right') cp1 = { x: p1.x + tension, y: p1.y };
+    else if (fromSide === 'left') cp1 = { x: p1.x - tension, y: p1.y };
+    else if (fromSide === 'bottom') cp1 = { x: p1.x, y: p1.y + tension };
+    else cp1 = { x: p1.x, y: p1.y - tension };
+
+    if (toSide === 'left') cp2 = { x: p2.x - tension, y: p2.y };
+    else if (toSide === 'right') cp2 = { x: p2.x + tension, y: p2.y };
+    else if (toSide === 'top') cp2 = { x: p2.x, y: p2.y - tension };
+    else cp2 = { x: p2.x, y: p2.y + tension };
+
+    d = `M${p1.x},${p1.y} C${cp1.x},${cp1.y} ${cp2.x},${cp2.y} ${p2.x},${p2.y}`;
+  }
+
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', d);
+  path.classList.add(e.type);
+  path.setAttribute('marker-end', `url(#arrow-${e.type})`);
+  path.dataset.edgeIndex = i;
+  path.dataset.from = e.from;
+  path.dataset.to = e.to;
+  svg.appendChild(path);
+
+  // Edge label
+  if (e.label) {
+    const midT = 0.5;
+    // Approximate midpoint
+    const mx = (p1.x + p2.x) / 2;
+    const my = (p1.y + p2.y) / 2;
+
+    // Offset label for readability
+    let ox = 0, oy = -14;
+    if (fromSide === 'bottom' && toSide === 'top') { ox = 14; oy = 0; }
+    if (e.from === 'addr-error' && e.to === 'shipping') { ox = -60; oy = -8; }
+    if (e.from === 'retry-decide' && e.to === 'payment') { ox = -80; oy = 0; }
+
+    const lbl = document.createElement('div');
+    lbl.className = 'conn-label ' + e.type;
+    lbl.textContent = e.label;
+    lbl.style.left = (mx + ox) + 'px';
+    lbl.style.top = (my + oy) + 'px';
+    lbl.dataset.edgeIndex = i;
+    canvas.appendChild(lbl);
+    connLabels.push(lbl);
+  }
+});
+
+// ---- INTERACTION STATE ----
+let selectedNode = null;
+let happyPathMode = false;
+
+function selectNode(id) {
+  const prev = selectedNode;
+  selectedNode = id;
+
+  // Remove previous active states
+  document.querySelectorAll('.node.active, .node.happy-active').forEach(el => {
+    el.classList.remove('active', 'happy-active');
+  });
+
+  // Highlight connected edges and dim others
+  const connectedNodes = new Set([id]);
+  edges.forEach(e => {
+    if (e.from === id) connectedNodes.add(e.to);
+    if (e.to === id) connectedNodes.add(e.from);
+  });
+
+  // Update nodes
+  document.querySelectorAll('.node').forEach(el => {
+    const nid = el.dataset.nodeId;
+    if (connectedNodes.has(nid)) {
+      el.classList.remove('dimmed');
+      if (nid === id) el.classList.add('active');
+    } else {
+      el.classList.add('dimmed');
+    }
+  });
+
+  // Update edges
+  svg.querySelectorAll('path').forEach(p => {
+    const from = p.dataset.from, to = p.dataset.to;
+    if (from === id || to === id) {
+      p.classList.remove('dimmed');
+      p.classList.add('highlighted');
+    } else {
+      p.classList.add('dimmed');
+      p.classList.remove('highlighted');
+    }
+  });
+
+  // Update labels
+  connLabels.forEach(lbl => {
+    const ei = parseInt(lbl.dataset.edgeIndex);
+    const e = edges[ei];
+    if (e.from === id || e.to === id) {
+      lbl.classList.remove('dimmed');
+    } else {
+      lbl.classList.add('dimmed');
+    }
+  });
+
+  // Show detail panel
+  const n = nodeMap[id];
+  const panel = document.getElementById('detailPanel');
+  document.getElementById('detailTitle').textContent = n.label.replace(/\n/g, ' ');
+  document.getElementById('detailDesc').textContent = n.detail;
+
+  let tags = '';
+  if (n.happy) tags += '<span class="tag happy-tag">Happy Path</span>';
+  if (!n.happy && n.type !== 'decision') tags += '<span class="tag error-tag">Error Handling</span>';
+  if (n.type === 'decision') tags += '<span class="tag decision-tag">Decision Point</span>';
+  if (n.step) tags += '<span class="tag step-tag">Step ' + n.step + '</span>';
+  document.getElementById('detailTags').innerHTML = tags;
+
+  panel.classList.add('visible');
+}
+
+function closeDetail() {
+  document.getElementById('detailPanel').classList.remove('visible');
+  selectedNode = null;
+  document.querySelectorAll('.node').forEach(el => el.classList.remove('active', 'happy-active', 'dimmed'));
+  svg.querySelectorAll('path').forEach(p => { p.classList.remove('dimmed', 'highlighted'); });
+  connLabels.forEach(lbl => lbl.classList.remove('dimmed'));
+  if (happyPathMode) showHappyPath();
+}
+
+function toggleHappyPath() {
+  happyPathMode = !happyPathMode;
+  if (happyPathMode) {
+    showHappyPath();
+  } else {
+    closeDetail();
+  }
+}
+
+function showHappyPath() {
+  const happyNodes = new Set(nodes.filter(n => n.happy).map(n => n.id));
+  const happyEdgeIndices = new Set();
+  edges.forEach((e, i) => { if (e.type === 'happy') happyEdgeIndices.add(i); });
+
+  document.querySelectorAll('.node').forEach(el => {
+    const nid = el.dataset.nodeId;
+    if (happyNodes.has(nid)) {
+      el.classList.remove('dimmed');
+      el.classList.add('happy-active');
+    } else {
+      el.classList.add('dimmed');
+      el.classList.remove('happy-active');
+    }
+  });
+
+  svg.querySelectorAll('path').forEach(p => {
+    const ei = parseInt(p.dataset.edgeIndex);
+    if (happyEdgeIndices.has(ei)) {
+      p.classList.remove('dimmed');
+      p.classList.add('highlighted');
+    } else {
+      p.classList.add('dimmed');
+      p.classList.remove('highlighted');
+    }
+  });
+
+  connLabels.forEach(lbl => {
+    const ei = parseInt(lbl.dataset.edgeIndex);
+    if (happyEdgeIndices.has(ei)) {
+      lbl.classList.remove('dimmed');
+    } else {
+      lbl.classList.add('dimmed');
+    }
+  });
+}
+
+// Click canvas to deselect
+document.getElementById('canvasWrap').addEventListener('click', () => {
+  if (!happyPathMode) closeDetail();
+});
+
+// ---- PAN & ZOOM ----
+let scale = 1;
+let panX = 0, panY = 0;
+let isPanning = false;
+let startPanX, startPanY;
+
+const wrap = document.getElementById('canvasWrap');
+
+function updateTransform() {
+  canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+  document.getElementById('zoomLabel').textContent = Math.round(scale * 100) + '%';
+  updateMinimap();
+}
+
+wrap.addEventListener('mousedown', (e) => {
+  if (e.target.closest('.node')) return;
+  isPanning = true;
+  startPanX = e.clientX - panX;
+  startPanY = e.clientY - panY;
+  wrap.classList.add('dragging');
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (!isPanning) return;
+  panX = e.clientX - startPanX;
+  panY = e.clientY - startPanY;
+  updateTransform();
+});
+
+window.addEventListener('mouseup', () => {
+  isPanning = false;
+  wrap.classList.remove('dragging');
+});
+
+wrap.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? -0.08 : 0.08;
+  const newScale = Math.min(2, Math.max(0.2, scale + delta));
+
+  // Zoom toward cursor
+  const rect = wrap.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  panX = mx - (mx - panX) * (newScale / scale);
+  panY = my - (my - panY) * (newScale / scale);
+  scale = newScale;
+  updateTransform();
+}, { passive: false });
+
+function zoomIn() {
+  scale = Math.min(2, scale + 0.15);
+  updateTransform();
+}
+function zoomOut() {
+  scale = Math.max(0.2, scale - 0.15);
+  updateTransform();
+}
+function resetView() {
+  scale = 1;
+  panX = 0;
+  panY = 0;
+  updateTransform();
+  happyPathMode = false;
+  closeDetail();
+}
+function fitToView() {
+  const rect = wrap.getBoundingClientRect();
+  const margin = 60;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  nodes.forEach(n => {
+    const el = document.getElementById('node-' + n.id);
+    const nx = n.type === 'decision' ? n.x - 60 : n.x;
+    const ny = n.type === 'decision' ? n.y - 60 : n.y;
+    const nw = el.offsetWidth;
+    const nh = el.offsetHeight;
+    minX = Math.min(minX, nx);
+    minY = Math.min(minY, ny);
+    maxX = Math.max(maxX, nx + nw);
+    maxY = Math.max(maxY, ny + nh);
+  });
+  const contentW = maxX - minX + margin * 2;
+  const contentH = maxY - minY + margin * 2;
+  scale = Math.min(rect.width / contentW, rect.height / contentH, 1.2);
+  panX = (rect.width - contentW * scale) / 2 - minX * scale + margin * scale;
+  panY = (rect.height - contentH * scale) / 2 - minY * scale + margin * scale;
+  updateTransform();
+}
+
+// ---- MINIMAP ----
+const minimapCanvas = document.getElementById('minimapCanvas');
+const minimapCtx = minimapCanvas.getContext('2d');
+const minimapEl = document.getElementById('minimap');
+const minimapViewport = document.getElementById('minimapViewport');
+
+function updateMinimap() {
+  const mw = minimapEl.offsetWidth;
+  const mh = minimapEl.offsetHeight;
+  minimapCanvas.width = mw * 2;
+  minimapCanvas.height = mh * 2;
+  minimapCtx.scale(2, 2);
+
+  minimapCtx.clearRect(0, 0, mw, mh);
+
+  // Compute bounds
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  nodes.forEach(n => {
+    minX = Math.min(minX, n.x - 80);
+    minY = Math.min(minY, n.y - 80);
+    maxX = Math.max(maxX, n.x + 250);
+    maxY = Math.max(maxY, n.y + 200);
+  });
+  const contentW = maxX - minX;
+  const contentH = maxY - minY;
+  const s = Math.min(mw / contentW, mh / contentH) * 0.9;
+  const ox = (mw - contentW * s) / 2 - minX * s;
+  const oy = (mh - contentH * s) / 2 - minY * s;
+
+  // Draw edges
+  edges.forEach(e => {
+    const f = nodeMap[e.from], t = nodeMap[e.to];
+    minimapCtx.strokeStyle = e.type === 'happy' ? '#58a6ff' : '#f85149';
+    minimapCtx.lineWidth = 1;
+    minimapCtx.globalAlpha = 0.5;
+    minimapCtx.beginPath();
+    minimapCtx.moveTo(f.x * s + ox, f.y * s + oy);
+    minimapCtx.lineTo(t.x * s + ox, t.y * s + oy);
+    minimapCtx.stroke();
+  });
+
+  // Draw nodes
+  minimapCtx.globalAlpha = 1;
+  nodes.forEach(n => {
+    minimapCtx.fillStyle = n.happy ? '#58a6ff' : (n.type === 'decision' ? '#d2a8ff' : '#f85149');
+    if (n.type === 'decision') {
+      minimapCtx.save();
+      minimapCtx.translate(n.x * s + ox, n.y * s + oy);
+      minimapCtx.rotate(Math.PI / 4);
+      minimapCtx.fillRect(-3, -3, 6, 6);
+      minimapCtx.restore();
+    } else {
+      minimapCtx.fillRect(n.x * s + ox - 3, n.y * s + oy - 2, 6, 4);
+    }
+  });
+
+  // Viewport indicator
+  const wrapRect = wrap.getBoundingClientRect();
+  const vx = (-panX / scale) * s + ox;
+  const vy = (-panY / scale) * s + oy;
+  const vw = (wrapRect.width / scale) * s;
+  const vh = (wrapRect.height / scale) * s;
+  minimapViewport.style.left = vx + 'px';
+  minimapViewport.style.top = vy + 'px';
+  minimapViewport.style.width = vw + 'px';
+  minimapViewport.style.height = vh + 'px';
+}
+
+// ---- KEYBOARD ----
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeDetail();
+  if (e.key === '+' || e.key === '=') zoomIn();
+  if (e.key === '-') zoomOut();
+  if (e.key === '0') resetView();
+  if (e.key === 'f') fitToView();
+  if (e.key === 'h') toggleHappyPath();
+});
+
+// ---- INIT ----
+setTimeout(() => {
+  fitToView();
+}, 100);
+</script>
+</body>
+</html>

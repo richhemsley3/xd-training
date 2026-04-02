@@ -1,0 +1,57 @@
+{
+  "eval_name": "food-delivery-flow",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "HTML file exists",
+      "passed": true,
+      "evidence": "Found: screen-flow.html exists in outputs directory"
+    },
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": true,
+      "evidence": "Found: 'd3@7' in output"
+    },
+    {
+      "text": "All 5 screens present",
+      "passed": true,
+      "evidence": "Found: 'Home Feed' in output"
+    },
+    {
+      "text": "SDS interactive-primary color",
+      "passed": true,
+      "evidence": "Found: '#013D5B' in output"
+    },
+    {
+      "text": "Mobile screen proportions",
+      "passed": true,
+      "evidence": "Found: '280' in output"
+    },
+    {
+      "text": "Wireframe content elements",
+      "passed": true,
+      "evidence": "Found: 'rect' in output"
+    },
+    {
+      "text": "Action labels on connectors",
+      "passed": true,
+      "evidence": "Found: 'pill' in output"
+    },
+    {
+      "text": "SVG rendering",
+      "passed": true,
+      "evidence": "Found: '<svg' in output"
+    },
+    {
+      "text": "Back navigation",
+      "passed": true,
+      "evidence": "Found: 'back' in output"
+    },
+    {
+      "text": "Warm canvas background",
+      "passed": true,
+      "evidence": "Found: '#FAF8F5' in output"
+    }
+  ],
+  "pass_rate": 1.0
+}

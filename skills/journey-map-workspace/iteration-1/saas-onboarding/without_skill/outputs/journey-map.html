@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SaaS Onboarding Journey Map</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f5f5;
+      padding: 30px;
+      color: #333;
+    }
+    h1 { text-align: center; margin-bottom: 8px; font-size: 22px; }
+    .subtitle { text-align: center; color: #777; margin-bottom: 30px; font-size: 14px; }
+    .journey-wrapper { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      overflow: hidden;
+      min-width: 900px;
+    }
+    th, td {
+      border: 1px solid #e0e0e0;
+      padding: 12px 14px;
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+    }
+    th {
+      background: #fafafa;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #888;
+    }
+    .phase-header {
+      color: white;
+      font-weight: bold;
+      text-align: center;
+      font-size: 14px;
+      padding: 10px;
+    }
+    .phase-awareness { background: #6c5ce7; }
+    .phase-signup { background: #0984e3; }
+    .phase-onboarding { background: #00b894; }
+    .phase-adoption { background: #00cec9; }
+    .step-name { font-weight: 500; color: #444; }
+    .pain { color: #d63031; font-size: 12px; }
+    .opportunity { color: #00b894; font-size: 12px; }
+    .emotion-chart {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-top: 24px;
+    }
+    .emotion-chart h3 { margin-bottom: 12px; font-size: 16px; color: #333; }
+    .legend { display: flex; gap: 16px; margin-top: 10px; font-size: 12px; color: #666; }
+    .legend-item { display: flex; align-items: center; gap: 4px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  </style>
+</head>
+<body>
+  <h1>SaaS Onboarding Journey Map</h1>
+  <div class="subtitle">From Awareness to Adoption</div>
+
+  <div class="journey-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:100px;"></th>
+          <th colspan="2" class="phase-header phase-awareness">Awareness</th>
+          <th colspan="2" class="phase-header phase-signup">Sign Up</th>
+          <th colspan="3" class="phase-header phase-onboarding">Onboarding</th>
+          <th colspan="2" class="phase-header phase-adoption">Adoption</th>
+        </tr>
+        <tr>
+          <th></th>
+          <th class="step-name">Landing Page</th>
+          <th class="step-name">Pricing Page</th>
+          <th class="step-name">Registration</th>
+          <th class="step-name">Email Verification</th>
+          <th class="step-name">Product Tour</th>
+          <th class="step-name">First Project</th>
+          <th class="step-name">Invite Team</th>
+          <th class="step-name">Daily Usage</th>
+          <th class="step-name">Feature Discovery</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>Emotion</th>
+          <td>😊 Curious (0.7)</td>
+          <td>😐 Evaluating (0.6)</td>
+          <td>😊 Excited (0.8)</td>
+          <td>😊 Eager (0.75)</td>
+          <td>😐 Overwhelmed (0.5)</td>
+          <td>😞 Frustrated (0.3)</td>
+          <td>😞 Struggling (0.35)</td>
+          <td>😊 Productive (0.65)</td>
+          <td>😊 Delighted (0.8)</td>
+        </tr>
+        <tr>
+          <th>Pain Points</th>
+          <td class="pain">Too much jargon, unclear value prop</td>
+          <td class="pain">Confusing tier differences, hidden costs</td>
+          <td class="pain">Too many required fields</td>
+          <td class="pain">Email delayed or in spam</td>
+          <td class="pain">Tour too long, not personalized</td>
+          <td class="pain">Unclear workflow, no templates</td>
+          <td class="pain">Complex role permissions, no bulk invite</td>
+          <td class="pain">Missing shortcuts, slow loading</td>
+          <td class="pain">Advanced features hard to find</td>
+        </tr>
+        <tr>
+          <th>Opportunities</th>
+          <td class="opportunity">Interactive demo on landing page</td>
+          <td class="opportunity">Comparison table, highlight popular plan</td>
+          <td class="opportunity">Social login, fewer fields</td>
+          <td class="opportunity">Magic link, resend option</td>
+          <td class="opportunity">Contextual tooltips, role-based tours</td>
+          <td class="opportunity">Starter templates, guided wizard</td>
+          <td class="opportunity">Simplified roles, CSV bulk invite</td>
+          <td class="opportunity">Power user shortcuts, perf optimization</td>
+          <td class="opportunity">Feature spotlight, contextual tips</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="emotion-chart">
+    <h3>Emotion Curve</h3>
+    <div id="chart"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#48BB78"></div> Positive (&gt;0.6)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#5B8DEF"></div> Neutral (0.3-0.6)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#E53E3E"></div> Negative (&lt;0.3)</div>
+    </div>
+  </div>
+
+  <script>
+    const data = [
+      { step: "Landing Page", score: 0.7, phase: "Awareness" },
+      { step: "Pricing Page", score: 0.6, phase: "Awareness" },
+      { step: "Registration", score: 0.8, phase: "Sign Up" },
+      { step: "Email Verification", score: 0.75, phase: "Sign Up" },
+      { step: "Product Tour", score: 0.5, phase: "Onboarding" },
+      { step: "First Project", score: 0.3, phase: "Onboarding" },
+      { step: "Invite Team", score: 0.35, phase: "Onboarding" },
+      { step: "Daily Usage", score: 0.65, phase: "Adoption" },
+      { step: "Feature Discovery", score: 0.8, phase: "Adoption" }
+    ];
+
+    const margin = { top: 30, right: 40, bottom: 60, left: 50 };
+    const width = 800 - margin.left - margin.right;
+    const height = 250 - margin.top - margin.bottom;
+
+    const svg = d3.select("#chart")
+      .append("svg")
+      .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+      .attr("width", "100%")
+      .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const x = d3.scalePoint()
+      .domain(data.map(d => d.step))
+      .range([0, width])
+      .padding(0.5);
+
+    const y = d3.scaleLinear()
+      .domain([0, 1])
+      .range([height, 0]);
+
+    svg.append("g")
+      .attr("transform", `translate(0,${height})`)
+      .call(d3.axisBottom(x))
+      .selectAll("text")
+      .attr("transform", "rotate(-30)")
+      .style("text-anchor", "end")
+      .style("font-size", "11px");
+
+    svg.append("g")
+      .call(d3.axisLeft(y).ticks(5).tickFormat(d => d.toFixed(1)))
+      .selectAll("text")
+      .style("font-size", "11px");
+
+    const line = d3.line()
+      .x(d => x(d.step))
+      .y(d => y(d.score))
+      .curve(d3.curveMonotoneX);
+
+    svg.append("path")
+      .datum(data)
+      .attr("fill", "none")
+      .attr("stroke", "#5B8DEF")
+      .attr("stroke-width", 2.5)
+      .attr("d", line);
+
+    svg.selectAll(".dot")
+      .data(data)
+      .join("circle")
+      .attr("cx", d => x(d.step))
+      .attr("cy", d => y(d.score))
+      .attr("r", 6)
+      .attr("fill", d => d.score > 0.6 ? "#48BB78" : d.score > 0.3 ? "#5B8DEF" : "#E53E3E")
+      .attr("stroke", "white")
+      .attr("stroke-width", 2);
+
+    svg.selectAll(".label")
+      .data(data)
+      .join("text")
+      .attr("x", d => x(d.step))
+      .attr("y", d => y(d.score) - 12)
+      .attr("text-anchor", "middle")
+      .attr("font-size", "12px")
+      .text(d => d.score > 0.6 ? "😊" : d.score > 0.3 ? "😐" : "😞");
+  </script>
+</body>
+</html>

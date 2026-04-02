@@ -1,0 +1,18 @@
+{
+  "eval_id": 1,
+  "eval_name": "guided-mode-with-research",
+  "prompt": "I want to start the design pipeline in guided mode. I already have research from our last round of user interviews — here's what we found: Data engineers spend 40% of their time on access request workflows. The current approval process requires 3-5 manual handoffs across teams. Users described it as 'death by email chain.' Top pain points: no visibility into request status, duplicate requests, and approvals getting lost. Key personas: Data Engineer (requestor), Data Owner (approver), Security Admin (auditor). The main opportunity is a self-service access request portal with automated routing.",
+  "assertions": [
+    {"text": "Recognized guided mode from user prompt", "type": "boolean"},
+    {"text": "Skipped Stage 1 research — did not re-run research", "type": "boolean"},
+    {"text": "Built research report from user-provided findings (Stage 2)", "type": "boolean"},
+    {"text": "Included checkpoint/pause markers at each stage transition", "type": "boolean"},
+    {"text": "Research report uses SDS shell (header, sidenav)", "type": "boolean"},
+    {"text": "Journey map based on the 3 provided personas", "type": "boolean"},
+    {"text": "IA includes happy paths, edge cases, error states, and fringe cases", "type": "boolean"},
+    {"text": "Critique/heuristics ran 3 passes", "type": "boolean"},
+    {"text": "Accessibility ran 3 passes", "type": "boolean"},
+    {"text": "Research review evaluated designs against provided findings", "type": "boolean"},
+    {"text": "Component gap report produced", "type": "boolean"}
+  ]
+}

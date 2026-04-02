@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SaaS Onboarding Customer Journey Map</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface-alt: #232736;
+    --border: #2e3348;
+    --text-primary: #e8eaed;
+    --text-secondary: #9aa0b4;
+    --text-muted: #6b7185;
+    --accent-blue: #5b8def;
+    --accent-green: #4ecb8d;
+    --accent-orange: #f0a65a;
+    --accent-red: #e8636f;
+    --accent-purple: #a78bfa;
+    --emotion-positive: #4ecb8d;
+    --emotion-neutral: #f0a65a;
+    --emotion-negative: #e8636f;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .page-header {
+    padding: 40px 48px 24px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #161822 0%, var(--bg) 100%);
+  }
+
+  .page-header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+
+  .page-header p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    max-width: 600px;
+    line-height: 1.5;
+  }
+
+  .legend-bar {
+    display: flex;
+    gap: 24px;
+    padding: 16px 48px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-secondary);
+    align-items: center;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .legend-line {
+    width: 24px;
+    height: 3px;
+    border-radius: 2px;
+  }
+
+  .main-container {
+    padding: 32px 48px 48px;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+
+  /* Phase columns */
+  .phases-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .phase-col {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+  }
+
+  .phase-col:hover {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 1px var(--accent-blue), 0 8px 24px rgba(0,0,0,0.3);
+  }
+
+  .phase-col.active {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 1px var(--accent-blue);
+  }
+
+  .phase-header {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .phase-number {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-bottom: 6px;
+  }
+
+  .phase-name {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .phase-subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .phase-body {
+    padding: 16px 20px 20px;
+  }
+
+  .touchpoint-list {
+    list-style: none;
+    margin-bottom: 16px;
+  }
+
+  .touchpoint-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid rgba(46,51,72,0.5);
+  }
+
+  .touchpoint-list li:last-child {
+    border-bottom: none;
+  }
+
+  .touchpoint-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    margin-top: 12px;
+  }
+
+  .section-label:first-child {
+    margin-top: 0;
+  }
+
+  .pain-point {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(232, 99, 111, 0.08);
+    border: 1px solid rgba(232, 99, 111, 0.15);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--accent-red);
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+
+  .opportunity {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(78, 203, 141, 0.08);
+    border: 1px solid rgba(78, 203, 141, 0.15);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--accent-green);
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+
+  .pain-point .icon, .opportunity .icon {
+    flex-shrink: 0;
+    font-size: 13px;
+  }
+
+  /* Emotion chart */
+  .emotion-chart-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 32px;
+  }
+
+  .emotion-chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .emotion-chart-header h2 {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .emotion-score-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  #emotion-chart {
+    width: 100%;
+    height: 280px;
+  }
+
+  /* Tooltip */
+  .tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: #2a2e3e;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--text-primary);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.15s;
+    max-width: 220px;
+  }
+
+  .tooltip .label {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .tooltip .score {
+    color: var(--text-secondary);
+    font-size: 12px;
+  }
+
+  /* Detail panel */
+  .detail-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    display: none;
+    animation: slideIn 0.25s ease-out;
+  }
+
+  .detail-panel.visible {
+    display: block;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .detail-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .detail-panel-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .close-btn {
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.15s;
+  }
+
+  .close-btn:hover {
+    background: var(--border);
+    color: var(--text-primary);
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  .detail-section {
+    background: var(--surface-alt);
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .detail-section h3 {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .detail-section ul {
+    list-style: none;
+  }
+
+  .detail-section ul li {
+    font-size: 13px;
+    color: var(--text-secondary);
+    padding: 5px 0;
+    line-height: 1.4;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .detail-section ul li::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    flex-shrink: 0;
+    margin-top: 7px;
+  }
+
+  .metric-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+  }
+
+  .metric-card {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 12px;
+    flex: 1;
+    text-align: center;
+  }
+
+  .metric-value {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+
+  .metric-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Responsive */
+  @media (max-width: 1100px) {
+    .phases-grid { grid-template-columns: repeat(2, 1fr); }
+    .detail-grid { grid-template-columns: 1fr; }
+    .main-container { padding: 24px; }
+    .page-header { padding: 24px; }
+    .legend-bar { padding: 12px 24px; flex-wrap: wrap; }
+  }
+
+  @media (max-width: 600px) {
+    .phases-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>SaaS Onboarding Journey Map</h1>
+  <p>End-to-end customer experience across awareness, sign-up, onboarding, and adoption phases. Click any phase for detailed breakdown.</p>
+</div>
+
+<div class="legend-bar">
+  <div class="legend-item">
+    <div class="legend-line" style="background: var(--accent-green);"></div>
+    <span>Positive Emotion</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-line" style="background: var(--accent-orange);"></div>
+    <span>Neutral</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-line" style="background: var(--accent-red);"></div>
+    <span>Negative Emotion</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background: rgba(232,99,111,0.3); border: 2px solid var(--accent-red);"></div>
+    <span>Pain Point</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background: rgba(78,203,141,0.3); border: 2px solid var(--accent-green);"></div>
+    <span>Opportunity</span>
+  </div>
+</div>
+
+<div class="main-container">
+  <!-- Emotion Chart -->
+  <div class="emotion-chart-container">
+    <div class="emotion-chart-header">
+      <h2>Emotional Journey</h2>
+      <div id="hover-badge" class="emotion-score-badge" style="background: var(--surface-alt); color: var(--text-muted);">
+        Hover over chart to see scores
+      </div>
+    </div>
+    <div id="emotion-chart"></div>
+  </div>
+
+  <!-- Phase Columns -->
+  <div class="phases-grid" id="phases-grid"></div>
+
+  <!-- Detail Panel -->
+  <div class="detail-panel" id="detail-panel"></div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const journeyData = [
+  {
+    id: 'awareness',
+    phase: 1,
+    name: 'Awareness',
+    color: '#5b8def',
+    subtitle: 'Discovery & Evaluation',
+    touchpoints: [
+      { name: 'Landing Page Visit', desc: 'First impression of value proposition' },
+      { name: 'Pricing Page Review', desc: 'Evaluating cost vs. value' },
+      { name: 'Competitor Comparison', desc: 'Benchmarking against alternatives' },
+    ],
+    emotions: [
+      { step: 'Landing Page', score: 72, label: 'Curious' },
+      { step: 'Pricing Page', score: 60, label: 'Evaluating' },
+    ],
+    painPoints: [
+      'Unclear differentiation from competitors on landing page',
+      'Pricing tiers are confusing with too many feature comparisons',
+      'No interactive demo available before sign-up',
+    ],
+    opportunities: [
+      'Add interactive product preview on landing page',
+      'Simplify pricing to 3 clear tiers with comparison table',
+      'Include customer testimonials with specific ROI metrics',
+    ],
+    userGoals: ['Understand the product value', 'Evaluate pricing fit', 'Compare with alternatives'],
+    actions: ['Reads landing page', 'Clicks through features', 'Views pricing tiers'],
+    metrics: { avgTime: '4.2 min', bounceRate: '38%', conversion: '12%' },
+  },
+  {
+    id: 'signup',
+    phase: 2,
+    name: 'Sign Up',
+    color: '#4ecb8d',
+    subtitle: 'Registration & Verification',
+    touchpoints: [
+      { name: 'Registration Form', desc: 'Creating account with details' },
+      { name: 'Email Verification', desc: 'Confirming identity via email' },
+      { name: 'Profile Setup', desc: 'Initial preferences and role' },
+    ],
+    emotions: [
+      { step: 'Registration', score: 80, label: 'Excited' },
+      { step: 'Email Verification', score: 68, label: 'Waiting' },
+    ],
+    painPoints: [
+      'Registration form asks for too many fields upfront',
+      'Verification email sometimes delayed or lands in spam',
+      'No social sign-on option (Google/GitHub) increases friction',
+    ],
+    opportunities: [
+      'Enable social SSO for one-click registration',
+      'Reduce form to email + password only, defer rest to onboarding',
+      'Add magic link option to eliminate password creation',
+    ],
+    userGoals: ['Create an account quickly', 'Verify identity', 'Set initial preferences'],
+    actions: ['Fills registration form', 'Checks email', 'Clicks verification link'],
+    metrics: { avgTime: '2.8 min', bounceRate: '15%', conversion: '78%' },
+  },
+  {
+    id: 'onboarding',
+    phase: 3,
+    name: 'Onboarding',
+    color: '#f0a65a',
+    subtitle: 'First Value & Team Setup',
+    touchpoints: [
+      { name: 'Product Tour', desc: 'Guided walkthrough of key features' },
+      { name: 'First Project', desc: 'Creating initial workspace/project' },
+      { name: 'Team Invitations', desc: 'Inviting colleagues to collaborate' },
+    ],
+    emotions: [
+      { step: 'Product Tour', score: 55, label: 'Overwhelmed' },
+      { step: 'First Project', score: 38, label: 'Frustrated' },
+      { step: 'Invite Team', score: 45, label: 'Struggling' },
+    ],
+    painPoints: [
+      'Product tour is too long and not skippable',
+      'First project creation requires too many configuration steps',
+      'Team invitation flow unclear with confusing role permissions',
+      'No templates or sample data to start with',
+    ],
+    opportunities: [
+      'Offer 2-minute quick start vs. full tour choice',
+      'Provide pre-built project templates for common use cases',
+      'Simplify team roles to Admin/Member with clear tooltips',
+      'Add contextual help with "Ask AI" assistant during setup',
+    ],
+    userGoals: ['Understand core features', 'Set up first project', 'Get team onboard'],
+    actions: ['Takes product tour', 'Configures workspace', 'Sends team invites'],
+    metrics: { avgTime: '18 min', bounceRate: '32%', conversion: '52%' },
+  },
+  {
+    id: 'adoption',
+    phase: 4,
+    name: 'Adoption',
+    color: '#a78bfa',
+    subtitle: 'Daily Usage & Growth',
+    touchpoints: [
+      { name: 'Daily Usage', desc: 'Regular product engagement' },
+      { name: 'Feature Discovery', desc: 'Exploring advanced capabilities' },
+      { name: 'Workflow Integration', desc: 'Connecting with existing tools' },
+    ],
+    emotions: [
+      { step: 'Daily Usage', score: 70, label: 'Comfortable' },
+      { step: 'Feature Discovery', score: 82, label: 'Delighted' },
+    ],
+    painPoints: [
+      'Advanced features are hidden in deep menus',
+      'No proactive suggestions based on usage patterns',
+      'Integration setup requires technical knowledge',
+    ],
+    opportunities: [
+      'Surface relevant features based on user behavior',
+      'Add "Did you know?" tips triggered by usage milestones',
+      'Create no-code integration wizard for popular tools',
+      'Implement in-app community for peer learning',
+    ],
+    userGoals: ['Build daily habit', 'Discover valuable features', 'Integrate with workflow'],
+    actions: ['Uses product daily', 'Explores settings', 'Connects integrations'],
+    metrics: { avgTime: 'Daily', bounceRate: '8%', conversion: '88%' },
+  },
+];
+
+// Build all emotion data points in sequence
+const allEmotionPoints = [];
+let xIndex = 0;
+journeyData.forEach(phase => {
+  phase.emotions.forEach(e => {
+    allEmotionPoints.push({
+      x: xIndex,
+      score: e.score,
+      label: e.label,
+      step: e.step,
+      phase: phase.name,
+      color: phase.color,
+    });
+    xIndex++;
+  });
+});
+
+// ---- Render Emotion Chart with D3 ----
+function renderEmotionChart() {
+  const container = document.getElementById('emotion-chart');
+  const rect = container.getBoundingClientRect();
+  const width = rect.width;
+  const height = rect.height || 280;
+  const margin = { top: 20, right: 32, bottom: 40, left: 48 };
+  const w = width - margin.left - margin.right;
+  const h = height - margin.top - margin.bottom;
+
+  d3.select('#emotion-chart').selectAll('*').remove();
+
+  const svg = d3.select('#emotion-chart')
+    .append('svg')
+    .attr('width', width)
+    .attr('height', height);
+
+  const g = svg.append('g')
+    .attr('transform', `translate(${margin.left},${margin.top})`);
+
+  const xScale = d3.scaleLinear()
+    .domain([0, allEmotionPoints.length - 1])
+    .range([0, w]);
+
+  const yScale = d3.scaleLinear()
+    .domain([0, 100])
+    .range([h, 0]);
+
+  // Phase background bands
+  let cumX = 0;
+  journeyData.forEach((phase, i) => {
+    const count = phase.emotions.length;
+    const startX = xScale(cumX) - (cumX === 0 ? 0 : (xScale(1) - xScale(0)) / 2);
+    const endX = xScale(cumX + count - 1) + (cumX + count - 1 === allEmotionPoints.length - 1 ? 0 : (xScale(1) - xScale(0)) / 2);
+    g.append('rect')
+      .attr('x', Math.max(0, startX))
+      .attr('y', 0)
+      .attr('width', Math.min(endX - Math.max(0, startX), w - Math.max(0, startX)))
+      .attr('height', h)
+      .attr('fill', phase.color)
+      .attr('opacity', 0.04)
+      .attr('rx', 4);
+
+    // Phase label at top
+    g.append('text')
+      .attr('x', (Math.max(0, startX) + Math.min(endX, w)) / 2)
+      .attr('y', -6)
+      .attr('text-anchor', 'middle')
+      .attr('fill', phase.color)
+      .attr('font-size', 11)
+      .attr('font-weight', 600)
+      .attr('opacity', 0.7)
+      .text(phase.name);
+
+    cumX += count;
+  });
+
+  // Horizontal reference lines
+  [25, 50, 75].forEach(v => {
+    g.append('line')
+      .attr('x1', 0).attr('x2', w)
+      .attr('y1', yScale(v)).attr('y2', yScale(v))
+      .attr('stroke', '#2e3348')
+      .attr('stroke-dasharray', '4,4');
+
+    g.append('text')
+      .attr('x', -8)
+      .attr('y', yScale(v) + 4)
+      .attr('text-anchor', 'end')
+      .attr('fill', '#6b7185')
+      .attr('font-size', 10)
+      .text(v);
+  });
+
+  // Frustration zone
+  g.append('rect')
+    .attr('x', 0)
+    .attr('y', yScale(50))
+    .attr('width', w)
+    .attr('height', yScale(0) - yScale(50))
+    .attr('fill', 'var(--accent-red)')
+    .attr('opacity', 0.03);
+
+  g.append('text')
+    .attr('x', w - 4)
+    .attr('y', yScale(25))
+    .attr('text-anchor', 'end')
+    .attr('fill', 'var(--accent-red)')
+    .attr('font-size', 9)
+    .attr('opacity', 0.5)
+    .text('FRUSTRATION ZONE');
+
+  // Area under curve
+  const area = d3.area()
+    .x(d => xScale(d.x))
+    .y0(h)
+    .y1(d => yScale(d.score))
+    .curve(d3.curveMonotoneX);
+
+  const gradient = svg.append('defs')
+    .append('linearGradient')
+    .attr('id', 'areaGradient')
+    .attr('x1', 0).attr('y1', 0)
+    .attr('x2', 0).attr('y2', 1);
+
+  gradient.append('stop').attr('offset', '0%').attr('stop-color', '#5b8def').attr('stop-opacity', 0.15);
+  gradient.append('stop').attr('offset', '100%').attr('stop-color', '#5b8def').attr('stop-opacity', 0);
+
+  g.append('path')
+    .datum(allEmotionPoints)
+    .attr('d', area)
+    .attr('fill', 'url(#areaGradient)');
+
+  // Line
+  const line = d3.line()
+    .x(d => xScale(d.x))
+    .y(d => yScale(d.score))
+    .curve(d3.curveMonotoneX);
+
+  g.append('path')
+    .datum(allEmotionPoints)
+    .attr('d', line)
+    .attr('fill', 'none')
+    .attr('stroke', 'url(#lineGradient)')
+    .attr('stroke-width', 3)
+    .attr('stroke-linecap', 'round');
+
+  // Line gradient
+  const lineGrad = svg.select('defs')
+    .append('linearGradient')
+    .attr('id', 'lineGradient')
+    .attr('x1', 0).attr('y1', 0).attr('x2', 1).attr('y2', 0);
+
+  allEmotionPoints.forEach((d, i) => {
+    const pct = (i / (allEmotionPoints.length - 1)) * 100;
+    const color = d.score >= 65 ? 'var(--emotion-positive)' : d.score >= 50 ? 'var(--emotion-neutral)' : 'var(--emotion-negative)';
+    lineGrad.append('stop').attr('offset', pct + '%').attr('stop-color', color);
+  });
+
+  // Data points
+  const dots = g.selectAll('.dot')
+    .data(allEmotionPoints)
+    .enter()
+    .append('g')
+    .attr('class', 'dot')
+    .attr('transform', d => `translate(${xScale(d.x)},${yScale(d.score)})`);
+
+  dots.append('circle')
+    .attr('r', 6)
+    .attr('fill', d => d.score >= 65 ? 'var(--emotion-positive)' : d.score >= 50 ? 'var(--emotion-neutral)' : 'var(--emotion-negative)')
+    .attr('stroke', 'var(--bg)')
+    .attr('stroke-width', 3);
+
+  dots.append('circle')
+    .attr('r', 16)
+    .attr('fill', 'transparent')
+    .attr('cursor', 'pointer')
+    .on('mouseenter', function(event, d) {
+      const color = d.score >= 65 ? 'var(--emotion-positive)' : d.score >= 50 ? 'var(--emotion-neutral)' : 'var(--emotion-negative)';
+      d3.select(this.parentNode).select('circle').transition().duration(150).attr('r', 9);
+
+      const badge = document.getElementById('hover-badge');
+      badge.textContent = `${d.step}: ${d.score}/100 - ${d.label}`;
+      badge.style.background = d.score >= 65 ? 'rgba(78,203,141,0.15)' : d.score >= 50 ? 'rgba(240,166,90,0.15)' : 'rgba(232,99,111,0.15)';
+      badge.style.color = d.score >= 65 ? 'var(--emotion-positive)' : d.score >= 50 ? 'var(--emotion-neutral)' : 'var(--emotion-negative)';
+
+      const tooltip = document.getElementById('tooltip');
+      tooltip.innerHTML = `<div class="label">${d.step}</div><div class="score">${d.phase} Phase<br>Emotion: ${d.label} (${d.score}/100)</div>`;
+      tooltip.style.opacity = 1;
+      tooltip.style.left = (event.pageX + 12) + 'px';
+      tooltip.style.top = (event.pageY - 40) + 'px';
+    })
+    .on('mousemove', function(event) {
+      const tooltip = document.getElementById('tooltip');
+      tooltip.style.left = (event.pageX + 12) + 'px';
+      tooltip.style.top = (event.pageY - 40) + 'px';
+    })
+    .on('mouseleave', function() {
+      d3.select(this.parentNode).select('circle').transition().duration(150).attr('r', 6);
+      document.getElementById('tooltip').style.opacity = 0;
+      const badge = document.getElementById('hover-badge');
+      badge.textContent = 'Hover over chart to see scores';
+      badge.style.background = 'var(--surface-alt)';
+      badge.style.color = 'var(--text-muted)';
+    });
+
+  // X-axis labels
+  allEmotionPoints.forEach(d => {
+    g.append('text')
+      .attr('x', xScale(d.x))
+      .attr('y', h + 24)
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#6b7185')
+      .attr('font-size', 10)
+      .text(d.step);
+  });
+}
+
+// ---- Render Phase Columns ----
+function renderPhases() {
+  const grid = document.getElementById('phases-grid');
+  grid.innerHTML = '';
+
+  journeyData.forEach(phase => {
+    const col = document.createElement('div');
+    col.className = 'phase-col';
+    col.dataset.id = phase.id;
+
+    const avgEmotion = Math.round(phase.emotions.reduce((s, e) => s + e.score, 0) / phase.emotions.length);
+    const emotionColor = avgEmotion >= 65 ? 'var(--emotion-positive)' : avgEmotion >= 50 ? 'var(--emotion-neutral)' : 'var(--emotion-negative)';
+
+    col.innerHTML = `
+      <div class="phase-header" style="border-left: 3px solid ${phase.color};">
+        <div class="phase-number" style="color: ${phase.color};">Phase ${phase.phase}</div>
+        <div class="phase-name">${phase.name}</div>
+        <div class="phase-subtitle">${phase.subtitle}</div>
+      </div>
+      <div class="phase-body">
+        <div class="section-label">Touchpoints</div>
+        <ul class="touchpoint-list">
+          ${phase.touchpoints.map(t => `
+            <li>
+              <div class="touchpoint-icon" style="background: ${phase.color}22; color: ${phase.color};">&#9679;</div>
+              <div><strong style="color: var(--text-primary); font-weight: 500;">${t.name}</strong><br><span style="font-size: 11px;">${t.desc}</span></div>
+            </li>
+          `).join('')}
+        </ul>
+
+        <div class="section-label">Avg. Emotion</div>
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+          <div style="flex: 1; height: 6px; background: var(--surface-alt); border-radius: 3px; overflow: hidden;">
+            <div style="width: ${avgEmotion}%; height: 100%; background: ${emotionColor}; border-radius: 3px; transition: width 0.5s;"></div>
+          </div>
+          <span style="font-size: 13px; font-weight: 600; color: ${emotionColor};">${avgEmotion}</span>
+        </div>
+
+        <div class="section-label">Pain Points</div>
+        ${phase.painPoints.slice(0, 2).map(p => `
+          <div class="pain-point">
+            <span class="icon">&#x26A0;</span>
+            <span>${p}</span>
+          </div>
+        `).join('')}
+
+        <div class="section-label">Opportunities</div>
+        ${phase.opportunities.slice(0, 2).map(o => `
+          <div class="opportunity">
+            <span class="icon">&#x2728;</span>
+            <span>${o}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    col.addEventListener('click', () => showDetail(phase));
+    grid.appendChild(col);
+  });
+}
+
+// ---- Detail Panel ----
+function showDetail(phase) {
+  const panel = document.getElementById('detail-panel');
+  const avgEmotion = Math.round(phase.emotions.reduce((s, e) => s + e.score, 0) / phase.emotions.length);
+
+  // Highlight active phase
+  document.querySelectorAll('.phase-col').forEach(el => {
+    el.classList.toggle('active', el.dataset.id === phase.id);
+  });
+
+  panel.innerHTML = `
+    <div class="detail-panel-header">
+      <h2 style="display: flex; align-items: center; gap: 10px;">
+        <span style="color: ${phase.color};">Phase ${phase.phase}:</span> ${phase.name}
+        <span style="font-size: 13px; color: var(--text-muted); font-weight: 400;">${phase.subtitle}</span>
+      </h2>
+      <button class="close-btn" onclick="closeDetail()">Close</button>
+    </div>
+    <div class="metric-row">
+      <div class="metric-card">
+        <div class="metric-value" style="color: ${phase.color};">${phase.metrics.avgTime}</div>
+        <div class="metric-label">Avg. Time</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" style="color: var(--accent-red);">${phase.metrics.bounceRate}</div>
+        <div class="metric-label">Drop-off Rate</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" style="color: var(--accent-green);">${phase.metrics.conversion}</div>
+        <div class="metric-label">Completion Rate</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" style="color: ${avgEmotion >= 65 ? 'var(--emotion-positive)' : avgEmotion >= 50 ? 'var(--emotion-neutral)' : 'var(--emotion-negative)'};">${avgEmotion}/100</div>
+        <div class="metric-label">Emotion Score</div>
+      </div>
+    </div>
+    <div class="detail-grid" style="margin-top: 16px;">
+      <div class="detail-section">
+        <h3>User Goals</h3>
+        <ul>${phase.userGoals.map(g => `<li>${g}</li>`).join('')}</ul>
+      </div>
+      <div class="detail-section">
+        <h3>All Pain Points</h3>
+        <ul>${phase.painPoints.map(p => `<li style="color: var(--accent-red);">${p}</li>`).join('')}</ul>
+      </div>
+      <div class="detail-section">
+        <h3>All Opportunities</h3>
+        <ul>${phase.opportunities.map(o => `<li style="color: var(--accent-green);">${o}</li>`).join('')}</ul>
+      </div>
+    </div>
+    <div class="detail-grid" style="margin-top: 12px;">
+      <div class="detail-section">
+        <h3>User Actions</h3>
+        <ul>${phase.actions.map(a => `<li>${a}</li>`).join('')}</ul>
+      </div>
+      <div class="detail-section" style="grid-column: span 2;">
+        <h3>Emotion Breakdown</h3>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          ${phase.emotions.map(e => {
+            const c = e.score >= 65 ? 'var(--emotion-positive)' : e.score >= 50 ? 'var(--emotion-neutral)' : 'var(--emotion-negative)';
+            return `<div style="background: var(--bg); border-radius: 8px; padding: 12px 16px; flex: 1; min-width: 120px;">
+              <div style="font-size: 20px; font-weight: 700; color: ${c};">${e.score}</div>
+              <div style="font-size: 12px; color: var(--text-secondary);">${e.step}</div>
+              <div style="font-size: 11px; color: var(--text-muted);">${e.label}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+
+  panel.classList.add('visible');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function closeDetail() {
+  document.getElementById('detail-panel').classList.remove('visible');
+  document.querySelectorAll('.phase-col').forEach(el => el.classList.remove('active'));
+}
+
+// Init
+renderPhases();
+renderEmotionChart();
+
+// Resize handler
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(renderEmotionChart, 200);
+});
+</script>
+</body>
+</html>

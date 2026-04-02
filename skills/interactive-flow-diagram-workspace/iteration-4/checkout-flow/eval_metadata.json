@@ -1,0 +1,60 @@
+{
+  "prompt": "Build me an interactive user flow for an e-commerce checkout: Browse \u2192 Cart \u2192 Shipping \u2192 Payment \u2192 Confirmation, with error handling for payment failure and address validation. Include decision diamonds for the validation steps and highlight the happy path.",
+  "expected_output": "A standalone HTML file with D3.js showing a checkout flow with decision diamonds for payment/address validation, error path nodes with red styling, and a visually distinct happy path. SDS light theme with warm canvas and semantic status colors.",
+  "assertions": [
+    {
+      "type": "file_exists",
+      "name": "HTML file exists",
+      "pattern": "*.html"
+    },
+    {
+      "type": "contains",
+      "name": "Uses D3.js from CDN",
+      "text": "d3@7"
+    },
+    {
+      "type": "contains",
+      "name": "Checkout phases present",
+      "text": "Cart",
+      "also_contains": [
+        "Payment",
+        "Confirmation"
+      ]
+    },
+    {
+      "type": "contains",
+      "name": "Decision diamonds",
+      "text": "diamond"
+    },
+    {
+      "type": "contains",
+      "name": "Error handling",
+      "text": "error"
+    },
+    {
+      "type": "contains",
+      "name": "Happy path styling",
+      "text": "happy"
+    },
+    {
+      "type": "contains",
+      "name": "SDS warm canvas",
+      "text": "#FAF8F5"
+    },
+    {
+      "type": "contains",
+      "name": "SDS error color",
+      "text": "#CF6253"
+    },
+    {
+      "type": "contains",
+      "name": "Breadcrumb navigation",
+      "text": "breadcrumb"
+    },
+    {
+      "type": "contains",
+      "name": "SVG rendering",
+      "text": "<svg"
+    }
+  ]
+}

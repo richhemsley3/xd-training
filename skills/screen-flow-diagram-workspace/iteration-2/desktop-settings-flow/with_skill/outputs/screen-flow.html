@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Settings Flow — Screen Flow</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #FAF8F5;
+      color: #1C1A17;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+    }
+
+    /* Title bar */
+    .title-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: #FFFFFF;
+      border-bottom: 1px solid #E0DCD3;
+      display: flex;
+      align-items: center;
+      padding: 0 32px;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .title-bar h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1C1A17;
+    }
+    .title-bar p {
+      font-size: 14px;
+      font-weight: 400;
+      color: #54514D;
+      margin-left: 20px;
+    }
+
+    /* SVG canvas */
+    #flow-svg {
+      position: fixed;
+      top: 64px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    /* Detail panel */
+    .detail-panel {
+      position: fixed;
+      top: 64px;
+      right: 0;
+      width: 320px;
+      bottom: 0;
+      background: #FFFFFF;
+      border-left: 1px solid #E0DCD3;
+      box-shadow: -4px 0 12px rgba(0,0,0,0.06);
+      z-index: 200;
+      transform: translateX(100%);
+      transition: transform 0.25s ease;
+      overflow-y: auto;
+      padding: 28px 24px;
+    }
+    .detail-panel.open {
+      transform: translateX(0);
+    }
+    .detail-panel .close-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 32px;
+      height: 32px;
+      border: 1px solid #E0DCD3;
+      border-radius: 8px;
+      background: #FAF8F5;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: #54514D;
+    }
+    .detail-panel .close-btn:hover {
+      background: #F4F1EB;
+      border-color: #D0CBC3;
+    }
+    .detail-panel h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1C1A17;
+      margin-bottom: 8px;
+      padding-right: 40px;
+    }
+    .detail-panel .type-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      background: #D9EBED;
+      color: #013D5B;
+      margin-bottom: 16px;
+    }
+    .detail-panel .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #6B6760;
+      margin-top: 20px;
+      margin-bottom: 8px;
+    }
+    .detail-panel .description {
+      font-size: 14px;
+      color: #54514D;
+      line-height: 1.5;
+    }
+    .detail-panel .element-list {
+      list-style: none;
+    }
+    .detail-panel .element-list li {
+      font-size: 13px;
+      color: #54514D;
+      padding: 6px 0;
+      border-bottom: 1px solid #EBE6DD;
+    }
+    .detail-panel .exit-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid #EBE6DD;
+    }
+    .detail-panel .exit-action {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+      background: #013D5B;
+      color: #FFFFFF;
+    }
+    .detail-panel .exit-target {
+      font-size: 13px;
+      color: #54514D;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="title-bar">
+    <h1>Settings Flow</h1>
+    <p>Desktop web application settings navigation with modal dialog</p>
+  </div>
+
+  <svg id="flow-svg"></svg>
+
+  <div class="detail-panel" id="detailPanel">
+    <button class="close-btn" onclick="closeDetail()">&times;</button>
+    <h2 id="detailName"></h2>
+    <div class="type-badge" id="detailType"></div>
+    <div class="section-title">Description</div>
+    <div class="description" id="detailDesc"></div>
+    <div class="section-title">UI Elements</div>
+    <ul class="element-list" id="detailElements"></ul>
+    <div class="section-title">Exits</div>
+    <div id="detailExits"></div>
+  </div>
+
+  <script>
+    // ─── Flow Data ───
+    const flowData = {
+      title: "Settings Flow",
+      description: "Desktop web application settings navigation with modal dialog",
+      deviceType: "desktop",
+      screens: [
+        {
+          id: "settings-overview",
+          name: "Settings Overview",
+          type: "list",
+          description: "Top-level settings page listing all setting categories. Each row links to a dedicated settings sub-page.",
+          navTitle: "Settings",
+          elements: [
+            { type: "navbar", content: "Settings" },
+            { type: "card-row", content: "Profile", highlighted: false },
+            { type: "card-row", content: "Notifications", highlighted: false },
+            { type: "card-row", content: "Security", highlighted: false },
+            { type: "card-row", content: "Billing", highlighted: false },
+            { type: "card-row", content: "Integrations", highlighted: false }
+          ],
+          exits: [
+            { action: "Click Profile", target: "profile-settings" },
+            { action: "Click Notifications", target: "notification-prefs" },
+            { action: "Click Security", target: "security-settings" }
+          ]
+        },
+        {
+          id: "profile-settings",
+          name: "Profile Settings",
+          type: "form",
+          description: "User profile form with fields for display name, email, bio, and avatar. Submit saves changes and returns to settings overview.",
+          navTitle: "← Profile",
+          elements: [
+            { type: "navbar", content: "← Profile", hasBack: true },
+            { type: "input-field", content: "Display Name" },
+            { type: "input-field", content: "Email Address" },
+            { type: "input-field", content: "Bio" },
+            { type: "button", content: "Save Changes", isAction: true }
+          ],
+          exits: [
+            { action: "Go Back", target: "settings-overview" },
+            { action: "Click Notifications", target: "notification-prefs" }
+          ]
+        },
+        {
+          id: "notification-prefs",
+          name: "Notification Preferences",
+          type: "settings",
+          description: "Toggle switches for each notification channel: email notifications, push notifications, SMS alerts, weekly digest, and marketing updates.",
+          navTitle: "← Notifications",
+          elements: [
+            { type: "navbar", content: "← Notifications", hasBack: true },
+            { type: "toggle-row", content: "Email Notifications" },
+            { type: "toggle-row", content: "Push Notifications" },
+            { type: "toggle-row", content: "SMS Alerts" },
+            { type: "toggle-row", content: "Weekly Digest" },
+            { type: "toggle-row", content: "Marketing" }
+          ],
+          exits: [
+            { action: "Go Back", target: "settings-overview" },
+            { action: "Click Security", target: "security-settings" }
+          ]
+        },
+        {
+          id: "security-settings",
+          name: "Security Settings",
+          type: "form",
+          description: "Security form with current password, new password, and confirm password fields. Includes a danger zone section with a delete account button.",
+          navTitle: "← Security",
+          elements: [
+            { type: "navbar", content: "← Security", hasBack: true },
+            { type: "input-field", content: "Current Password" },
+            { type: "input-field", content: "New Password" },
+            { type: "input-field", content: "Confirm Password" },
+            { type: "button", content: "Update Password", isAction: true },
+            { type: "button", content: "Delete Account", isDanger: true }
+          ],
+          exits: [
+            { action: "Go Back", target: "settings-overview" },
+            { action: "Click Delete", target: "delete-modal" }
+          ]
+        },
+        {
+          id: "delete-modal",
+          name: "Delete Account",
+          type: "modal",
+          description: "Confirmation modal dialog warning the user that account deletion is permanent. Requires typing 'DELETE' to confirm. Appears overlaid on the Security Settings screen.",
+          navTitle: "Delete Account",
+          elements: [
+            { type: "modal-overlay" },
+            { type: "text-block", content: "Are you sure?" },
+            { type: "input-field", content: "Type DELETE" },
+            { type: "button", content: "Cancel", isAction: false },
+            { type: "button", content: "Delete Account", isDanger: true }
+          ],
+          exits: [
+            { action: "Click Cancel", target: "security-settings" }
+          ]
+        }
+      ]
+    };
+
+    // ─── Dimensions ───
+    const SCREEN_W = 280;
+    const SCREEN_H = 180;
+    const H_SPACING = 400;
+    const V_SPACING = 350;
+
+    // ─── Position Screens ───
+    // Main horizontal flow: Overview → Profile → Notifications → Security
+    // Modal branches down from Security
+    const positions = {
+      "settings-overview": { x: 80, y: 200 },
+      "profile-settings": { x: 80 + H_SPACING, y: 200 },
+      "notification-prefs": { x: 80 + H_SPACING * 2, y: 200 },
+      "security-settings": { x: 80 + H_SPACING * 3, y: 200 },
+      "delete-modal": { x: 80 + H_SPACING * 3, y: 200 + V_SPACING }
+    };
+
+    flowData.screens.forEach(s => {
+      s.x = positions[s.id].x;
+      s.y = positions[s.id].y;
+    });
+
+    // Only draw the primary forward connections + the modal branch
+    const connections = [
+      { sourceId: "settings-overview", targetId: "profile-settings", action: "Click Profile" },
+      { sourceId: "settings-overview", targetId: "notification-prefs", action: "Click Notifications" },
+      { sourceId: "settings-overview", targetId: "security-settings", action: "Click Security" },
+      { sourceId: "security-settings", targetId: "delete-modal", action: "Click Delete" },
+      { sourceId: "delete-modal", targetId: "security-settings", action: "Click Cancel" }
+    ];
+
+    // ─── SVG Setup ───
+    const width = window.innerWidth;
+    const height = window.innerHeight - 64;
+
+    const svg = d3.select('#flow-svg')
+      .attr('width', width)
+      .attr('height', height);
+
+    // Drop shadow filter
+    const defs = svg.append('defs');
+
+    const filter = defs.append('filter')
+      .attr('id', 'dropShadow')
+      .attr('x', '-10%').attr('y', '-10%')
+      .attr('width', '130%').attr('height', '130%');
+    filter.append('feDropShadow')
+      .attr('dx', 0).attr('dy', 2).attr('stdDeviation', 4)
+      .attr('flood-color', 'rgba(0,0,0,0.06)');
+
+    const filterHover = defs.append('filter')
+      .attr('id', 'dropShadowHover')
+      .attr('x', '-10%').attr('y', '-10%')
+      .attr('width', '130%').attr('height', '130%');
+    filterHover.append('feDropShadow')
+      .attr('dx', 0).attr('dy', 3).attr('stdDeviation', 6)
+      .attr('flood-color', 'rgba(0,0,0,0.10)');
+
+    // Arrowhead marker
+    defs.append('marker')
+      .attr('id', 'arrowhead')
+      .attr('viewBox', '0 0 8 6')
+      .attr('refX', 8).attr('refY', 3)
+      .attr('markerWidth', 8).attr('markerHeight', 6)
+      .attr('orient', 'auto-start-reverse')
+      .append('path')
+      .attr('d', 'M 0,0 L 8,3 L 0,6 Z')
+      .attr('fill', '#013D5B');
+
+    const container = svg.append('g');
+
+    const zoom = d3.zoom()
+      .scaleExtent([0.15, 3])
+      .on('zoom', (event) => container.attr('transform', event.transform));
+
+    svg.call(zoom);
+
+    // ─── Draw Connectors ───
+    function getScreen(id) {
+      return flowData.screens.find(s => s.id === id);
+    }
+
+    connections.forEach(conn => {
+      const source = getScreen(conn.sourceId);
+      const target = getScreen(conn.targetId);
+      if (!source || !target) return;
+
+      const sRight = source.x + SCREEN_W;
+      const sMidY = source.y + SCREEN_H / 2;
+      const sBottom = source.y + SCREEN_H;
+      const sMidX = source.x + SCREEN_W / 2;
+
+      const tLeft = target.x;
+      const tMidY = target.y + SCREEN_H / 2;
+      const tTop = target.y;
+      const tMidX = target.x + SCREEN_W / 2;
+
+      let exitX, exitY, entryX, entryY, pathD, pillX, pillY;
+
+      // Determine routing based on relative positions
+      if (conn.sourceId === "settings-overview" && conn.targetId === "notification-prefs") {
+        // Skip one screen: route up and over
+        exitX = sMidX;
+        exitY = source.y;
+        entryX = tMidX;
+        entryY = target.y;
+        const arcY = source.y - 70;
+        pathD = `M ${exitX},${exitY} V ${arcY} H ${entryX} V ${entryY}`;
+        pillX = (exitX + entryX) / 2;
+        pillY = arcY;
+      } else if (conn.sourceId === "settings-overview" && conn.targetId === "security-settings") {
+        // Skip two screens: route higher up and over
+        exitX = sMidX + 40;
+        exitY = source.y;
+        entryX = tMidX;
+        entryY = target.y;
+        const arcY = source.y - 120;
+        pathD = `M ${exitX},${exitY} V ${arcY} H ${entryX} V ${entryY}`;
+        pillX = (exitX + entryX) / 2;
+        pillY = arcY;
+      } else if (target.y > source.y + SCREEN_H) {
+        // Target is below: exit bottom, enter top
+        exitX = sMidX;
+        exitY = sBottom;
+        entryX = tMidX;
+        entryY = tTop;
+        pillX = (exitX + entryX) / 2;
+        pillY = (exitY + entryY) / 2;
+        pathD = `M ${exitX},${exitY} V ${pillY} H ${entryX} V ${entryY}`;
+      } else if (target.x < source.x) {
+        // Target is to the left (back navigation): exit left, curve up and back
+        exitX = tMidX;
+        exitY = tTop;
+        entryX = sMidX;
+        entryY = sBottom;
+        const arcY = Math.min(source.y, target.y) + SCREEN_H + 40;
+        pillX = (exitX + entryX) / 2;
+        pillY = arcY;
+        pathD = `M ${entryX},${entryY} V ${arcY} H ${exitX} V ${exitY}`;
+        // Swap for rendering: draw from modal bottom to security top
+      } else {
+        // Default: horizontal exit right, enter left
+        exitX = sRight;
+        exitY = sMidY;
+        entryX = tLeft;
+        entryY = tMidY;
+        const midX = (exitX + entryX) / 2;
+        pillX = midX;
+        pillY = (exitY + entryY) / 2;
+        pathD = `M ${exitX},${exitY} H ${midX} V ${entryY} H ${entryX}`;
+      }
+
+      // Draw path
+      container.append('path')
+        .attr('d', pathD)
+        .attr('stroke', '#013D5B')
+        .attr('stroke-width', 2)
+        .attr('fill', 'none')
+        .attr('marker-end', 'url(#arrowhead)');
+
+      // Exit port
+      let portExitX, portExitY, portEntryX, portEntryY;
+      if (conn.sourceId === "settings-overview" && (conn.targetId === "notification-prefs" || conn.targetId === "security-settings")) {
+        portExitX = conn.targetId === "security-settings" ? sMidX + 40 : sMidX;
+        portExitY = source.y;
+        portEntryX = tMidX;
+        portEntryY = target.y;
+      } else if (target.y > source.y + SCREEN_H) {
+        portExitX = sMidX;
+        portExitY = sBottom;
+        portEntryX = tMidX;
+        portEntryY = tTop;
+      } else if (target.x < source.x) {
+        portExitX = entryX;
+        portExitY = entryY;
+        portEntryX = exitX;
+        portEntryY = exitY;
+      } else {
+        portExitX = exitX;
+        portExitY = exitY;
+        portEntryX = entryX;
+        portEntryY = entryY;
+      }
+
+      // Port circles
+      container.append('circle')
+        .attr('cx', portExitX).attr('cy', portExitY)
+        .attr('r', 5).attr('fill', '#013D5B')
+        .attr('stroke', 'white').attr('stroke-width', 2);
+      container.append('circle')
+        .attr('cx', portExitX).attr('cy', portExitY)
+        .attr('r', 2).attr('fill', 'white');
+
+      container.append('circle')
+        .attr('cx', portEntryX).attr('cy', portEntryY)
+        .attr('r', 5).attr('fill', '#013D5B')
+        .attr('stroke', 'white').attr('stroke-width', 2);
+      container.append('circle')
+        .attr('cx', portEntryX).attr('cy', portEntryY)
+        .attr('r', 2).attr('fill', 'white');
+
+      // Action pill
+      const pillG = container.append('g')
+        .attr('transform', `translate(${pillX}, ${pillY})`)
+        .style('cursor', 'pointer');
+
+      const textLen = conn.action.length * 6.5 + 24;
+      pillG.append('rect')
+        .attr('x', -textLen / 2).attr('y', -12)
+        .attr('width', textLen).attr('height', 24)
+        .attr('rx', 12)
+        .attr('fill', '#013D5B')
+        .on('mouseenter', function() { d3.select(this).attr('fill', '#05314D'); })
+        .on('mouseleave', function() { d3.select(this).attr('fill', '#013D5B'); });
+
+      pillG.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '0.35em')
+        .attr('fill', 'white')
+        .attr('font-size', '11px')
+        .attr('font-weight', '500')
+        .style('pointer-events', 'none')
+        .text(conn.action);
+    });
+
+    // ─── Draw Screens ───
+    function drawScreen(screenData) {
+      const g = container.append('g')
+        .attr('transform', `translate(${screenData.x}, ${screenData.y})`)
+        .style('cursor', 'pointer');
+
+      const isModal = screenData.type === 'modal';
+      const sw = SCREEN_W;
+      const sh = SCREEN_H;
+
+      // If modal, draw a dimmed background rectangle first
+      if (isModal) {
+        g.append('rect')
+          .attr('x', -10).attr('y', -10)
+          .attr('width', sw + 20).attr('height', sh + 20)
+          .attr('rx', 16)
+          .attr('fill', 'rgba(28, 26, 23, 0.12)');
+      }
+
+      // Frame
+      g.append('rect')
+        .attr('width', sw).attr('height', sh)
+        .attr('rx', 16)
+        .attr('fill', '#FFFFFF')
+        .attr('stroke', '#E0DCD3')
+        .attr('stroke-width', 1)
+        .attr('filter', 'url(#dropShadow)')
+        .attr('class', 'screen-frame');
+
+      // Desktop browser chrome bar
+      const chromeH = 24;
+      g.append('rect')
+        .attr('width', sw).attr('height', chromeH)
+        .attr('rx', 16)
+        .attr('fill', '#F4F1EB');
+      // Square off bottom corners of chrome bar
+      g.append('rect')
+        .attr('y', 12)
+        .attr('width', sw).attr('height', 12)
+        .attr('fill', '#F4F1EB');
+
+      // Browser dots
+      [12, 24, 36].forEach(cx => {
+        g.append('circle')
+          .attr('cx', cx).attr('cy', 12)
+          .attr('r', 3)
+          .attr('fill', '#D0CBC3');
+      });
+
+      // Chrome separator
+      g.append('line')
+        .attr('x1', 0).attr('y1', chromeH)
+        .attr('x2', sw).attr('y2', chromeH)
+        .attr('stroke', '#E0DCD3');
+
+      // Navigation bar
+      const navH = 22;
+      const navY = chromeH;
+      g.append('rect')
+        .attr('y', navY)
+        .attr('width', sw).attr('height', navH)
+        .attr('fill', '#F4F1EB');
+      g.append('line')
+        .attr('x1', 0).attr('y1', navY + navH)
+        .attr('x2', sw).attr('y2', navY + navH)
+        .attr('stroke', '#EBE6DD');
+
+      // Nav title
+      g.append('text')
+        .attr('x', 12).attr('y', navY + navH / 2)
+        .attr('dy', '0.35em')
+        .attr('font-size', '10px')
+        .attr('font-weight', '600')
+        .attr('fill', '#1C1A17')
+        .text(screenData.navTitle);
+
+      // Menu dots on right
+      g.append('text')
+        .attr('x', sw - 14).attr('y', navY + navH / 2)
+        .attr('dy', '0.35em')
+        .attr('text-anchor', 'end')
+        .attr('font-size', '10px')
+        .attr('fill', '#6B6760')
+        .text('⋮');
+
+      // ─── Content Area ───
+      const contentY = navY + navH + 6;
+      const contentH = sh - contentY - 6;
+      const pad = 10;
+
+      if (screenData.type === 'list') {
+        // List rows with icon square + text lines
+        const rowH = 22;
+        const rows = ['Profile', 'Notifications', 'Security', 'Billing', 'Integrations'];
+        rows.forEach((label, i) => {
+          const ry = contentY + i * (rowH + 3) + 2;
+          if (ry + rowH > sh - 8) return;
+
+          // Icon square
+          g.append('rect')
+            .attr('x', pad).attr('y', ry)
+            .attr('width', 14).attr('height', 14)
+            .attr('rx', 3)
+            .attr('fill', '#EBE6DD');
+
+          // Text placeholder
+          g.append('rect')
+            .attr('x', pad + 20).attr('y', ry + 2)
+            .attr('width', 60 + Math.random() * 40).attr('height', 6)
+            .attr('rx', 3)
+            .attr('fill', '#E0DCD3');
+
+          // Subtle label
+          g.append('text')
+            .attr('x', pad + 20).attr('y', ry + 12)
+            .attr('font-size', '6px')
+            .attr('fill', '#B0ABA2')
+            .text(label);
+
+          // Chevron right
+          g.append('text')
+            .attr('x', sw - pad - 4).attr('y', ry + 10)
+            .attr('text-anchor', 'end')
+            .attr('font-size', '9px')
+            .attr('fill', '#B0ABA2')
+            .text('›');
+
+          // Separator
+          g.append('line')
+            .attr('x1', pad).attr('y1', ry + rowH)
+            .attr('x2', sw - pad).attr('y2', ry + rowH)
+            .attr('stroke', '#EBE6DD')
+            .attr('stroke-width', 0.5);
+        });
+
+      } else if (screenData.type === 'form') {
+        // Form fields + button
+        const fields = screenData.elements.filter(e => e.type === 'input-field');
+        const fieldH = 18;
+        fields.forEach((field, i) => {
+          const fy = contentY + i * (fieldH + 6) + 2;
+          if (fy + fieldH > sh - 32) return;
+
+          // Label
+          g.append('text')
+            .attr('x', pad).attr('y', fy + 4)
+            .attr('font-size', '7px')
+            .attr('fill', '#6B6760')
+            .text(field.content);
+
+          // Input rect
+          g.append('rect')
+            .attr('x', pad).attr('y', fy + 6)
+            .attr('width', sw - pad * 2).attr('height', fieldH - 6)
+            .attr('rx', 4)
+            .attr('fill', '#FFFFFF')
+            .attr('stroke', '#E0DCD3');
+
+          // Placeholder dots inside
+          if (field.content.toLowerCase().includes('password')) {
+            g.append('text')
+              .attr('x', pad + 6).attr('y', fy + 14)
+              .attr('font-size', '8px')
+              .attr('fill', '#B0ABA2')
+              .text('••••••••');
+          } else {
+            g.append('rect')
+              .attr('x', pad + 5).attr('y', fy + 10)
+              .attr('width', 40 + Math.random() * 30).attr('height', 4)
+              .attr('rx', 2)
+              .attr('fill', '#EBE6DD');
+          }
+        });
+
+        // Buttons
+        const buttons = screenData.elements.filter(e => e.type === 'button');
+        let btnY = contentY + fields.length * (fieldH + 6) + 6;
+        buttons.forEach((btn) => {
+          if (btnY + 16 > sh - 4) return;
+          const isDanger = btn.isDanger;
+          const btnW = btn.content.length * 5.5 + 16;
+          g.append('rect')
+            .attr('x', pad).attr('y', btnY)
+            .attr('width', btnW).attr('height', 16)
+            .attr('rx', 4)
+            .attr('fill', isDanger ? '#CF6253' : '#013D5B');
+          g.append('text')
+            .attr('x', pad + btnW / 2).attr('y', btnY + 8)
+            .attr('text-anchor', 'middle')
+            .attr('dy', '0.35em')
+            .attr('font-size', '7px')
+            .attr('font-weight', '500')
+            .attr('fill', 'white')
+            .text(btn.content);
+          btnY += 22;
+        });
+
+      } else if (screenData.type === 'settings') {
+        // Toggle rows
+        const toggleLabels = ['Email Notifications', 'Push Notifications', 'SMS Alerts', 'Weekly Digest', 'Marketing'];
+        const rowH = 18;
+        toggleLabels.forEach((label, i) => {
+          const ry = contentY + i * (rowH + 4) + 2;
+          if (ry + rowH > sh - 6) return;
+
+          // Label text
+          g.append('text')
+            .attr('x', pad).attr('y', ry + 10)
+            .attr('font-size', '7px')
+            .attr('fill', '#54514D')
+            .text(label);
+
+          // Toggle track
+          const toggleX = sw - pad - 24;
+          const isOn = i < 3;
+          g.append('rect')
+            .attr('x', toggleX).attr('y', ry + 3)
+            .attr('width', 22).attr('height', 12)
+            .attr('rx', 6)
+            .attr('fill', isOn ? '#013D5B' : '#D0CBC3');
+
+          // Toggle knob
+          g.append('circle')
+            .attr('cx', isOn ? toggleX + 16 : toggleX + 6)
+            .attr('cy', ry + 9)
+            .attr('r', 4)
+            .attr('fill', 'white');
+
+          // Separator
+          g.append('line')
+            .attr('x1', pad).attr('y1', ry + rowH + 1)
+            .attr('x2', sw - pad).attr('y2', ry + rowH + 1)
+            .attr('stroke', '#EBE6DD')
+            .attr('stroke-width', 0.5);
+        });
+
+      } else if (screenData.type === 'modal') {
+        // Modal: dimmed bg area, centered dialog box
+        // Dimmed content area background
+        g.append('rect')
+          .attr('x', 4).attr('y', contentY - 2)
+          .attr('width', sw - 8).attr('height', contentH + 2)
+          .attr('fill', 'rgba(28, 26, 23, 0.06)')
+          .attr('rx', 4);
+
+        // Modal card centered
+        const modalW = sw - 40;
+        const modalH = contentH - 16;
+        const mx = (sw - modalW) / 2;
+        const my = contentY + 6;
+
+        g.append('rect')
+          .attr('x', mx).attr('y', my)
+          .attr('width', modalW).attr('height', modalH)
+          .attr('rx', 8)
+          .attr('fill', '#FFFFFF')
+          .attr('stroke', '#E0DCD3');
+
+        // Warning icon placeholder
+        g.append('circle')
+          .attr('cx', mx + modalW / 2).attr('cy', my + 14)
+          .attr('r', 8)
+          .attr('fill', '#FFEEEB')
+          .attr('stroke', '#CF6253');
+        g.append('text')
+          .attr('x', mx + modalW / 2).attr('y', my + 14)
+          .attr('text-anchor', 'middle')
+          .attr('dy', '0.35em')
+          .attr('font-size', '9px')
+          .attr('font-weight', '700')
+          .attr('fill', '#CF6253')
+          .text('!');
+
+        // Title
+        g.append('text')
+          .attr('x', mx + modalW / 2).attr('y', my + 30)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '8px')
+          .attr('font-weight', '600')
+          .attr('fill', '#1C1A17')
+          .text('Delete Account?');
+
+        // Description line
+        g.append('rect')
+          .attr('x', mx + 12).attr('y', my + 38)
+          .attr('width', modalW - 24).attr('height', 4)
+          .attr('rx', 2)
+          .attr('fill', '#EBE6DD');
+        g.append('rect')
+          .attr('x', mx + 20).attr('y', my + 45)
+          .attr('width', modalW - 40).attr('height', 4)
+          .attr('rx', 2)
+          .attr('fill', '#EBE6DD');
+
+        // Input field: Type DELETE
+        g.append('text')
+          .attr('x', mx + 12).attr('y', my + 58)
+          .attr('font-size', '6px')
+          .attr('fill', '#6B6760')
+          .text('Type DELETE to confirm');
+        g.append('rect')
+          .attr('x', mx + 12).attr('y', my + 61)
+          .attr('width', modalW - 24).attr('height', 12)
+          .attr('rx', 3)
+          .attr('fill', '#FFFFFF')
+          .attr('stroke', '#E0DCD3');
+
+        // Buttons row
+        const btnRowY = my + modalH - 22;
+        // Cancel button
+        g.append('rect')
+          .attr('x', mx + 10).attr('y', btnRowY)
+          .attr('width', (modalW - 30) / 2).attr('height', 14)
+          .attr('rx', 4)
+          .attr('fill', '#F4F1EB')
+          .attr('stroke', '#E0DCD3');
+        g.append('text')
+          .attr('x', mx + 10 + (modalW - 30) / 4).attr('y', btnRowY + 7)
+          .attr('text-anchor', 'middle')
+          .attr('dy', '0.35em')
+          .attr('font-size', '7px')
+          .attr('font-weight', '500')
+          .attr('fill', '#54514D')
+          .text('Cancel');
+
+        // Delete button
+        const delBtnX = mx + 10 + (modalW - 30) / 2 + 10;
+        g.append('rect')
+          .attr('x', delBtnX).attr('y', btnRowY)
+          .attr('width', (modalW - 30) / 2).attr('height', 14)
+          .attr('rx', 4)
+          .attr('fill', '#CF6253');
+        g.append('text')
+          .attr('x', delBtnX + (modalW - 30) / 4).attr('y', btnRowY + 7)
+          .attr('text-anchor', 'middle')
+          .attr('dy', '0.35em')
+          .attr('font-size', '7px')
+          .attr('font-weight', '500')
+          .attr('fill', 'white')
+          .text('Delete');
+      }
+
+      // Screen name label below
+      g.append('text')
+        .attr('x', sw / 2).attr('y', sh + 16)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '13px')
+        .attr('font-weight', '600')
+        .attr('fill', '#1C1A17')
+        .text(screenData.name);
+
+      // Hover effects
+      g.on('mouseenter', function() {
+        d3.select(this).select('.screen-frame')
+          .attr('stroke', '#D0CBC3')
+          .attr('filter', 'url(#dropShadowHover)');
+        d3.select(this).attr('transform', `translate(${screenData.x}, ${screenData.y}) scale(1.01)`);
+      })
+      .on('mouseleave', function() {
+        d3.select(this).select('.screen-frame')
+          .attr('stroke', '#E0DCD3')
+          .attr('filter', 'url(#dropShadow)');
+        d3.select(this).attr('transform', `translate(${screenData.x}, ${screenData.y})`);
+      })
+      .on('click', function(event) {
+        event.stopPropagation();
+        openDetail(screenData);
+      });
+    }
+
+    // Draw all screens
+    flowData.screens.forEach(drawScreen);
+
+    // ─── Fit to Content ───
+    function fitToContent() {
+      const bounds = container.node().getBBox();
+      if (bounds.width === 0 || bounds.height === 0) return;
+
+      const padding = 80;
+      const fullW = bounds.width + padding * 2;
+      const fullH = bounds.height + padding * 2;
+      const scale = Math.min(width / fullW, height / fullH, 1);
+      const tx = (width - bounds.width * scale) / 2 - bounds.x * scale;
+      const ty = (height - bounds.height * scale) / 2 - bounds.y * scale;
+
+      svg.transition().duration(500).call(
+        zoom.transform,
+        d3.zoomIdentity.translate(tx, ty).scale(scale)
+      );
+    }
+
+    fitToContent();
+
+    // Double-click empty canvas to re-fit
+    svg.on('dblclick.zoom', null);
+    svg.on('dblclick', function(event) {
+      if (event.target === svg.node()) {
+        fitToContent();
+      }
+    });
+
+    // Keyboard controls
+    d3.select('body').on('keydown', function(event) {
+      const step = 40;
+      if (event.key === '+' || event.key === '=') {
+        svg.transition().duration(200).call(zoom.scaleBy, 1.2);
+      } else if (event.key === '-') {
+        svg.transition().duration(200).call(zoom.scaleBy, 0.8);
+      } else if (event.key === 'ArrowLeft') {
+        svg.transition().duration(200).call(zoom.translateBy, step, 0);
+      } else if (event.key === 'ArrowRight') {
+        svg.transition().duration(200).call(zoom.translateBy, -step, 0);
+      } else if (event.key === 'ArrowUp') {
+        svg.transition().duration(200).call(zoom.translateBy, 0, step);
+      } else if (event.key === 'ArrowDown') {
+        svg.transition().duration(200).call(zoom.translateBy, 0, -step);
+      }
+    });
+
+    // ─── Detail Panel ───
+    function openDetail(screen) {
+      const panel = document.getElementById('detailPanel');
+      document.getElementById('detailName').textContent = screen.name;
+      document.getElementById('detailType').textContent = {
+        list: 'List View',
+        form: 'Form',
+        settings: 'Settings',
+        modal: 'Modal Dialog',
+        detail: 'Detail View',
+        dashboard: 'Dashboard',
+        empty: 'Empty State',
+        login: 'Login'
+      }[screen.type] || screen.type;
+      document.getElementById('detailDesc').textContent = screen.description;
+
+      // Elements
+      const elList = document.getElementById('detailElements');
+      elList.innerHTML = '';
+      screen.elements.forEach(el => {
+        const li = document.createElement('li');
+        li.textContent = el.content || el.type;
+        elList.appendChild(li);
+      });
+
+      // Exits
+      const exitsDiv = document.getElementById('detailExits');
+      exitsDiv.innerHTML = '';
+      (screen.exits || []).forEach(exit => {
+        const div = document.createElement('div');
+        div.className = 'exit-item';
+        div.innerHTML = `<span class="exit-action">${exit.action}</span><span class="exit-target">→ ${getScreen(exit.target)?.name || exit.target}</span>`;
+        exitsDiv.appendChild(div);
+      });
+
+      panel.classList.add('open');
+    }
+
+    function closeDetail() {
+      document.getElementById('detailPanel').classList.remove('open');
+    }
+
+    // Click outside to close
+    svg.on('click', function(event) {
+      if (event.target === svg.node()) {
+        closeDetail();
+      }
+    });
+
+    // Resize handler
+    window.addEventListener('resize', () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight - 64;
+      svg.attr('width', w).attr('height', h);
+      fitToContent();
+    });
+  </script>
+</body>
+</html>

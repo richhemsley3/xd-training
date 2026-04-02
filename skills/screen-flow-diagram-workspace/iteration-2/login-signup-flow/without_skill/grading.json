@@ -1,0 +1,57 @@
+{
+  "eval_name": "login-signup-flow",
+  "configuration": "without_skill",
+  "expectations": [
+    {
+      "text": "HTML file exists",
+      "passed": true,
+      "evidence": "Found: screen-flow.html exists in outputs directory"
+    },
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": false,
+      "evidence": "Missing: 'd3@7' not found in output"
+    },
+    {
+      "text": "Landing page screen",
+      "passed": true,
+      "evidence": "Found: 'Landing' in output"
+    },
+    {
+      "text": "Login form screen",
+      "passed": true,
+      "evidence": "Found: 'Login' in output"
+    },
+    {
+      "text": "Sign up form screen",
+      "passed": true,
+      "evidence": "Found: 'Sign Up' in output"
+    },
+    {
+      "text": "Dashboard screen",
+      "passed": true,
+      "evidence": "Found: 'Dashboard' in output"
+    },
+    {
+      "text": "Error state screen",
+      "passed": true,
+      "evidence": "Found: 'Invalid' in output"
+    },
+    {
+      "text": "Email verification screen",
+      "passed": true,
+      "evidence": "Found: 'Verification' in output"
+    },
+    {
+      "text": "SDS interactive-primary connectors",
+      "passed": false,
+      "evidence": "Missing: '#013D5B' not found in output"
+    },
+    {
+      "text": "Warm canvas background",
+      "passed": false,
+      "evidence": "Missing: '#FAF8F5' not found in output"
+    }
+  ],
+  "pass_rate": 0.7
+}

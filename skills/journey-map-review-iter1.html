@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #faf9f5;
+      --surface: #ffffff;
+      --border: #e8e6dc;
+      --text: #141413;
+      --text-muted: #b0aea5;
+      --accent: #d97757;
+      --accent-hover: #c4613f;
+      --green: #788c5d;
+      --green-bg: #eef2e8;
+      --red: #c44;
+      --red-bg: #fceaea;
+      --header-bg: #141413;
+      --header-text: #faf9f5;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .header .instructions {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+    .header .progress {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      text-align: right;
+    }
+
+    /* ---- Main content ---- */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ---- Sections ---- */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      flex-shrink: 0;
+    }
+    .section-header {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .section-body {
+      padding: 1rem;
+    }
+
+    /* ---- Config badge ---- */
+    .config-badge {
+      display: inline-block;
+      padding: 0.2rem 0.625rem;
+      border-radius: 9999px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+    }
+    .config-badge.config-primary {
+      background: rgba(33, 150, 243, 0.12);
+      color: #1976d2;
+    }
+    .config-badge.config-baseline {
+      background: rgba(255, 193, 7, 0.15);
+      color: #f57f17;
+    }
+
+    /* ---- Prompt ---- */
+    .prompt-text {
+      white-space: pre-wrap;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+
+    /* ---- Outputs ---- */
+    .output-file {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .output-file + .output-file {
+      margin-top: 1rem;
+    }
+    .output-file-header {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .output-file-header .dl-btn {
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+    .output-file-header .dl-btn:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    .output-file-content {
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .output-file-content pre {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    .output-file-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .output-file-content iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    .output-file-content table {
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      width: 100%;
+    }
+    .output-file-content table td,
+    .output-file-content table th {
+      border: 1px solid var(--border);
+      padding: 0.375rem 0.5rem;
+      text-align: left;
+    }
+    .output-file-content table th {
+      background: var(--bg);
+      font-weight: 600;
+    }
+    .output-file-content .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .output-file-content .download-link:hover {
+      background: var(--border);
+    }
+    .empty-state {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* ---- Feedback ---- */
+    .prev-feedback {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.625rem 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .prev-feedback-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+      color: var(--text-muted);
+    }
+    .feedback-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      resize: vertical;
+      color: var(--text);
+    }
+    .feedback-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .feedback-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      min-height: 1.1em;
+    }
+
+    /* ---- Grades (collapsible) ---- */
+    .grades-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .grades-toggle:hover {
+      color: var(--accent);
+    }
+    .grades-toggle .arrow {
+      margin-right: 0.5rem;
+      transition: transform 0.15s;
+      font-size: 0.75rem;
+    }
+    .grades-toggle .arrow.open {
+      transform: rotate(90deg);
+    }
+    .grades-content {
+      display: none;
+      margin-top: 0.75rem;
+    }
+    .grades-content.open {
+      display: block;
+    }
+    .grades-summary {
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .grade-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .grade-pass { background: var(--green-bg); color: var(--green); }
+    .grade-fail { background: var(--red-bg); color: var(--red); }
+    .assertion-list {
+      list-style: none;
+    }
+    .assertion-item {
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+    .assertion-item:last-child { border-bottom: none; }
+    .assertion-status {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .assertion-status.pass { color: var(--green); }
+    .assertion-status.fail { color: var(--red); }
+    .assertion-evidence {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      padding-left: 1.5rem;
+    }
+
+    /* ---- View tabs ---- */
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 2rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .view-tab {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .view-panel { display: none; }
+    .view-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    /* ---- Benchmark view ---- */
+    .benchmark-view {
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .benchmark-table {
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+    .benchmark-table th, .benchmark-table td {
+      padding: 0.625rem 0.75rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    .benchmark-table th {
+      font-family: 'Poppins', sans-serif;
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .benchmark-table tr:hover { background: var(--bg); }
+    .benchmark-table tr.benchmark-row-with { background: rgba(33, 150, 243, 0.06); }
+    .benchmark-table tr.benchmark-row-without { background: rgba(255, 193, 7, 0.06); }
+    .benchmark-table tr.benchmark-row-with:hover { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-without:hover { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-table tr.benchmark-row-avg { font-weight: 600; border-top: 2px solid var(--border); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-with { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-without { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-delta-positive { color: var(--green); font-weight: 600; }
+    .benchmark-delta-negative { color: var(--red); font-weight: 600; }
+    .benchmark-notes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .benchmark-notes h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .benchmark-notes ul {
+      list-style: disc;
+      padding-left: 1.25rem;
+    }
+    .benchmark-notes li {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin-bottom: 0.375rem;
+    }
+    .benchmark-empty {
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    /* ---- Navigation ---- */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .done-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .done-btn:hover {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .done-btn.ready {
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+    .done-btn.ready:hover {
+      background: var(--accent-hover);
+    }
+    /* ---- Done overlay ---- */
+    .done-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .done-overlay.visible {
+      display: flex;
+    }
+    .done-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 2rem 3rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+    }
+    .done-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .done-card p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .done-card .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .done-card button {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .done-card button:hover {
+      background: var(--bg);
+    }
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed;
+      bottom: 5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    .toast.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" style="height:100vh; display:flex; flex-direction:column;">
+    <div class="header">
+      <div>
+        <h1>Eval Review: <span id="skill-name"></span></h1>
+        <div class="instructions">Review each output and leave feedback below. Navigate with arrow keys or buttons. When done, copy feedback and paste into Claude Code.</div>
+      </div>
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <!-- View tabs (only shown when benchmark data exists) -->
+    <div class="view-tabs" id="view-tabs" style="display:none;">
+      <button class="view-tab active" onclick="switchView('outputs')">Outputs</button>
+      <button class="view-tab" onclick="switchView('benchmark')">Benchmark</button>
+    </div>
+
+    <!-- Outputs panel (qualitative review) -->
+    <div class="view-panel active" id="panel-outputs">
+    <div class="main">
+      <!-- Prompt -->
+      <div class="section">
+        <div class="section-header">Prompt <span class="config-badge" id="config-badge" style="display:none;"></span></div>
+        <div class="section-body">
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+      </div>
+
+      <!-- Outputs -->
+      <div class="section">
+        <div class="section-header">Output</div>
+        <div class="section-body" id="outputs-body">
+          <div class="empty-state">No output files found</div>
+        </div>
+      </div>
+
+      <!-- Previous Output (collapsible) -->
+      <div class="section" id="prev-outputs-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="togglePrevOutputs()">
+            <span class="arrow" id="prev-outputs-arrow">&#9654;</span>
+            Previous Output
+          </div>
+        </div>
+        <div class="grades-content" id="prev-outputs-content"></div>
+      </div>
+
+      <!-- Grades (collapsible) -->
+      <div class="section" id="grades-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="toggleGrades()">
+            <span class="arrow" id="grades-arrow">&#9654;</span>
+            Formal Grades
+          </div>
+        </div>
+        <div class="grades-content" id="grades-content"></div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="section">
+        <div class="section-header">Your Feedback</div>
+        <div class="section-body">
+          <textarea
+            class="feedback-textarea"
+            id="feedback"
+            placeholder="What do you think of this output? Any issues, suggestions, or things that look great?"
+          ></textarea>
+          <div class="feedback-status" id="feedback-status"></div>
+          <div class="prev-feedback" id="prev-feedback" style="display:none;">
+            <div class="prev-feedback-label">Previous feedback</div>
+            <div id="prev-feedback-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav" id="outputs-nav">
+      <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&#8592; Previous</button>
+      <button class="done-btn" id="done-btn" onclick="showDoneDialog()">Submit All Reviews</button>
+      <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next &#8594;</button>
+    </div>
+    </div><!-- end panel-outputs -->
+
+    <!-- Benchmark panel (quantitative stats) -->
+    <div class="view-panel" id="panel-benchmark">
+      <div class="benchmark-view" id="benchmark-content">
+        <div class="benchmark-empty">No benchmark data available. Run a benchmark to see quantitative results here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Done overlay -->
+  <div class="done-overlay" id="done-overlay">
+    <div class="done-card">
+      <h2>Review Complete</h2>
+      <p>Your feedback has been saved. Go back to your Claude Code session and tell Claude you're done reviewing.</p>
+      <div class="btn-row">
+        <button onclick="closeDoneDialog()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- Embedded data (injected by generate_review.py) ----
+    const EMBEDDED_DATA = {"skill_name": "journey-map", "runs": [{"id": "ecommerce-journey-with_skill", "prompt": "Build me a customer journey map for an e-commerce purchase experience: Browse \u2192 Compare \u2192 Purchase \u2192 Delivery \u2192 Post-Purchase. Include touchpoints (website, mobile app, email, phone), role badges for the teams involved (Marketing, Product, Support, Logistics), and a sentiment curve. Show pain points around checkout friction and delivery delays.", "eval_id": null, "outputs": [{"name": "journey-map.html", "type": "text", "content": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>E-Commerce Purchase \u2014 Customer Journey Map</title>\n  <script src=\"https://cdn.jsdelivr.net/npm/d3@7\"></script>\n  <style>\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    body {\n      background: #F8F9FA;\n      color: #212529;\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n      padding: 24px;\n    }\n\n    .title-bar { margin-bottom: 24px; }\n    .title-bar h1 { font-size: 24px; font-weight: 700; color: #212529; margin-bottom: 4px; }\n    .title-bar .subtitle { font-size: 14px; color: #868E96; }\n\n    .journey-container {\n      overflow-x: auto;\n      position: relative;\n      border-radius: 12px;\n      background: #FFFFFF;\n      box-shadow: 0 1px 3px rgba(0,0,0,0.08);\n    }\n\n    .journey-grid {\n      display: grid;\n      min-width: max-content;\n    }\n\n    .row-label {\n      position: sticky;\n      left: 0;\n      z-index: 10;\n      background: #F1F3F5;\n      padding: 10px 14px;\n      font-size: 12px;\n      font-weight: 600;\n      color: #868E96;\n      text-transform: uppercase;\n      letter-spacing: 0.5px;\n      display: flex;\n      align-items: center;\n      border-right: 1px solid #E9ECEF;\n      min-width: 140px;\n      width: 140px;\n    }\n\n    .phase-header {\n      padding: 12px 16px;\n      color: white;\n      font-size: 14px;\n      font-weight: 600;\n      display: flex;\n      align-items: center;\n      gap: 8px;\n      min-height: 44px;\n    }\n    .phase-header .phase-icon {\n      width: 20px; height: 20px;\n      background: rgba(255,255,255,0.25);\n      border-radius: 4px;\n      display: flex; align-items: center; justify-content: center;\n      font-size: 11px;\n    }\n\n    .step-header {\n      padding: 8px 12px;\n      font-size: 12px;\n      font-weight: 500;\n      color: #495057;\n      background: #F8F9FA;\n      min-height: 32px;\n      display: flex;\n      align-items: center;\n      border-bottom: 1px solid #E9ECEF;\n    }\n\n    .cell {\n      padding: 10px 12px;\n      font-size: 12px;\n      color: #495057;\n      border-bottom: 1px solid #E9ECEF;\n      border-right: 1px solid #E9ECEF;\n      min-height: 56px;\n      display: flex;\n      flex-direction: column;\n      justify-content: center;\n      gap: 4px;\n      transition: background 0.15s ease;\n    }\n    .cell:hover {\n      background: rgba(91, 141, 239, 0.05);\n      box-shadow: inset 0 0 0 1px rgba(91, 141, 239, 0.1);\n    }\n\n    .pain-text { color: #E53E3E; }\n    .opp-text { color: #48BB78; }\n\n    .role-badge {\n      display: inline-flex;\n      align-items: center;\n      padding: 0 10px;\n      height: 24px;\n      border-radius: 6px;\n      font-size: 11px;\n      font-weight: 500;\n      margin: 2px 4px 2px 0;\n    }\n\n    .touchpoint-item {\n      display: flex;\n      align-items: center;\n      gap: 4px;\n      font-size: 12px;\n      color: #495057;\n    }\n\n    .phase-separator { border-left: 2px solid #DEE2E6; }\n\n    .tooltip {\n      position: fixed;\n      background: #212529;\n      color: white;\n      padding: 8px 12px;\n      border-radius: 6px;\n      font-size: 12px;\n      pointer-events: none;\n      z-index: 100;\n      max-width: 240px;\n      box-shadow: 0 4px 12px rgba(0,0,0,0.2);\n      opacity: 0;\n      transition: opacity 0.15s ease;\n    }\n    .tooltip.visible { opacity: 1; }\n\n    @media print {\n      body { background: white; }\n      .journey-container { box-shadow: none; overflow: visible; }\n      .row-label { position: static; }\n    }\n  </style>\n</head>\n<body>\n  <div class=\"title-bar\">\n    <h1>E-Commerce Purchase \u2014 Customer Journey Map</h1>\n    <div class=\"subtitle\">End-to-end shopping experience: Browse to Post-Purchase</div>\n  </div>\n  <div class=\"journey-container\">\n    <div class=\"journey-grid\" id=\"journeyGrid\"></div>\n  </div>\n  <div class=\"tooltip\" id=\"tooltip\"></div>\n\n  <script>\n    const journeyData = {\n      title: \"E-Commerce Purchase Journey\",\n      roles: [\n        { name: \"Marketing\", abbrev: \"MKT\", color: \"#7C5CFC\" },\n        { name: \"Product\", abbrev: \"PRD\", color: \"#5B8DEF\" },\n        { name: \"Support\", abbrev: \"SUP\", color: \"#38B2AC\" },\n        { name: \"Logistics\", abbrev: \"LOG\", color: \"#ED8936\" }\n      ],\n      phases: [\n        {\n          id: \"browse\", label: \"Browse\", color: \"#7C5CFC\",\n          steps: [\n            {\n              id: \"homepage\", label: \"Homepage Visit\",\n              emotion: { score: 0.7, label: \"Curious\", annotation: \"User arrives and starts browsing\" },\n              touchpoints: [\"\ud83d\udcf1 Mobile App\", \"\ud83d\udcbb Website\"],\n              roles: [\"Marketing\", \"Product\"],\n              painPoints: [],\n              opportunities: [\"Personalized recommendations\"]\n            },\n            {\n              id: \"category-browse\", label: \"Category Browse\",\n              emotion: { score: 0.65, label: \"Exploring\", annotation: \"User browses categories looking for items\" },\n              touchpoints: [\"\ud83d\udcbb Website\", \"\ud83d\udcf1 Mobile App\"],\n              roles: [\"Product\"],\n              painPoints: [\"Filters don't work well on mobile\"],\n              opportunities: [\"AI-powered search suggestions\"]\n            }\n          ]\n        },\n        {\n          id: \"compare\", label: \"Compare\", color: \"#5B8DEF\",\n          steps: [\n            {\n              id: \"product-detail\", label: \"Product Details\",\n              emotion: { score: 0.6, label: \"Evaluating\", annotation: \"User reads reviews and compares specs\" },\n              touchpoints: [\"\ud83d\udcbb Website\"],\n              roles: [\"Product\", \"Marketing\"],\n              painPoints: [\"Inconsistent product information\"],\n              opportunities: [\"Side-by-side comparison tool\"]\n            },\n            {\n              id: \"price-compare\", label: \"Price Comparison\",\n              emotion: { score: 0.55, label: \"Uncertain\", annotation: \"User checks prices across sellers\" },\n              touchpoints: [\"\ud83d\udcbb Website\", \"\ud83d\udce7 Email\"],\n              roles: [\"Marketing\"],\n              painPoints: [\"No price match guarantee visible\"],\n              opportunities: [\"Price alert notifications\"]\n            }\n          ]\n        },\n        {\n          id: \"purchase\", label: \"Purchase\", color: \"#38B2AC\",\n          steps: [\n            {\n              id: \"add-to-cart\", label: \"Add to Cart\",\n              emotion: { score: 0.7, label: \"Decided\", annotation: \"User has made a choice and adds to cart\" },\n              touchpoints: [\"\ud83d\udcbb Website\", \"\ud83d\udcf1 Mobile App\"],\n              roles: [\"Product\"],\n              painPoints: [],\n              opportunities: [\"Bundle suggestions at cart\"]\n            },\n            {\n              id: \"checkout\", label: \"Checkout\",\n              emotion: { score: 0.35, label: \"Frustrated\", annotation: \"Checkout process has too many steps and requires account creation\" },\n              touchpoints: [\"\ud83d\udcbb Website\"],\n              roles: [\"Product\", \"Support\"],\n              painPoints: [\"Too many steps\", \"Forced account creation\", \"Payment errors\"],\n              opportunities: [\"Guest checkout\", \"One-click purchase\", \"Apple Pay / Google Pay\"]\n            }\n          ]\n        },\n        {\n          id: \"delivery\", label: \"Delivery\", color: \"#48BB78\",\n          steps: [\n            {\n              id: \"order-confirm\", label: \"Order Confirmation\",\n              emotion: { score: 0.6, label: \"Hopeful\", annotation: \"User receives confirmation and tracking info\" },\n              touchpoints: [\"\ud83d\udce7 Email\", \"\ud83d\udcf1 Mobile App\"],\n              roles: [\"Logistics\"],\n              painPoints: [\"Vague delivery estimates\"],\n              opportunities: [\"Real-time tracking from warehouse\"]\n            },\n            {\n              id: \"shipping\", label: \"Shipping & Tracking\",\n              emotion: { score: 0.4, label: \"Anxious\", annotation: \"User waits and checks tracking repeatedly\" },\n              touchpoints: [\"\ud83d\udce7 Email\", \"\ud83d\udcf1 Mobile App\", \"\ud83d\udcde Phone\"],\n              roles: [\"Logistics\", \"Support\"],\n              painPoints: [\"Delivery delays\", \"Tracking not updated\", \"No proactive delay notification\"],\n              opportunities: [\"SMS updates\", \"Proactive delay notifications\"]\n            }\n          ]\n        },\n        {\n          id: \"post-purchase\", label: \"Post-Purchase\", color: \"#ED8936\",\n          steps: [\n            {\n              id: \"unboxing\", label: \"Unboxing & Use\",\n              emotion: { score: 0.8, label: \"Delighted\", annotation: \"Product arrives and meets expectations\" },\n              touchpoints: [\"\ud83d\udce7 Email\"],\n              roles: [\"Marketing\", \"Support\"],\n              painPoints: [],\n              opportunities: [\"Request review, suggest accessories\"]\n            },\n            {\n              id: \"support\", label: \"Returns / Support\",\n              emotion: { score: 0.45, label: \"Neutral\", annotation: \"If issue arises, user contacts support\" },\n              touchpoints: [\"\ud83d\udcde Phone\", \"\ud83d\udcbb Website\", \"\ud83d\udce7 Email\"],\n              roles: [\"Support\"],\n              painPoints: [\"Complicated return process\"],\n              opportunities: [\"Self-serve returns portal, chatbot\"]\n            }\n          ]\n        }\n      ]\n    };\n\n    const allSteps = journeyData.phases.flatMap(p => p.steps);\n    const totalSteps = allSteps.length;\n    const colWidth = 180;\n    const rowLabelWidth = 140;\n\n    const rowDefs = [\n      { key: 'phase', label: 'Phase' },\n      { key: 'steps', label: 'Steps' },\n      { key: 'touchpoints', label: 'Touchpoints' },\n      { key: 'roles', label: 'Teams' },\n      { key: 'emotion', label: 'Sentiment' },\n      { key: 'painPoints', label: 'Pain Points' },\n      { key: 'opportunities', label: 'Opportunities' }\n    ];\n\n    const grid = document.getElementById('journeyGrid');\n    grid.style.gridTemplateColumns = `${rowLabelWidth}px repeat(${totalSteps}, ${colWidth}px)`;\n\n    const roleColorMap = {};\n    journeyData.roles.forEach(r => { roleColorMap[r.name] = r.color; });\n\n    function hexToRgb(hex) {\n      const r = parseInt(hex.slice(1, 3), 16);\n      const g = parseInt(hex.slice(3, 5), 16);\n      const b = parseInt(hex.slice(5, 7), 16);\n      return `${r}, ${g}, ${b}`;\n    }\n\n    function makeRoleBadge(roleName) {\n      const color = roleColorMap[roleName] || '#868E96';\n      return `<span class=\"role-badge\" style=\"background:rgba(${hexToRgb(color)},0.15);color:${color};border:1px solid rgba(${hexToRgb(color)},0.3)\">${roleName}</span>`;\n    }\n\n    let row = 1;\n\n    // Phase headers\n    const phaseCorner = document.createElement('div');\n    phaseCorner.className = 'row-label';\n    phaseCorner.textContent = 'Phase';\n    phaseCorner.style.gridRow = `${row}`;\n    phaseCorner.style.gridColumn = '1';\n    grid.appendChild(phaseCorner);\n\n    let col = 2;\n    journeyData.phases.forEach((phase, pi) => {\n      const span = phase.steps.length;\n      const header = document.createElement('div');\n      header.className = 'phase-header' + (pi > 0 ? ' phase-separator' : '');\n      header.style.background = phase.color;\n      header.style.gridRow = `${row}`;\n      header.style.gridColumn = `${col} / span ${span}`;\n      if (pi === 0) header.style.borderRadius = '8px 0 0 0';\n      if (pi === journeyData.phases.length - 1) header.style.borderRadius = '0 8px 0 0';\n      header.innerHTML = `<span class=\"phase-icon\">${pi + 1}</span> ${phase.label}`;\n      grid.appendChild(header);\n      col += span;\n    });\n    row++;\n\n    // Step headers\n    const stepCorner = document.createElement('div');\n    stepCorner.className = 'row-label';\n    stepCorner.textContent = 'Steps';\n    stepCorner.style.gridRow = `${row}`;\n    stepCorner.style.gridColumn = '1';\n    grid.appendChild(stepCorner);\n\n    col = 2;\n    journeyData.phases.forEach((phase, pi) => {\n      phase.steps.forEach((step, si) => {\n        const el = document.createElement('div');\n        el.className = 'step-header' + (si === 0 && pi > 0 ? ' phase-separator' : '');\n        el.style.gridRow = `${row}`;\n        el.style.gridColumn = `${col}`;\n        el.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;\n        el.textContent = step.label;\n        grid.appendChild(el);\n        col++;\n      });\n    });\n    row++;\n\n    // Touchpoints row\n    const tpLabel = document.createElement('div');\n    tpLabel.className = 'row-label';\n    tpLabel.textContent = 'Touchpoints';\n    tpLabel.style.gridRow = `${row}`;\n    tpLabel.style.gridColumn = '1';\n    grid.appendChild(tpLabel);\n\n    col = 2;\n    journeyData.phases.forEach((phase, pi) => {\n      phase.steps.forEach((step, si) => {\n        const cell = document.createElement('div');\n        cell.className = 'cell' + (si === 0 && pi > 0 ? ' phase-separator' : '');\n        cell.style.gridRow = `${row}`;\n        cell.style.gridColumn = `${col}`;\n        cell.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;\n        cell.innerHTML = (step.touchpoints || []).map(tp => `<span class=\"touchpoint-item\">${tp}</span>`).join('');\n        grid.appendChild(cell);\n        col++;\n      });\n    });\n    row++;\n\n    // Roles row\n    const roleLabel = document.createElement('div');\n    roleLabel.className = 'row-label';\n    roleLabel.textContent = 'Teams';\n    roleLabel.style.gridRow = `${row}`;\n    roleLabel.style.gridColumn = '1';\n    grid.appendChild(roleLabel);\n\n    col = 2;\n    journeyData.phases.forEach((phase, pi) => {\n      phase.steps.forEach((step, si) => {\n        const cell = document.createElement('div');\n        cell.className = 'cell' + (si === 0 && pi > 0 ? ' phase-separator' : '');\n        cell.style.gridRow = `${row}`;\n        cell.style.gridColumn = `${col}`;\n        cell.style.flexDirection = 'row';\n        cell.style.flexWrap = 'wrap';\n        cell.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;\n        cell.innerHTML = (step.roles || []).map(r => makeRoleBadge(r)).join('');\n        grid.appendChild(cell);\n        col++;\n      });\n    });\n    row++;\n\n    // Emotion row\n    const emotionLabel = document.createElement('div');\n    emotionLabel.className = 'row-label';\n    emotionLabel.textContent = 'Sentiment';\n    emotionLabel.style.gridRow = `${row}`;\n    emotionLabel.style.gridColumn = '1';\n    emotionLabel.style.minHeight = '120px';\n    grid.appendChild(emotionLabel);\n\n    const emotionContainer = document.createElement('div');\n    emotionContainer.style.gridRow = `${row}`;\n    emotionContainer.style.gridColumn = `2 / span ${totalSteps}`;\n    emotionContainer.style.position = 'relative';\n    emotionContainer.style.minHeight = '120px';\n    emotionContainer.style.borderBottom = '1px solid #E9ECEF';\n    grid.appendChild(emotionContainer);\n    row++;\n\n    // Pain points\n    const painLabel = document.createElement('div');\n    painLabel.className = 'row-label';\n    painLabel.textContent = 'Pain Points';\n    painLabel.style.gridRow = `${row}`;\n    painLabel.style.gridColumn = '1';\n    grid.appendChild(painLabel);\n\n    col = 2;\n    journeyData.phases.forEach((phase, pi) => {\n      phase.steps.forEach((step, si) => {\n        const cell = document.createElement('div');\n        cell.className = 'cell' + (si === 0 && pi > 0 ? ' phase-separator' : '');\n        cell.style.gridRow = `${row}`;\n        cell.style.gridColumn = `${col}`;\n        cell.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;\n        if (step.painPoints && step.painPoints.length > 0) {\n          cell.innerHTML = step.painPoints.map(p => `<span class=\"pain-text\">\u26a0\ufe0f ${p}</span>`).join('');\n        } else {\n          cell.textContent = '\u2014';\n          cell.style.color = '#CED4DA';\n        }\n        grid.appendChild(cell);\n        col++;\n      });\n    });\n    row++;\n\n    // Opportunities\n    const oppLabel = document.createElement('div');\n    oppLabel.className = 'row-label';\n    oppLabel.textContent = 'Opportunities';\n    oppLabel.style.gridRow = `${row}`;\n    oppLabel.style.gridColumn = '1';\n    grid.appendChild(oppLabel);\n\n    col = 2;\n    journeyData.phases.forEach((phase, pi) => {\n      phase.steps.forEach((step, si) => {\n        const cell = document.createElement('div');\n        cell.className = 'cell' + (si === 0 && pi > 0 ? ' phase-separator' : '');\n        cell.style.gridRow = `${row}`;\n        cell.style.gridColumn = `${col}`;\n        cell.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;\n        if (step.opportunities && step.opportunities.length > 0) {\n          cell.innerHTML = step.opportunities.map(o => `<span class=\"opp-text\">\ud83d\udca1 ${o}</span>`).join('');\n        } else {\n          cell.textContent = '\u2014';\n          cell.style.color = '#CED4DA';\n        }\n        grid.appendChild(cell);\n        col++;\n      });\n    });\n\n    // D3 Emotion Curve\n    const emotionWidth = totalSteps * colWidth;\n    const emotionHeight = 110;\n    const tooltip = document.getElementById('tooltip');\n\n    const svg = d3.select(emotionContainer)\n      .append('svg')\n      .attr('width', emotionWidth)\n      .attr('height', emotionHeight);\n\n    svg.append('rect').attr('x',0).attr('y',0).attr('width',emotionWidth).attr('height',emotionHeight/3).attr('fill','rgba(72,187,120,0.05)');\n    svg.append('rect').attr('x',0).attr('y',emotionHeight/3).attr('width',emotionWidth).attr('height',emotionHeight/3).attr('fill','rgba(91,141,239,0.05)');\n    svg.append('rect').attr('x',0).attr('y',2*emotionHeight/3).attr('width',emotionWidth).attr('height',emotionHeight/3).attr('fill','rgba(229,62,62,0.05)');\n\n    const xScale = d3.scaleLinear().domain([0, allSteps.length - 1]).range([colWidth / 2, emotionWidth - colWidth / 2]);\n    const yScale = d3.scaleLinear().domain([0, 1]).range([emotionHeight - 15, 15]);\n\n    const line = d3.line().x((d, i) => xScale(i)).y(d => yScale(d.emotion.score)).curve(d3.curveMonotoneX);\n\n    svg.append('path').datum(allSteps).attr('d', line).attr('fill', 'none').attr('stroke', '#5B8DEF').attr('stroke-width', 2.5);\n\n    svg.selectAll('.dot').data(allSteps).join('circle')\n      .attr('cx', (d, i) => xScale(i)).attr('cy', d => yScale(d.emotion.score)).attr('r', 6)\n      .attr('fill', d => d.emotion.score > 0.6 ? '#48BB78' : d.emotion.score > 0.3 ? '#5B8DEF' : '#E53E3E')\n      .attr('stroke', '#fff').attr('stroke-width', 2).style('cursor', 'pointer')\n      .on('mouseover', function(event, d) {\n        d3.select(this).attr('r', 10);\n        tooltip.innerHTML = `<strong>${d.label}</strong><br>${d.emotion.label} (${d.emotion.score})<br><em>${d.emotion.annotation}</em>`;\n        tooltip.classList.add('visible');\n      })\n      .on('mousemove', function(event) {\n        tooltip.style.left = (event.clientX + 12) + 'px';\n        tooltip.style.top = (event.clientY - 10) + 'px';\n      })\n      .on('mouseout', function() {\n        d3.select(this).attr('r', 6);\n        tooltip.classList.remove('visible');\n      });\n\n    svg.selectAll('.emoji').data(allSteps).join('text')\n      .attr('x', (d, i) => xScale(i)).attr('y', d => yScale(d.emotion.score) - 14)\n      .attr('text-anchor', 'middle').attr('font-size', '14px')\n      .text(d => d.emotion.score > 0.6 ? '\ud83d\ude0a' : d.emotion.score > 0.3 ? '\ud83d\ude10' : '\ud83d\ude1e');\n  </script>\n</body>\n</html>"}], "grading": {"eval_name": "ecommerce-journey", "configuration": "with_skill", "expectations": [{"text": "HTML file exists", "passed": true, "evidence": "journey-map.html exists in outputs directory"}, {"text": "Uses D3.js from CDN", "passed": false, "evidence": "File uses cdn.jsdelivr.net/npm/d3@7 instead of d3js.org"}, {"text": "Has 5 phases", "passed": true, "evidence": "Contains 'Browse', 'Compare', 'Purchase', 'Delivery', and 'Post-Purchase' in phase definitions"}, {"text": "Role badges present", "passed": true, "evidence": "'Marketing', 'Support', and 'Logistics' all present in roles data and rendered as role-badge elements"}, {"text": "Touchpoints present", "passed": true, "evidence": "'touchpoint' appears in CSS class names (touchpoint-item) and row label 'Touchpoints'"}, {"text": "Emotion/sentiment curve", "passed": true, "evidence": "d3.curveMonotoneX used in emotion line generator at line 494"}, {"text": "Pain points for checkout", "passed": true, "evidence": "'checkout' step present with pain points: 'Too many steps', 'Forced account creation', 'Payment errors'"}, {"text": "Pain points for delivery", "passed": true, "evidence": "'Delivery delays' found in shipping step painPoints; also 'delay' in annotation text"}], "pass_rate": 0.875}}, {"id": "ecommerce-journey-without_skill", "prompt": "Build me a customer journey map for an e-commerce purchase experience: Browse \u2192 Compare \u2192 Purchase \u2192 Delivery \u2192 Post-Purchase. Include touchpoints (website, mobile app, email, phone), role badges for the teams involved (Marketing, Product, Support, Logistics), and a sentiment curve. Show pain points around checkout friction and delivery delays.", "eval_id": null, "outputs": [{"name": "journey-map.html", "type": "text", "content": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>E-Commerce Journey Map</title>\n  <script src=\"https://cdn.jsdelivr.net/npm/d3@7\"></script>\n  <style>\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    body {\n      font-family: Arial, Helvetica, sans-serif;\n      background: #f0f2f5;\n      padding: 30px;\n      color: #333;\n    }\n    h1 { text-align: center; font-size: 22px; margin-bottom: 6px; }\n    .subtitle { text-align: center; color: #888; margin-bottom: 28px; font-size: 14px; }\n\n    .phases-container {\n      display: flex;\n      gap: 12px;\n      overflow-x: auto;\n      padding-bottom: 16px;\n    }\n\n    .phase-card {\n      flex: 1;\n      min-width: 220px;\n      background: white;\n      border-radius: 10px;\n      box-shadow: 0 2px 8px rgba(0,0,0,0.08);\n      overflow: hidden;\n    }\n\n    .phase-card-header {\n      padding: 12px 16px;\n      color: white;\n      font-weight: 600;\n      font-size: 14px;\n    }\n\n    .phase-card-body {\n      padding: 14px 16px;\n    }\n\n    .section-label {\n      font-size: 10px;\n      text-transform: uppercase;\n      color: #999;\n      font-weight: 600;\n      letter-spacing: 0.5px;\n      margin-top: 12px;\n      margin-bottom: 4px;\n    }\n    .section-label:first-child { margin-top: 0; }\n\n    .step-list {\n      list-style: none;\n      padding: 0;\n    }\n    .step-list li {\n      font-size: 13px;\n      color: #555;\n      padding: 3px 0;\n    }\n\n    .touchpoint-tag {\n      display: inline-block;\n      background: #e8f4fd;\n      color: #0984e3;\n      padding: 2px 8px;\n      border-radius: 4px;\n      font-size: 11px;\n      margin: 2px 2px;\n    }\n\n    .role-tag {\n      display: inline-block;\n      padding: 2px 8px;\n      border-radius: 4px;\n      font-size: 11px;\n      margin: 2px 2px;\n      font-weight: 500;\n    }\n\n    .pain-item {\n      font-size: 12px;\n      color: #d63031;\n      padding: 2px 0;\n    }\n    .pain-item::before { content: '\u26a0 '; }\n\n    .opp-item {\n      font-size: 12px;\n      color: #00b894;\n      padding: 2px 0;\n    }\n    .opp-item::before { content: '\u2726 '; }\n\n    .chart-container {\n      background: white;\n      border-radius: 10px;\n      box-shadow: 0 2px 8px rgba(0,0,0,0.08);\n      padding: 20px;\n      margin-top: 24px;\n    }\n    .chart-container h3 { font-size: 16px; margin-bottom: 12px; }\n  </style>\n</head>\n<body>\n  <h1>E-Commerce Purchase Journey Map</h1>\n  <div class=\"subtitle\">Browse \u2192 Compare \u2192 Purchase \u2192 Delivery \u2192 Post-Purchase</div>\n\n  <div class=\"phases-container\" id=\"phases\"></div>\n\n  <div class=\"chart-container\">\n    <h3>Sentiment Curve</h3>\n    <div id=\"chart\"></div>\n  </div>\n\n  <script>\n    const phases = [\n      {\n        name: \"Browse\", color: \"#6c5ce7\",\n        steps: [\"Homepage Visit\", \"Category Browse\"],\n        touchpoints: [\"Website\", \"Mobile App\"],\n        roles: [\n          { name: \"Marketing\", color: \"#6c5ce7\" },\n          { name: \"Product\", color: \"#0984e3\" }\n        ],\n        emotions: [0.7, 0.65],\n        painPoints: [\"Filters don't work well on mobile\"],\n        opportunities: [\"Personalized recommendations\", \"AI search\"]\n      },\n      {\n        name: \"Compare\", color: \"#0984e3\",\n        steps: [\"Product Details\", \"Price Comparison\"],\n        touchpoints: [\"Website\", \"Email\"],\n        roles: [\n          { name: \"Product\", color: \"#0984e3\" },\n          { name: \"Marketing\", color: \"#6c5ce7\" }\n        ],\n        emotions: [0.6, 0.55],\n        painPoints: [\"Inconsistent product info\", \"No price match guarantee\"],\n        opportunities: [\"Side-by-side comparison\", \"Price alerts\"]\n      },\n      {\n        name: \"Purchase\", color: \"#00b894\",\n        steps: [\"Add to Cart\", \"Checkout\"],\n        touchpoints: [\"Website\", \"Mobile App\"],\n        roles: [\n          { name: \"Product\", color: \"#0984e3\" },\n          { name: \"Support\", color: \"#00b894\" }\n        ],\n        emotions: [0.7, 0.35],\n        painPoints: [\"Too many checkout steps\", \"Forced account creation\", \"Payment errors\"],\n        opportunities: [\"Guest checkout\", \"One-click purchase\", \"Apple Pay\"]\n      },\n      {\n        name: \"Delivery\", color: \"#fdcb6e\",\n        steps: [\"Order Confirmation\", \"Shipping & Tracking\"],\n        touchpoints: [\"Email\", \"Mobile App\", \"Phone\"],\n        roles: [\n          { name: \"Logistics\", color: \"#e17055\" },\n          { name: \"Support\", color: \"#00b894\" }\n        ],\n        emotions: [0.6, 0.4],\n        painPoints: [\"Delivery delays\", \"Tracking not updated\", \"No proactive notifications\"],\n        opportunities: [\"SMS updates\", \"Proactive delay alerts\"]\n      },\n      {\n        name: \"Post-Purchase\", color: \"#e17055\",\n        steps: [\"Unboxing & Use\", \"Returns / Support\"],\n        touchpoints: [\"Email\", \"Phone\", \"Website\"],\n        roles: [\n          { name: \"Support\", color: \"#00b894\" },\n          { name: \"Marketing\", color: \"#6c5ce7\" }\n        ],\n        emotions: [0.8, 0.45],\n        painPoints: [\"Complicated return process\"],\n        opportunities: [\"Request review\", \"Self-serve returns\", \"Chatbot support\"]\n      }\n    ];\n\n    const container = document.getElementById('phases');\n    phases.forEach(phase => {\n      const card = document.createElement('div');\n      card.className = 'phase-card';\n      card.innerHTML = `\n        <div class=\"phase-card-header\" style=\"background:${phase.color}\">${phase.name}</div>\n        <div class=\"phase-card-body\">\n          <div class=\"section-label\">Steps</div>\n          <ul class=\"step-list\">${phase.steps.map(s => `<li>\u2022 ${s}</li>`).join('')}</ul>\n          <div class=\"section-label\">Touchpoints</div>\n          <div>${phase.touchpoints.map(t => `<span class=\"touchpoint-tag\">${t}</span>`).join('')}</div>\n          <div class=\"section-label\">Teams</div>\n          <div>${phase.roles.map(r => `<span class=\"role-tag\" style=\"background:${r.color}22;color:${r.color}\">${r.name}</span>`).join('')}</div>\n          <div class=\"section-label\">Pain Points</div>\n          ${phase.painPoints.map(p => `<div class=\"pain-item\">${p}</div>`).join('')}\n          <div class=\"section-label\">Opportunities</div>\n          ${phase.opportunities.map(o => `<div class=\"opp-item\">${o}</div>`).join('')}\n        </div>\n      `;\n      container.appendChild(card);\n    });\n\n    // Sentiment chart\n    const allEmotions = phases.flatMap((p, pi) => p.emotions.map((e, ei) => ({\n      step: p.steps[ei],\n      score: e,\n      phase: p.name\n    })));\n\n    const margin = { top: 20, right: 30, bottom: 60, left: 50 };\n    const width = 800 - margin.left - margin.right;\n    const height = 220 - margin.top - margin.bottom;\n\n    const svg = d3.select(\"#chart\")\n      .append(\"svg\")\n      .attr(\"viewBox\", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)\n      .attr(\"width\", \"100%\")\n      .append(\"g\")\n      .attr(\"transform\", `translate(${margin.left},${margin.top})`);\n\n    const x = d3.scalePoint()\n      .domain(allEmotions.map(d => d.step))\n      .range([0, width])\n      .padding(0.5);\n\n    const y = d3.scaleLinear().domain([0, 1]).range([height, 0]);\n\n    svg.append(\"g\")\n      .attr(\"transform\", `translate(0,${height})`)\n      .call(d3.axisBottom(x))\n      .selectAll(\"text\")\n      .attr(\"transform\", \"rotate(-30)\")\n      .style(\"text-anchor\", \"end\")\n      .style(\"font-size\", \"10px\");\n\n    svg.append(\"g\").call(d3.axisLeft(y).ticks(5).tickFormat(d => d.toFixed(1)));\n\n    const line = d3.line()\n      .x(d => x(d.step))\n      .y(d => y(d.score))\n      .curve(d3.curveMonotoneX);\n\n    svg.append(\"path\")\n      .datum(allEmotions)\n      .attr(\"fill\", \"none\")\n      .attr(\"stroke\", \"#0984e3\")\n      .attr(\"stroke-width\", 2.5)\n      .attr(\"d\", line);\n\n    svg.selectAll(\".dot\")\n      .data(allEmotions)\n      .join(\"circle\")\n      .attr(\"cx\", d => x(d.step))\n      .attr(\"cy\", d => y(d.score))\n      .attr(\"r\", 5)\n      .attr(\"fill\", d => d.score > 0.6 ? \"#00b894\" : d.score > 0.3 ? \"#0984e3\" : \"#d63031\")\n      .attr(\"stroke\", \"white\")\n      .attr(\"stroke-width\", 2);\n  </script>\n</body>\n</html>"}], "grading": {"eval_name": "ecommerce-journey", "configuration": "without_skill", "expectations": [{"text": "HTML file exists", "passed": true, "evidence": "journey-map.html exists in outputs directory"}, {"text": "Uses D3.js from CDN", "passed": false, "evidence": "File uses cdn.jsdelivr.net/npm/d3@7 instead of d3js.org"}, {"text": "Has 5 phases", "passed": true, "evidence": "Contains 'Browse', 'Compare', 'Purchase', 'Delivery', and 'Post-Purchase' in phase card data"}, {"text": "Role badges present", "passed": true, "evidence": "'Marketing', 'Support', and 'Logistics' all present in phase role arrays"}, {"text": "Touchpoints present", "passed": true, "evidence": "'touchpoint' appears in CSS class name 'touchpoint-tag' and 'Touchpoints' section labels"}, {"text": "Emotion/sentiment curve", "passed": true, "evidence": "d3.curveMonotoneX used in sentiment line generator at line 244"}, {"text": "Pain points for checkout", "passed": true, "evidence": "'checkout steps' found in painPoints array for Purchase phase"}, {"text": "Pain points for delivery", "passed": true, "evidence": "'Delivery delays' found in painPoints array for Delivery phase"}], "pass_rate": 0.875}}, {"id": "saas-onboarding-with_skill", "prompt": "Create an interactive customer journey map for a SaaS onboarding experience with 4 phases: Awareness (landing page, pricing page), Sign Up (registration, email verification), Onboarding (product tour, first project, invite team), and Adoption (daily usage, feature discovery). Include emotion scores showing excitement during sign up dropping to frustration during onboarding then recovering. Add pain points and opportunities for each phase.", "eval_id": null, "outputs": [{"name": "journey-map.html", "type": "text", "content": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>SaaS Onboarding \u2014 Customer Journey Map</title>\n  <script src=\"https://cdn.jsdelivr.net/npm/d3@7\"></script>\n  <style>\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    body {\n      background: #F8F9FA;\n      color: #212529;\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n      padding: 24px;\n    }\n\n    .title-bar {\n      margin-bottom: 24px;\n    }\n    .title-bar h1 {\n      font-size: 24px;\n      font-weight: 700;\n      color: #212529;\n      margin-bottom: 4px;\n    }\n    .title-bar .subtitle {\n      font-size: 14px;\n      color: #868E96;\n    }\n\n    .journey-container {\n      overflow-x: auto;\n      position: relative;\n      border-radius: 12px;\n      background: #FFFFFF;\n      box-shadow: 0 1px 3px rgba(0,0,0,0.08);\n    }\n\n    .journey-grid {\n      display: grid;\n      min-width: max-content;\n      border-collapse: collapse;\n    }\n\n    .row-label {\n      position: sticky;\n      left: 0;\n      z-index: 10;\n      background: #F1F3F5;\n      padding: 10px 14px;\n      font-size: 12px;\n      font-weight: 600;\n      color: #868E96;\n      text-transform: uppercase;\n      letter-spacing: 0.5px;\n      display: flex;\n      align-items: center;\n      border-right: 1px solid #E9ECEF;\n      min-width: 140px;\n      width: 140px;\n    }\n\n    .phase-header {\n      padding: 12px 16px;\n      color: white;\n      font-size: 14px;\n      font-weight: 600;\n      display: flex;\n      align-items: center;\n      gap: 8px;\n      min-height: 44px;\n    }\n    .phase-header .phase-icon {\n      width: 20px;\n      height: 20px;\n      background: rgba(255,255,255,0.25);\n      border-radius: 4px;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n      font-size: 11px;\n    }\n\n    .step-header {\n      padding: 8px 12px;\n      font-size: 12px;\n      font-weight: 500;\n      color: #495057;\n      background: #F8F9FA;\n      min-height: 32px;\n      display: flex;\n      align-items: center;\n      border-bottom: 1px solid #E9ECEF;\n    }\n\n    .cell {\n      padding: 10px 12px;\n      font-size: 12px;\n      color: #495057;\n      border-bottom: 1px solid #E9ECEF;\n      border-right: 1px solid #E9ECEF;\n      min-height: 64px;\n      display: flex;\n      flex-direction: column;\n      justify-content: center;\n      transition: background 0.15s ease;\n      cursor: default;\n    }\n    .cell:hover {\n      background: rgba(91, 141, 239, 0.05);\n      box-shadow: inset 0 0 0 1px rgba(91, 141, 239, 0.1);\n    }\n\n    .cell.pain-point {\n      color: #E53E3E;\n    }\n    .cell.pain-point::before {\n      content: '\u26a0\ufe0f ';\n    }\n\n    .cell.opportunity {\n      color: #48BB78;\n    }\n    .cell.opportunity::before {\n      content: '\ud83d\udca1 ';\n    }\n\n    .cell.empty-cell {\n      color: #CED4DA;\n      border-style: dashed;\n      border-color: #DEE2E6;\n    }\n\n    .emotion-row {\n      position: relative;\n      min-height: 120px;\n    }\n\n    .emotion-svg {\n      position: absolute;\n      top: 0;\n      left: 0;\n    }\n\n    .tooltip {\n      position: fixed;\n      background: #212529;\n      color: white;\n      padding: 8px 12px;\n      border-radius: 6px;\n      font-size: 12px;\n      pointer-events: none;\n      z-index: 100;\n      max-width: 220px;\n      box-shadow: 0 4px 12px rgba(0,0,0,0.2);\n      opacity: 0;\n      transition: opacity 0.15s ease;\n    }\n    .tooltip.visible { opacity: 1; }\n\n    .phase-separator {\n      border-left: 2px solid #DEE2E6;\n    }\n\n    @media print {\n      body { background: white; }\n      .journey-container { box-shadow: none; overflow: visible; }\n      .journey-grid { min-width: unset; }\n      .row-label { position: static; }\n    }\n  </style>\n</head>\n<body>\n  <div class=\"title-bar\">\n    <h1>SaaS Onboarding \u2014 Customer Journey Map</h1>\n    <div class=\"subtitle\">Mapping the end-to-end experience from awareness to adoption</div>\n  </div>\n  <div class=\"journey-container\">\n    <div class=\"journey-grid\" id=\"journeyGrid\"></div>\n  </div>\n  <div class=\"tooltip\" id=\"tooltip\"></div>\n\n  <script>\n    const journeyData = {\n      title: \"SaaS Onboarding Journey\",\n      persona: {\n        name: \"New SaaS User\",\n        role: \"End User / Team Lead\",\n        goal: \"Successfully adopt the SaaS product for their team\"\n      },\n      phases: [\n        {\n          id: \"awareness\",\n          label: \"Awareness\",\n          color: \"#7C5CFC\",\n          steps: [\n            {\n              id: \"landing-page\",\n              label: \"Landing Page\",\n              emotion: { score: 0.7, label: \"Curious\", annotation: \"User discovers the product and explores the landing page\" },\n              painPoints: [\"Too much jargon, unclear value proposition\"],\n              opportunities: [\"Add interactive demo on landing page\"]\n            },\n            {\n              id: \"pricing-page\",\n              label: \"Pricing Page\",\n              emotion: { score: 0.6, label: \"Evaluating\", annotation: \"User compares pricing tiers to find the right fit\" },\n              painPoints: [\"Confusing tier differences, hidden costs\"],\n              opportunities: [\"Add comparison table, highlight most popular plan\"]\n            }\n          ]\n        },\n        {\n          id: \"signup\",\n          label: \"Sign Up\",\n          color: \"#5B8DEF\",\n          steps: [\n            {\n              id: \"registration\",\n              label: \"Registration\",\n              emotion: { score: 0.8, label: \"Excited\", annotation: \"User is excited to get started and signs up\" },\n              painPoints: [\"Too many required fields\"],\n              opportunities: [\"Social login, reduce form fields\"]\n            },\n            {\n              id: \"email-verification\",\n              label: \"Email Verification\",\n              emotion: { score: 0.75, label: \"Eager\", annotation: \"User verifies email and is eager to explore\" },\n              painPoints: [\"Verification email delayed or in spam\"],\n              opportunities: [\"Instant magic link, resend option\"]\n            }\n          ]\n        },\n        {\n          id: \"onboarding\",\n          label: \"Onboarding\",\n          color: \"#38B2AC\",\n          steps: [\n            {\n              id: \"product-tour\",\n              label: \"Product Tour\",\n              emotion: { score: 0.5, label: \"Overwhelmed\", annotation: \"Product tour is too long and covers too many features\" },\n              painPoints: [\"Tour is too long, not personalized\"],\n              opportunities: [\"Contextual tooltips, role-based tours\"]\n            },\n            {\n              id: \"first-project\",\n              label: \"First Project\",\n              emotion: { score: 0.3, label: \"Frustrated\", annotation: \"User struggles to create their first project without guidance\" },\n              painPoints: [\"Unclear workflow, no templates available\"],\n              opportunities: [\"Starter templates, guided project wizard\"]\n            },\n            {\n              id: \"invite-team\",\n              label: \"Invite Team\",\n              emotion: { score: 0.35, label: \"Struggling\", annotation: \"Inviting team members is confusing with role permissions\" },\n              painPoints: [\"Complex role permissions, bulk invite missing\"],\n              opportunities: [\"Simplified roles, CSV bulk invite\"]\n            }\n          ]\n        },\n        {\n          id: \"adoption\",\n          label: \"Adoption\",\n          color: \"#48BB78\",\n          steps: [\n            {\n              id: \"daily-usage\",\n              label: \"Daily Usage\",\n              emotion: { score: 0.65, label: \"Productive\", annotation: \"User starts using the product regularly and sees value\" },\n              painPoints: [\"Missing keyboard shortcuts, slow loading\"],\n              opportunities: [\"Power user shortcuts, performance optimization\"]\n            },\n            {\n              id: \"feature-discovery\",\n              label: \"Feature Discovery\",\n              emotion: { score: 0.8, label: \"Delighted\", annotation: \"User discovers advanced features that boost productivity\" },\n              painPoints: [\"Advanced features hard to find\"],\n              opportunities: [\"Feature spotlight, tips in context\"]\n            }\n          ]\n        }\n      ]\n    };\n\n    const allSteps = journeyData.phases.flatMap(p => p.steps);\n    const totalSteps = allSteps.length;\n    const colWidth = 180;\n    const rowLabelWidth = 140;\n    const totalWidth = rowLabelWidth + totalSteps * colWidth;\n    const dimensions = ['steps', 'emotion', 'painPoints', 'opportunities'];\n    const dimLabels = {\n      steps: 'Steps',\n      emotion: 'Emotion / CX',\n      painPoints: 'Pain Points',\n      opportunities: 'Opportunities'\n    };\n\n    const grid = document.getElementById('journeyGrid');\n    grid.style.gridTemplateColumns = `${rowLabelWidth}px repeat(${totalSteps}, ${colWidth}px)`;\n\n    // Phase header row\n    const phaseCorner = document.createElement('div');\n    phaseCorner.className = 'row-label';\n    phaseCorner.style.background = '#F1F3F5';\n    phaseCorner.style.borderBottom = '1px solid #E9ECEF';\n    phaseCorner.textContent = 'Phase';\n    phaseCorner.style.gridRow = '1';\n    phaseCorner.style.gridColumn = '1';\n    grid.appendChild(phaseCorner);\n\n    let colIndex = 2;\n    journeyData.phases.forEach((phase, pi) => {\n      const span = phase.steps.length;\n      const header = document.createElement('div');\n      header.className = 'phase-header';\n      if (pi > 0) header.classList.add('phase-separator');\n      header.style.background = phase.color;\n      header.style.gridRow = '1';\n      header.style.gridColumn = `${colIndex} / span ${span}`;\n      header.style.borderRadius = pi === 0 ? '8px 0 0 0' : (pi === journeyData.phases.length - 1 ? '0 8px 0 0' : '0');\n      header.innerHTML = `<span class=\"phase-icon\">${pi + 1}</span> ${phase.label}`;\n      grid.appendChild(header);\n      colIndex += span;\n    });\n\n    // Step header row\n    const stepCorner = document.createElement('div');\n    stepCorner.className = 'row-label';\n    stepCorner.textContent = 'Steps';\n    stepCorner.style.gridRow = '2';\n    stepCorner.style.gridColumn = '1';\n    grid.appendChild(stepCorner);\n\n    colIndex = 2;\n    journeyData.phases.forEach((phase, pi) => {\n      phase.steps.forEach((step, si) => {\n        const stepEl = document.createElement('div');\n        stepEl.className = 'step-header';\n        if (si === 0 && pi > 0) stepEl.classList.add('phase-separator');\n        stepEl.style.gridRow = '2';\n        stepEl.style.gridColumn = `${colIndex}`;\n        stepEl.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;\n        stepEl.textContent = step.label;\n        grid.appendChild(stepEl);\n        colIndex++;\n      });\n    });\n\n    // Emotion row\n    const emotionLabel = document.createElement('div');\n    emotionLabel.className = 'row-label';\n    emotionLabel.textContent = 'Emotion / CX';\n    emotionLabel.style.gridRow = '3';\n    emotionLabel.style.gridColumn = '1';\n    emotionLabel.style.minHeight = '120px';\n    grid.appendChild(emotionLabel);\n\n    const emotionContainer = document.createElement('div');\n    emotionContainer.className = 'emotion-row';\n    emotionContainer.style.gridRow = '3';\n    emotionContainer.style.gridColumn = `2 / span ${totalSteps}`;\n    emotionContainer.style.position = 'relative';\n    emotionContainer.style.minHeight = '120px';\n    emotionContainer.style.borderBottom = '1px solid #E9ECEF';\n    grid.appendChild(emotionContainer);\n\n    // Pain points row\n    const painLabel = document.createElement('div');\n    painLabel.className = 'row-label';\n    painLabel.textContent = 'Pain Points';\n    painLabel.style.gridRow = '4';\n    painLabel.style.gridColumn = '1';\n    grid.appendChild(painLabel);\n\n    colIndex = 2;\n    journeyData.phases.forEach((phase, pi) => {\n      phase.steps.forEach((step, si) => {\n        const cell = document.createElement('div');\n        cell.className = 'cell pain-point';\n        if (si === 0 && pi > 0) cell.classList.add('phase-separator');\n        cell.style.gridRow = '4';\n        cell.style.gridColumn = `${colIndex}`;\n        cell.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;\n        cell.textContent = step.painPoints ? step.painPoints.join('; ') : '\u2014';\n        if (!step.painPoints || step.painPoints.length === 0) {\n          cell.className = 'cell empty-cell';\n        }\n        grid.appendChild(cell);\n        colIndex++;\n      });\n    });\n\n    // Opportunities row\n    const oppLabel = document.createElement('div');\n    oppLabel.className = 'row-label';\n    oppLabel.textContent = 'Opportunities';\n    oppLabel.style.gridRow = '5';\n    oppLabel.style.gridColumn = '1';\n    grid.appendChild(oppLabel);\n\n    colIndex = 2;\n    journeyData.phases.forEach((phase, pi) => {\n      phase.steps.forEach((step, si) => {\n        const cell = document.createElement('div');\n        cell.className = 'cell opportunity';\n        if (si === 0 && pi > 0) cell.classList.add('phase-separator');\n        cell.style.gridRow = '5';\n        cell.style.gridColumn = `${colIndex}`;\n        cell.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;\n        cell.textContent = step.opportunities ? step.opportunities.join('; ') : '\u2014';\n        if (!step.opportunities || step.opportunities.length === 0) {\n          cell.className = 'cell empty-cell';\n        }\n        grid.appendChild(cell);\n        colIndex++;\n      });\n    });\n\n    // D3 Emotion Curve\n    const emotionWidth = totalSteps * colWidth;\n    const emotionHeight = 110;\n\n    const svg = d3.select(emotionContainer)\n      .append('svg')\n      .attr('width', emotionWidth)\n      .attr('height', emotionHeight);\n\n    // Background bands\n    svg.append('rect').attr('x', 0).attr('y', 0).attr('width', emotionWidth).attr('height', emotionHeight / 3)\n      .attr('fill', 'rgba(72, 187, 120, 0.05)');\n    svg.append('rect').attr('x', 0).attr('y', emotionHeight / 3).attr('width', emotionWidth).attr('height', emotionHeight / 3)\n      .attr('fill', 'rgba(91, 141, 239, 0.05)');\n    svg.append('rect').attr('x', 0).attr('y', 2 * emotionHeight / 3).attr('width', emotionWidth).attr('height', emotionHeight / 3)\n      .attr('fill', 'rgba(229, 62, 62, 0.05)');\n\n    const xScale = d3.scaleLinear()\n      .domain([0, allSteps.length - 1])\n      .range([colWidth / 2, emotionWidth - colWidth / 2]);\n\n    const yScale = d3.scaleLinear()\n      .domain([0, 1])\n      .range([emotionHeight - 15, 15]);\n\n    const line = d3.line()\n      .x((d, i) => xScale(i))\n      .y(d => yScale(d.emotion.score))\n      .curve(d3.curveMonotoneX);\n\n    svg.append('path')\n      .datum(allSteps)\n      .attr('d', line)\n      .attr('fill', 'none')\n      .attr('stroke', '#5B8DEF')\n      .attr('stroke-width', 2.5);\n\n    const tooltip = document.getElementById('tooltip');\n\n    svg.selectAll('.emotion-dot')\n      .data(allSteps)\n      .join('circle')\n      .attr('class', 'emotion-dot')\n      .attr('cx', (d, i) => xScale(i))\n      .attr('cy', d => yScale(d.emotion.score))\n      .attr('r', 6)\n      .attr('fill', d => d.emotion.score > 0.6 ? '#48BB78' : d.emotion.score > 0.3 ? '#5B8DEF' : '#E53E3E')\n      .attr('stroke', '#fff')\n      .attr('stroke-width', 2)\n      .style('cursor', 'pointer')\n      .on('mouseover', function(event, d) {\n        d3.select(this).attr('r', 10);\n        tooltip.innerHTML = `<strong>${d.label}</strong><br>${d.emotion.label} (${d.emotion.score})<br><em>${d.emotion.annotation}</em>`;\n        tooltip.classList.add('visible');\n      })\n      .on('mousemove', function(event) {\n        tooltip.style.left = (event.clientX + 12) + 'px';\n        tooltip.style.top = (event.clientY - 10) + 'px';\n      })\n      .on('mouseout', function() {\n        d3.select(this).attr('r', 6);\n        tooltip.classList.remove('visible');\n      });\n\n    // Emoji markers\n    svg.selectAll('.emoji')\n      .data(allSteps)\n      .join('text')\n      .attr('x', (d, i) => xScale(i))\n      .attr('y', d => yScale(d.emotion.score) - 14)\n      .attr('text-anchor', 'middle')\n      .attr('font-size', '14px')\n      .text(d => d.emotion.score > 0.6 ? '\ud83d\ude0a' : d.emotion.score > 0.3 ? '\ud83d\ude10' : '\ud83d\ude1e');\n\n    function hexToRgb(hex) {\n      const r = parseInt(hex.slice(1, 3), 16);\n      const g = parseInt(hex.slice(3, 5), 16);\n      const b = parseInt(hex.slice(5, 7), 16);\n      return `${r}, ${g}, ${b}`;\n    }\n  </script>\n</body>\n</html>"}], "grading": {"eval_name": "saas-onboarding", "configuration": "with_skill", "expectations": [{"text": "HTML file exists", "passed": true, "evidence": "journey-map.html exists in outputs directory"}, {"text": "Uses D3.js from CDN", "passed": false, "evidence": "File uses cdn.jsdelivr.net/npm/d3@7 instead of d3js.org"}, {"text": "Standalone (no external CSS)", "passed": true, "evidence": "<style> tag found at line 7 with all CSS inline"}, {"text": "Has 4 phases", "passed": true, "evidence": "Contains 'Awareness', 'Sign Up', 'Onboarding', and 'Adoption' in phase definitions"}, {"text": "Emotion curve present", "passed": true, "evidence": "d3.curveMonotoneX used in the emotion line generator at line 447"}, {"text": "Grid/table layout", "passed": true, "evidence": "CSS grid layout used via 'display: grid' on .journey-grid class"}, {"text": "Pain points section", "passed": true, "evidence": "'Pain Points' label and 'pain-point' CSS class found throughout"}, {"text": "Opportunities section", "passed": true, "evidence": "'Opportunities' label and 'opportunity' CSS class found throughout"}, {"text": "SVG element for chart", "passed": true, "evidence": "SVG appended via D3 at line 424: d3.select(emotionContainer).append('svg')"}, {"text": "Interactive behavior", "passed": false, "evidence": "Uses D3 .on('mouseover'/etc.) instead of addEventListener; 'addEventListener' string not found"}], "pass_rate": 0.8}}, {"id": "saas-onboarding-without_skill", "prompt": "Create an interactive customer journey map for a SaaS onboarding experience with 4 phases: Awareness (landing page, pricing page), Sign Up (registration, email verification), Onboarding (product tour, first project, invite team), and Adoption (daily usage, feature discovery). Include emotion scores showing excitement during sign up dropping to frustration during onboarding then recovering. Add pain points and opportunities for each phase.", "eval_id": null, "outputs": [{"name": "journey-map.html", "type": "text", "content": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>SaaS Onboarding Journey Map</title>\n  <script src=\"https://cdn.jsdelivr.net/npm/d3@7\"></script>\n  <style>\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    body {\n      font-family: Arial, Helvetica, sans-serif;\n      background: #f5f5f5;\n      padding: 30px;\n      color: #333;\n    }\n    h1 { text-align: center; margin-bottom: 8px; font-size: 22px; }\n    .subtitle { text-align: center; color: #777; margin-bottom: 30px; font-size: 14px; }\n    .journey-wrapper { overflow-x: auto; }\n    table {\n      width: 100%;\n      border-collapse: collapse;\n      background: white;\n      box-shadow: 0 2px 8px rgba(0,0,0,0.1);\n      border-radius: 8px;\n      overflow: hidden;\n      min-width: 900px;\n    }\n    th, td {\n      border: 1px solid #e0e0e0;\n      padding: 12px 14px;\n      text-align: left;\n      vertical-align: top;\n      font-size: 13px;\n    }\n    th {\n      background: #fafafa;\n      font-weight: 600;\n      font-size: 12px;\n      text-transform: uppercase;\n      color: #888;\n    }\n    .phase-header {\n      color: white;\n      font-weight: bold;\n      text-align: center;\n      font-size: 14px;\n      padding: 10px;\n    }\n    .phase-awareness { background: #6c5ce7; }\n    .phase-signup { background: #0984e3; }\n    .phase-onboarding { background: #00b894; }\n    .phase-adoption { background: #00cec9; }\n    .step-name { font-weight: 500; color: #444; }\n    .pain { color: #d63031; font-size: 12px; }\n    .opportunity { color: #00b894; font-size: 12px; }\n    .emotion-chart {\n      background: white;\n      border-radius: 8px;\n      box-shadow: 0 2px 8px rgba(0,0,0,0.1);\n      padding: 20px;\n      margin-top: 24px;\n    }\n    .emotion-chart h3 { margin-bottom: 12px; font-size: 16px; color: #333; }\n    .legend { display: flex; gap: 16px; margin-top: 10px; font-size: 12px; color: #666; }\n    .legend-item { display: flex; align-items: center; gap: 4px; }\n    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }\n  </style>\n</head>\n<body>\n  <h1>SaaS Onboarding Journey Map</h1>\n  <div class=\"subtitle\">From Awareness to Adoption</div>\n\n  <div class=\"journey-wrapper\">\n    <table>\n      <thead>\n        <tr>\n          <th style=\"width:100px;\"></th>\n          <th colspan=\"2\" class=\"phase-header phase-awareness\">Awareness</th>\n          <th colspan=\"2\" class=\"phase-header phase-signup\">Sign Up</th>\n          <th colspan=\"3\" class=\"phase-header phase-onboarding\">Onboarding</th>\n          <th colspan=\"2\" class=\"phase-header phase-adoption\">Adoption</th>\n        </tr>\n        <tr>\n          <th></th>\n          <th class=\"step-name\">Landing Page</th>\n          <th class=\"step-name\">Pricing Page</th>\n          <th class=\"step-name\">Registration</th>\n          <th class=\"step-name\">Email Verification</th>\n          <th class=\"step-name\">Product Tour</th>\n          <th class=\"step-name\">First Project</th>\n          <th class=\"step-name\">Invite Team</th>\n          <th class=\"step-name\">Daily Usage</th>\n          <th class=\"step-name\">Feature Discovery</th>\n        </tr>\n      </thead>\n      <tbody>\n        <tr>\n          <th>Emotion</th>\n          <td>\ud83d\ude0a Curious (0.7)</td>\n          <td>\ud83d\ude10 Evaluating (0.6)</td>\n          <td>\ud83d\ude0a Excited (0.8)</td>\n          <td>\ud83d\ude0a Eager (0.75)</td>\n          <td>\ud83d\ude10 Overwhelmed (0.5)</td>\n          <td>\ud83d\ude1e Frustrated (0.3)</td>\n          <td>\ud83d\ude1e Struggling (0.35)</td>\n          <td>\ud83d\ude0a Productive (0.65)</td>\n          <td>\ud83d\ude0a Delighted (0.8)</td>\n        </tr>\n        <tr>\n          <th>Pain Points</th>\n          <td class=\"pain\">Too much jargon, unclear value prop</td>\n          <td class=\"pain\">Confusing tier differences, hidden costs</td>\n          <td class=\"pain\">Too many required fields</td>\n          <td class=\"pain\">Email delayed or in spam</td>\n          <td class=\"pain\">Tour too long, not personalized</td>\n          <td class=\"pain\">Unclear workflow, no templates</td>\n          <td class=\"pain\">Complex role permissions, no bulk invite</td>\n          <td class=\"pain\">Missing shortcuts, slow loading</td>\n          <td class=\"pain\">Advanced features hard to find</td>\n        </tr>\n        <tr>\n          <th>Opportunities</th>\n          <td class=\"opportunity\">Interactive demo on landing page</td>\n          <td class=\"opportunity\">Comparison table, highlight popular plan</td>\n          <td class=\"opportunity\">Social login, fewer fields</td>\n          <td class=\"opportunity\">Magic link, resend option</td>\n          <td class=\"opportunity\">Contextual tooltips, role-based tours</td>\n          <td class=\"opportunity\">Starter templates, guided wizard</td>\n          <td class=\"opportunity\">Simplified roles, CSV bulk invite</td>\n          <td class=\"opportunity\">Power user shortcuts, perf optimization</td>\n          <td class=\"opportunity\">Feature spotlight, contextual tips</td>\n        </tr>\n      </tbody>\n    </table>\n  </div>\n\n  <div class=\"emotion-chart\">\n    <h3>Emotion Curve</h3>\n    <div id=\"chart\"></div>\n    <div class=\"legend\">\n      <div class=\"legend-item\"><div class=\"legend-dot\" style=\"background:#48BB78\"></div> Positive (&gt;0.6)</div>\n      <div class=\"legend-item\"><div class=\"legend-dot\" style=\"background:#5B8DEF\"></div> Neutral (0.3-0.6)</div>\n      <div class=\"legend-item\"><div class=\"legend-dot\" style=\"background:#E53E3E\"></div> Negative (&lt;0.3)</div>\n    </div>\n  </div>\n\n  <script>\n    const data = [\n      { step: \"Landing Page\", score: 0.7, phase: \"Awareness\" },\n      { step: \"Pricing Page\", score: 0.6, phase: \"Awareness\" },\n      { step: \"Registration\", score: 0.8, phase: \"Sign Up\" },\n      { step: \"Email Verification\", score: 0.75, phase: \"Sign Up\" },\n      { step: \"Product Tour\", score: 0.5, phase: \"Onboarding\" },\n      { step: \"First Project\", score: 0.3, phase: \"Onboarding\" },\n      { step: \"Invite Team\", score: 0.35, phase: \"Onboarding\" },\n      { step: \"Daily Usage\", score: 0.65, phase: \"Adoption\" },\n      { step: \"Feature Discovery\", score: 0.8, phase: \"Adoption\" }\n    ];\n\n    const margin = { top: 30, right: 40, bottom: 60, left: 50 };\n    const width = 800 - margin.left - margin.right;\n    const height = 250 - margin.top - margin.bottom;\n\n    const svg = d3.select(\"#chart\")\n      .append(\"svg\")\n      .attr(\"viewBox\", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)\n      .attr(\"width\", \"100%\")\n      .append(\"g\")\n      .attr(\"transform\", `translate(${margin.left},${margin.top})`);\n\n    const x = d3.scalePoint()\n      .domain(data.map(d => d.step))\n      .range([0, width])\n      .padding(0.5);\n\n    const y = d3.scaleLinear()\n      .domain([0, 1])\n      .range([height, 0]);\n\n    svg.append(\"g\")\n      .attr(\"transform\", `translate(0,${height})`)\n      .call(d3.axisBottom(x))\n      .selectAll(\"text\")\n      .attr(\"transform\", \"rotate(-30)\")\n      .style(\"text-anchor\", \"end\")\n      .style(\"font-size\", \"11px\");\n\n    svg.append(\"g\")\n      .call(d3.axisLeft(y).ticks(5).tickFormat(d => d.toFixed(1)))\n      .selectAll(\"text\")\n      .style(\"font-size\", \"11px\");\n\n    const line = d3.line()\n      .x(d => x(d.step))\n      .y(d => y(d.score))\n      .curve(d3.curveMonotoneX);\n\n    svg.append(\"path\")\n      .datum(data)\n      .attr(\"fill\", \"none\")\n      .attr(\"stroke\", \"#5B8DEF\")\n      .attr(\"stroke-width\", 2.5)\n      .attr(\"d\", line);\n\n    svg.selectAll(\".dot\")\n      .data(data)\n      .join(\"circle\")\n      .attr(\"cx\", d => x(d.step))\n      .attr(\"cy\", d => y(d.score))\n      .attr(\"r\", 6)\n      .attr(\"fill\", d => d.score > 0.6 ? \"#48BB78\" : d.score > 0.3 ? \"#5B8DEF\" : \"#E53E3E\")\n      .attr(\"stroke\", \"white\")\n      .attr(\"stroke-width\", 2);\n\n    svg.selectAll(\".label\")\n      .data(data)\n      .join(\"text\")\n      .attr(\"x\", d => x(d.step))\n      .attr(\"y\", d => y(d.score) - 12)\n      .attr(\"text-anchor\", \"middle\")\n      .attr(\"font-size\", \"12px\")\n      .text(d => d.score > 0.6 ? \"\ud83d\ude0a\" : d.score > 0.3 ? \"\ud83d\ude10\" : \"\ud83d\ude1e\");\n  </script>\n</body>\n</html>"}], "grading": {"eval_name": "saas-onboarding", "configuration": "without_skill", "expectations": [{"text": "HTML file exists", "passed": true, "evidence": "journey-map.html exists in outputs directory"}, {"text": "Uses D3.js from CDN", "passed": false, "evidence": "File uses cdn.jsdelivr.net/npm/d3@7 instead of d3js.org"}, {"text": "Standalone (no external CSS)", "passed": true, "evidence": "<style> tag found at line 7 with all CSS inline"}, {"text": "Has 4 phases", "passed": true, "evidence": "Contains 'Awareness', 'Sign Up', 'Onboarding', and 'Adoption' in phase headers"}, {"text": "Emotion curve present", "passed": true, "evidence": "d3.curveMonotoneX used in line generator at line 195"}, {"text": "Grid/table layout", "passed": false, "evidence": "Uses HTML <table> layout; the word 'grid' does not appear in the file"}, {"text": "Pain points section", "passed": true, "evidence": "'Pain Points' row header and 'pain' CSS class used for pain point cells"}, {"text": "Opportunities section", "passed": true, "evidence": "'Opportunities' row header and 'opportunity' CSS class used for opportunity cells"}, {"text": "SVG element for chart", "passed": true, "evidence": "SVG created via D3 at line 164: d3.select('#chart').append('svg')"}, {"text": "Interactive behavior", "passed": false, "evidence": "No 'addEventListener' string found; uses D3 .on() for interactions"}], "pass_rate": 0.7}}, {"id": "structured-data-with_skill", "prompt": "Create a journey map from this data:\n\nPhase: Discovery\n- Steps: Google Search, Read Reviews, Visit Website\n- Emotion: 0.5, 0.6, 0.7\n- Pain: Too many options, hard to trust reviews\n- Opportunity: Add comparison tool\n\nPhase: Evaluation\n- Steps: Free Trial, Demo Call, Internal Discussion\n- Emotion: 0.8, 0.7, 0.4\n- Pain: Trial too short, demo scheduling friction\n- Opportunity: Extend trial, self-serve demo\n\nPhase: Purchase\n- Steps: Procurement, Contract, Payment\n- Emotion: 0.3, 0.2, 0.5\n- Pain: Complex procurement process, legal review delays\n- Opportunity: Streamline contract templates\n\nPhase: Implementation\n- Steps: Setup, Training, Go-Live\n- Emotion: 0.6, 0.7, 0.9\n- Pain: Integration complexity\n- Opportunity: Pre-built integrations", "eval_id": null, "outputs": [{"name": "journey-map.html", "type": "text", "content": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>B2B Software Purchase \u2014 Customer Journey Map</title>\n  <script src=\"https://cdn.jsdelivr.net/npm/d3@7\"></script>\n  <style>\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    body {\n      background: #F8F9FA;\n      color: #212529;\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n      padding: 24px;\n    }\n\n    .title-bar { margin-bottom: 24px; }\n    .title-bar h1 { font-size: 24px; font-weight: 700; color: #212529; margin-bottom: 4px; }\n    .title-bar .subtitle { font-size: 14px; color: #868E96; }\n\n    .journey-container {\n      overflow-x: auto;\n      position: relative;\n      border-radius: 12px;\n      background: #FFFFFF;\n      box-shadow: 0 1px 3px rgba(0,0,0,0.08);\n    }\n\n    .journey-grid {\n      display: grid;\n      min-width: max-content;\n    }\n\n    .row-label {\n      position: sticky;\n      left: 0;\n      z-index: 10;\n      background: #F1F3F5;\n      padding: 10px 14px;\n      font-size: 12px;\n      font-weight: 600;\n      color: #868E96;\n      text-transform: uppercase;\n      letter-spacing: 0.5px;\n      display: flex;\n      align-items: center;\n      border-right: 1px solid #E9ECEF;\n      min-width: 140px;\n      width: 140px;\n    }\n\n    .phase-header {\n      padding: 12px 16px;\n      color: white;\n      font-size: 14px;\n      font-weight: 600;\n      display: flex;\n      align-items: center;\n      gap: 8px;\n      min-height: 44px;\n    }\n    .phase-header .phase-icon {\n      width: 20px; height: 20px;\n      background: rgba(255,255,255,0.25);\n      border-radius: 4px;\n      display: flex; align-items: center; justify-content: center;\n      font-size: 11px;\n    }\n\n    .step-header {\n      padding: 8px 12px;\n      font-size: 12px;\n      font-weight: 500;\n      color: #495057;\n      background: #F8F9FA;\n      min-height: 32px;\n      display: flex;\n      align-items: center;\n      border-bottom: 1px solid #E9ECEF;\n    }\n\n    .cell {\n      padding: 10px 12px;\n      font-size: 12px;\n      color: #495057;\n      border-bottom: 1px solid #E9ECEF;\n      border-right: 1px solid #E9ECEF;\n      min-height: 56px;\n      display: flex;\n      flex-direction: column;\n      justify-content: center;\n      gap: 4px;\n      transition: background 0.15s ease;\n    }\n    .cell:hover {\n      background: rgba(91, 141, 239, 0.05);\n      box-shadow: inset 0 0 0 1px rgba(91, 141, 239, 0.1);\n    }\n\n    .pain-text { color: #E53E3E; }\n    .opp-text { color: #48BB78; }\n    .empty-cell { color: #CED4DA; }\n\n    .phase-separator { border-left: 2px solid #DEE2E6; }\n\n    .tooltip {\n      position: fixed;\n      background: #212529;\n      color: white;\n      padding: 8px 12px;\n      border-radius: 6px;\n      font-size: 12px;\n      pointer-events: none;\n      z-index: 100;\n      max-width: 240px;\n      box-shadow: 0 4px 12px rgba(0,0,0,0.2);\n      opacity: 0;\n      transition: opacity 0.15s ease;\n    }\n    .tooltip.visible { opacity: 1; }\n\n    @media print {\n      body { background: white; }\n      .journey-container { box-shadow: none; overflow: visible; }\n      .row-label { position: static; }\n    }\n  </style>\n</head>\n<body>\n  <div class=\"title-bar\">\n    <h1>B2B Software Purchase \u2014 Customer Journey Map</h1>\n    <div class=\"subtitle\">Discovery through Implementation \u2014 4 phases, 12 steps</div>\n  </div>\n  <div class=\"journey-container\">\n    <div class=\"journey-grid\" id=\"journeyGrid\"></div>\n  </div>\n  <div class=\"tooltip\" id=\"tooltip\"></div>\n\n  <script>\n    const journeyData = {\n      title: \"B2B Software Purchase Journey\",\n      phases: [\n        {\n          id: \"discovery\", label: \"Discovery\", color: \"#7C5CFC\",\n          steps: [\n            { id: \"google-search\", label: \"Google Search\", emotion: { score: 0.5, label: \"Neutral\", annotation: \"User searches for solutions\" }, painPoints: [\"Too many options\"], opportunities: [\"Add comparison tool\"] },\n            { id: \"read-reviews\", label: \"Read Reviews\", emotion: { score: 0.6, label: \"Interested\", annotation: \"User reads reviews to narrow options\" }, painPoints: [\"Hard to trust reviews\"], opportunities: [\"Add comparison tool\"] },\n            { id: \"visit-website\", label: \"Visit Website\", emotion: { score: 0.7, label: \"Engaged\", annotation: \"User visits the product website\" }, painPoints: [], opportunities: [] }\n          ]\n        },\n        {\n          id: \"evaluation\", label: \"Evaluation\", color: \"#5B8DEF\",\n          steps: [\n            { id: \"free-trial\", label: \"Free Trial\", emotion: { score: 0.8, label: \"Excited\", annotation: \"User starts a free trial and is impressed\" }, painPoints: [\"Trial too short\"], opportunities: [\"Extend trial\"] },\n            { id: \"demo-call\", label: \"Demo Call\", emotion: { score: 0.7, label: \"Interested\", annotation: \"User schedules and attends a demo\" }, painPoints: [\"Demo scheduling friction\"], opportunities: [\"Self-serve demo\"] },\n            { id: \"internal-discussion\", label: \"Internal Discussion\", emotion: { score: 0.4, label: \"Uncertain\", annotation: \"Internal stakeholders have concerns\" }, painPoints: [], opportunities: [] }\n          ]\n        },\n        {\n          id: \"purchase\", label: \"Purchase\", color: \"#38B2AC\",\n          steps: [\n            { id: \"procurement\", label: \"Procurement\", emotion: { score: 0.3, label: \"Frustrated\", annotation: \"Procurement process is slow and complex\" }, painPoints: [\"Complex procurement process\"], opportunities: [\"Streamline contract templates\"] },\n            { id: \"contract\", label: \"Contract\", emotion: { score: 0.2, label: \"Very Frustrated\", annotation: \"Legal review causes significant delays\" }, painPoints: [\"Legal review delays\"], opportunities: [\"Streamline contract templates\"] },\n            { id: \"payment\", label: \"Payment\", emotion: { score: 0.5, label: \"Relieved\", annotation: \"Payment processed, deal is done\" }, painPoints: [], opportunities: [] }\n          ]\n        },\n        {\n          id: \"implementation\", label: \"Implementation\", color: \"#48BB78\",\n          steps: [\n            { id: \"setup\", label: \"Setup\", emotion: { score: 0.6, label: \"Hopeful\", annotation: \"Technical setup begins\" }, painPoints: [\"Integration complexity\"], opportunities: [\"Pre-built integrations\"] },\n            { id: \"training\", label: \"Training\", emotion: { score: 0.7, label: \"Growing Confidence\", annotation: \"Team gets trained on the product\" }, painPoints: [], opportunities: [] },\n            { id: \"go-live\", label: \"Go-Live\", emotion: { score: 0.9, label: \"Thrilled\", annotation: \"Product is live and delivering value\" }, painPoints: [], opportunities: [] }\n          ]\n        }\n      ]\n    };\n\n    const allSteps = journeyData.phases.flatMap(p => p.steps);\n    const totalSteps = allSteps.length;\n    const colWidth = 170;\n    const rowLabelWidth = 140;\n\n    function hexToRgb(hex) {\n      const r = parseInt(hex.slice(1, 3), 16);\n      const g = parseInt(hex.slice(3, 5), 16);\n      const b = parseInt(hex.slice(5, 7), 16);\n      return `${r}, ${g}, ${b}`;\n    }\n\n    const grid = document.getElementById('journeyGrid');\n    grid.style.gridTemplateColumns = `${rowLabelWidth}px repeat(${totalSteps}, ${colWidth}px)`;\n\n    let row = 1;\n\n    // Phase headers\n    const phaseCorner = document.createElement('div');\n    phaseCorner.className = 'row-label';\n    phaseCorner.textContent = 'Phase';\n    phaseCorner.style.gridRow = `${row}`;\n    phaseCorner.style.gridColumn = '1';\n    grid.appendChild(phaseCorner);\n\n    let col = 2;\n    journeyData.phases.forEach((phase, pi) => {\n      const span = phase.steps.length;\n      const header = document.createElement('div');\n      header.className = 'phase-header' + (pi > 0 ? ' phase-separator' : '');\n      header.style.background = phase.color;\n      header.style.gridRow = `${row}`;\n      header.style.gridColumn = `${col} / span ${span}`;\n      if (pi === 0) header.style.borderRadius = '8px 0 0 0';\n      if (pi === journeyData.phases.length - 1) header.style.borderRadius = '0 8px 0 0';\n      header.innerHTML = `<span class=\"phase-icon\">${pi + 1}</span> ${phase.label}`;\n      grid.appendChild(header);\n      col += span;\n    });\n    row++;\n\n    // Step headers\n    const stepCorner = document.createElement('div');\n    stepCorner.className = 'row-label';\n    stepCorner.textContent = 'Steps';\n    stepCorner.style.gridRow = `${row}`;\n    stepCorner.style.gridColumn = '1';\n    grid.appendChild(stepCorner);\n\n    col = 2;\n    journeyData.phases.forEach((phase, pi) => {\n      phase.steps.forEach((step, si) => {\n        const el = document.createElement('div');\n        el.className = 'step-header' + (si === 0 && pi > 0 ? ' phase-separator' : '');\n        el.style.gridRow = `${row}`;\n        el.style.gridColumn = `${col}`;\n        el.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;\n        el.textContent = step.label;\n        grid.appendChild(el);\n        col++;\n      });\n    });\n    row++;\n\n    // Emotion row\n    const emotionLabel = document.createElement('div');\n    emotionLabel.className = 'row-label';\n    emotionLabel.textContent = 'Emotion / CX';\n    emotionLabel.style.gridRow = `${row}`;\n    emotionLabel.style.gridColumn = '1';\n    emotionLabel.style.minHeight = '120px';\n    grid.appendChild(emotionLabel);\n\n    const emotionContainer = document.createElement('div');\n    emotionContainer.style.gridRow = `${row}`;\n    emotionContainer.style.gridColumn = `2 / span ${totalSteps}`;\n    emotionContainer.style.position = 'relative';\n    emotionContainer.style.minHeight = '120px';\n    emotionContainer.style.borderBottom = '1px solid #E9ECEF';\n    grid.appendChild(emotionContainer);\n    row++;\n\n    // Pain Points row\n    const painLabel = document.createElement('div');\n    painLabel.className = 'row-label';\n    painLabel.textContent = 'Pain Points';\n    painLabel.style.gridRow = `${row}`;\n    painLabel.style.gridColumn = '1';\n    grid.appendChild(painLabel);\n\n    col = 2;\n    journeyData.phases.forEach((phase, pi) => {\n      phase.steps.forEach((step, si) => {\n        const cell = document.createElement('div');\n        cell.className = 'cell' + (si === 0 && pi > 0 ? ' phase-separator' : '');\n        cell.style.gridRow = `${row}`;\n        cell.style.gridColumn = `${col}`;\n        cell.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;\n        if (step.painPoints && step.painPoints.length > 0) {\n          cell.innerHTML = step.painPoints.map(p => `<span class=\"pain-text\">\u26a0\ufe0f ${p}</span>`).join('');\n        } else {\n          cell.innerHTML = '<span class=\"empty-cell\">\u2014</span>';\n        }\n        grid.appendChild(cell);\n        col++;\n      });\n    });\n    row++;\n\n    // Opportunities row\n    const oppLabel = document.createElement('div');\n    oppLabel.className = 'row-label';\n    oppLabel.textContent = 'Opportunities';\n    oppLabel.style.gridRow = `${row}`;\n    oppLabel.style.gridColumn = '1';\n    grid.appendChild(oppLabel);\n\n    col = 2;\n    journeyData.phases.forEach((phase, pi) => {\n      phase.steps.forEach((step, si) => {\n        const cell = document.createElement('div');\n        cell.className = 'cell' + (si === 0 && pi > 0 ? ' phase-separator' : '');\n        cell.style.gridRow = `${row}`;\n        cell.style.gridColumn = `${col}`;\n        cell.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;\n        if (step.opportunities && step.opportunities.length > 0) {\n          cell.innerHTML = step.opportunities.map(o => `<span class=\"opp-text\">\ud83d\udca1 ${o}</span>`).join('');\n        } else {\n          cell.innerHTML = '<span class=\"empty-cell\">\u2014</span>';\n        }\n        grid.appendChild(cell);\n        col++;\n      });\n    });\n\n    // D3 Emotion Curve\n    const emotionWidth = totalSteps * colWidth;\n    const emotionHeight = 110;\n    const tooltip = document.getElementById('tooltip');\n\n    const svg = d3.select(emotionContainer)\n      .append('svg')\n      .attr('width', emotionWidth)\n      .attr('height', emotionHeight);\n\n    svg.append('rect').attr('x', 0).attr('y', 0).attr('width', emotionWidth).attr('height', emotionHeight / 3).attr('fill', 'rgba(72, 187, 120, 0.05)');\n    svg.append('rect').attr('x', 0).attr('y', emotionHeight / 3).attr('width', emotionWidth).attr('height', emotionHeight / 3).attr('fill', 'rgba(91, 141, 239, 0.05)');\n    svg.append('rect').attr('x', 0).attr('y', 2 * emotionHeight / 3).attr('width', emotionWidth).attr('height', emotionHeight / 3).attr('fill', 'rgba(229, 62, 62, 0.05)');\n\n    const xScale = d3.scaleLinear().domain([0, allSteps.length - 1]).range([colWidth / 2, emotionWidth - colWidth / 2]);\n    const yScale = d3.scaleLinear().domain([0, 1]).range([emotionHeight - 15, 15]);\n\n    const line = d3.line().x((d, i) => xScale(i)).y(d => yScale(d.emotion.score)).curve(d3.curveMonotoneX);\n\n    svg.append('path').datum(allSteps).attr('d', line).attr('fill', 'none').attr('stroke', '#5B8DEF').attr('stroke-width', 2.5);\n\n    svg.selectAll('.dot').data(allSteps).join('circle')\n      .attr('cx', (d, i) => xScale(i)).attr('cy', d => yScale(d.emotion.score)).attr('r', 6)\n      .attr('fill', d => d.emotion.score > 0.6 ? '#48BB78' : d.emotion.score > 0.3 ? '#5B8DEF' : '#E53E3E')\n      .attr('stroke', '#fff').attr('stroke-width', 2).style('cursor', 'pointer')\n      .on('mouseover', function(event, d) {\n        d3.select(this).attr('r', 10);\n        tooltip.innerHTML = `<strong>${d.label}</strong><br>${d.emotion.label} (${d.emotion.score})<br><em>${d.emotion.annotation}</em>`;\n        tooltip.classList.add('visible');\n      })\n      .on('mousemove', function(event) {\n        tooltip.style.left = (event.clientX + 12) + 'px';\n        tooltip.style.top = (event.clientY - 10) + 'px';\n      })\n      .on('mouseout', function() {\n        d3.select(this).attr('r', 6);\n        tooltip.classList.remove('visible');\n      });\n\n    svg.selectAll('.emoji').data(allSteps).join('text')\n      .attr('x', (d, i) => xScale(i)).attr('y', d => yScale(d.emotion.score) - 14)\n      .attr('text-anchor', 'middle').attr('font-size', '14px')\n      .text(d => d.emotion.score > 0.6 ? '\ud83d\ude0a' : d.emotion.score > 0.3 ? '\ud83d\ude10' : '\ud83d\ude1e');\n  </script>\n</body>\n</html>"}], "grading": {"eval_name": "structured-data", "configuration": "with_skill", "expectations": [{"text": "HTML file exists", "passed": true, "evidence": "journey-map.html exists in outputs directory"}, {"text": "Uses D3.js from CDN", "passed": false, "evidence": "File uses cdn.jsdelivr.net/npm/d3@7 instead of d3js.org"}, {"text": "All 4 phases present", "passed": true, "evidence": "Contains 'Discovery', 'Evaluation', 'Purchase', and 'Implementation' in phase definitions"}, {"text": "All 12 steps present", "passed": true, "evidence": "'Google Search', 'Free Trial', 'Procurement', and 'Go-Live' all found in step data"}, {"text": "Emotion scores in data", "passed": true, "evidence": "Score 0.2 found in Contract step: { score: 0.2, label: 'Very Frustrated' }"}, {"text": "Pain point: trust reviews", "passed": true, "evidence": "'Hard to trust reviews' found in Read Reviews step painPoints"}, {"text": "Opportunity: comparison tool", "passed": true, "evidence": "'Add comparison tool' found in Google Search and Read Reviews step opportunities"}, {"text": "Pain point: procurement", "passed": true, "evidence": "'Complex procurement process' found in Procurement step painPoints"}, {"text": "Opportunity: pre-built integrations", "passed": true, "evidence": "'Pre-built integrations' found in Setup step opportunities"}, {"text": "Emotion curve SVG", "passed": true, "evidence": "SVG created via D3: d3.select(emotionContainer).append('svg')"}], "pass_rate": 0.9}}, {"id": "structured-data-without_skill", "prompt": "Create a journey map from this data:\n\nPhase: Discovery\n- Steps: Google Search, Read Reviews, Visit Website\n- Emotion: 0.5, 0.6, 0.7\n- Pain: Too many options, hard to trust reviews\n- Opportunity: Add comparison tool\n\nPhase: Evaluation\n- Steps: Free Trial, Demo Call, Internal Discussion\n- Emotion: 0.8, 0.7, 0.4\n- Pain: Trial too short, demo scheduling friction\n- Opportunity: Extend trial, self-serve demo\n\nPhase: Purchase\n- Steps: Procurement, Contract, Payment\n- Emotion: 0.3, 0.2, 0.5\n- Pain: Complex procurement process, legal review delays\n- Opportunity: Streamline contract templates\n\nPhase: Implementation\n- Steps: Setup, Training, Go-Live\n- Emotion: 0.6, 0.7, 0.9\n- Pain: Integration complexity\n- Opportunity: Pre-built integrations", "eval_id": null, "outputs": [{"name": "journey-map.html", "type": "text", "content": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>B2B Software Purchase Journey Map</title>\n  <script src=\"https://cdn.jsdelivr.net/npm/d3@7\"></script>\n  <style>\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    body {\n      font-family: Arial, Helvetica, sans-serif;\n      background: #f5f5f5;\n      padding: 30px;\n      color: #333;\n    }\n    h1 { text-align: center; font-size: 22px; margin-bottom: 6px; }\n    .subtitle { text-align: center; color: #888; font-size: 14px; margin-bottom: 28px; }\n\n    .journey-table-wrapper { overflow-x: auto; }\n    table {\n      width: 100%;\n      border-collapse: collapse;\n      background: white;\n      box-shadow: 0 2px 8px rgba(0,0,0,0.1);\n      border-radius: 8px;\n      overflow: hidden;\n      min-width: 1000px;\n    }\n    th, td {\n      border: 1px solid #e0e0e0;\n      padding: 10px 12px;\n      text-align: left;\n      vertical-align: top;\n      font-size: 13px;\n    }\n    th {\n      background: #fafafa;\n      font-weight: 600;\n      font-size: 12px;\n      text-transform: uppercase;\n      color: #888;\n    }\n    .phase-hdr {\n      color: white;\n      font-weight: bold;\n      text-align: center;\n      font-size: 14px;\n    }\n    .pain { color: #c0392b; }\n    .opp { color: #27ae60; }\n    .emotion-val {\n      font-weight: 600;\n      text-align: center;\n    }\n    .chart-box {\n      background: white;\n      border-radius: 8px;\n      box-shadow: 0 2px 8px rgba(0,0,0,0.1);\n      padding: 20px;\n      margin-top: 24px;\n    }\n    .chart-box h3 { margin-bottom: 12px; font-size: 16px; }\n  </style>\n</head>\n<body>\n  <h1>B2B Software Purchase Journey Map</h1>\n  <div class=\"subtitle\">Discovery \u2192 Evaluation \u2192 Purchase \u2192 Implementation</div>\n\n  <div class=\"journey-table-wrapper\">\n    <table>\n      <thead>\n        <tr>\n          <th style=\"width:100px;\"></th>\n          <th colspan=\"3\" class=\"phase-hdr\" style=\"background:#8e44ad;\">Discovery</th>\n          <th colspan=\"3\" class=\"phase-hdr\" style=\"background:#2980b9;\">Evaluation</th>\n          <th colspan=\"3\" class=\"phase-hdr\" style=\"background:#16a085;\">Purchase</th>\n          <th colspan=\"3\" class=\"phase-hdr\" style=\"background:#27ae60;\">Implementation</th>\n        </tr>\n        <tr>\n          <th></th>\n          <th>Google Search</th><th>Read Reviews</th><th>Visit Website</th>\n          <th>Free Trial</th><th>Demo Call</th><th>Internal Discussion</th>\n          <th>Procurement</th><th>Contract</th><th>Payment</th>\n          <th>Setup</th><th>Training</th><th>Go-Live</th>\n        </tr>\n      </thead>\n      <tbody>\n        <tr>\n          <th>Emotion</th>\n          <td class=\"emotion-val\">\ud83d\ude10 0.5</td><td class=\"emotion-val\">\ud83d\ude10 0.6</td><td class=\"emotion-val\">\ud83d\ude0a 0.7</td>\n          <td class=\"emotion-val\">\ud83d\ude0a 0.8</td><td class=\"emotion-val\">\ud83d\ude0a 0.7</td><td class=\"emotion-val\">\ud83d\ude10 0.4</td>\n          <td class=\"emotion-val\">\ud83d\ude1e 0.3</td><td class=\"emotion-val\">\ud83d\ude1e 0.2</td><td class=\"emotion-val\">\ud83d\ude10 0.5</td>\n          <td class=\"emotion-val\">\ud83d\ude10 0.6</td><td class=\"emotion-val\">\ud83d\ude0a 0.7</td><td class=\"emotion-val\">\ud83d\ude0a 0.9</td>\n        </tr>\n        <tr>\n          <th>Pain Points</th>\n          <td class=\"pain\">Too many options</td>\n          <td class=\"pain\">Hard to trust reviews</td>\n          <td>\u2014</td>\n          <td class=\"pain\">Trial too short</td>\n          <td class=\"pain\">Demo scheduling friction</td>\n          <td>\u2014</td>\n          <td class=\"pain\">Complex procurement process</td>\n          <td class=\"pain\">Legal review delays</td>\n          <td>\u2014</td>\n          <td class=\"pain\">Integration complexity</td>\n          <td>\u2014</td>\n          <td>\u2014</td>\n        </tr>\n        <tr>\n          <th>Opportunities</th>\n          <td class=\"opp\">Add comparison tool</td>\n          <td class=\"opp\">Add comparison tool</td>\n          <td>\u2014</td>\n          <td class=\"opp\">Extend trial</td>\n          <td class=\"opp\">Self-serve demo</td>\n          <td>\u2014</td>\n          <td class=\"opp\">Streamline contract templates</td>\n          <td class=\"opp\">Streamline contract templates</td>\n          <td>\u2014</td>\n          <td class=\"opp\">Pre-built integrations</td>\n          <td>\u2014</td>\n          <td>\u2014</td>\n        </tr>\n      </tbody>\n    </table>\n  </div>\n\n  <div class=\"chart-box\">\n    <h3>Emotion Curve</h3>\n    <div id=\"chart\"></div>\n  </div>\n\n  <script>\n    const steps = [\n      \"Google Search\", \"Read Reviews\", \"Visit Website\",\n      \"Free Trial\", \"Demo Call\", \"Internal Discussion\",\n      \"Procurement\", \"Contract\", \"Payment\",\n      \"Setup\", \"Training\", \"Go-Live\"\n    ];\n    const scores = [0.5, 0.6, 0.7, 0.8, 0.7, 0.4, 0.3, 0.2, 0.5, 0.6, 0.7, 0.9];\n\n    const data = steps.map((s, i) => ({ step: s, score: scores[i] }));\n\n    const margin = { top: 20, right: 30, bottom: 80, left: 50 };\n    const width = 900 - margin.left - margin.right;\n    const height = 260 - margin.top - margin.bottom;\n\n    const svg = d3.select(\"#chart\")\n      .append(\"svg\")\n      .attr(\"viewBox\", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)\n      .attr(\"width\", \"100%\")\n      .append(\"g\")\n      .attr(\"transform\", `translate(${margin.left},${margin.top})`);\n\n    const x = d3.scalePoint()\n      .domain(data.map(d => d.step))\n      .range([0, width])\n      .padding(0.3);\n\n    const y = d3.scaleLinear().domain([0, 1]).range([height, 0]);\n\n    // Grid lines\n    svg.selectAll(\".grid-line\")\n      .data([0, 0.25, 0.5, 0.75, 1])\n      .join(\"line\")\n      .attr(\"x1\", 0).attr(\"x2\", width)\n      .attr(\"y1\", d => y(d)).attr(\"y2\", d => y(d))\n      .attr(\"stroke\", \"#eee\").attr(\"stroke-width\", 1);\n\n    svg.append(\"g\")\n      .attr(\"transform\", `translate(0,${height})`)\n      .call(d3.axisBottom(x))\n      .selectAll(\"text\")\n      .attr(\"transform\", \"rotate(-40)\")\n      .style(\"text-anchor\", \"end\")\n      .style(\"font-size\", \"10px\");\n\n    svg.append(\"g\")\n      .call(d3.axisLeft(y).ticks(5).tickFormat(d => d.toFixed(1)));\n\n    // Area fill\n    const area = d3.area()\n      .x(d => x(d.step))\n      .y0(height)\n      .y1(d => y(d.score))\n      .curve(d3.curveMonotoneX);\n\n    svg.append(\"path\")\n      .datum(data)\n      .attr(\"fill\", \"rgba(41, 128, 185, 0.1)\")\n      .attr(\"d\", area);\n\n    // Line\n    const line = d3.line()\n      .x(d => x(d.step))\n      .y(d => y(d.score))\n      .curve(d3.curveMonotoneX);\n\n    svg.append(\"path\")\n      .datum(data)\n      .attr(\"fill\", \"none\")\n      .attr(\"stroke\", \"#2980b9\")\n      .attr(\"stroke-width\", 2.5)\n      .attr(\"d\", line);\n\n    // Dots\n    svg.selectAll(\".dot\")\n      .data(data)\n      .join(\"circle\")\n      .attr(\"cx\", d => x(d.step))\n      .attr(\"cy\", d => y(d.score))\n      .attr(\"r\", 5)\n      .attr(\"fill\", d => d.score > 0.6 ? \"#27ae60\" : d.score > 0.3 ? \"#2980b9\" : \"#c0392b\")\n      .attr(\"stroke\", \"white\")\n      .attr(\"stroke-width\", 2);\n\n    // Score labels\n    svg.selectAll(\".score-label\")\n      .data(data)\n      .join(\"text\")\n      .attr(\"x\", d => x(d.step))\n      .attr(\"y\", d => y(d.score) - 10)\n      .attr(\"text-anchor\", \"middle\")\n      .attr(\"font-size\", \"11px\")\n      .attr(\"fill\", \"#555\")\n      .text(d => d.score.toFixed(1));\n  </script>\n</body>\n</html>"}], "grading": {"eval_name": "structured-data", "configuration": "without_skill", "expectations": [{"text": "HTML file exists", "passed": true, "evidence": "journey-map.html exists in outputs directory"}, {"text": "Uses D3.js from CDN", "passed": false, "evidence": "File uses cdn.jsdelivr.net/npm/d3@7 instead of d3js.org"}, {"text": "All 4 phases present", "passed": true, "evidence": "Contains 'Discovery', 'Evaluation', 'Purchase', and 'Implementation' in table phase headers"}, {"text": "All 12 steps present", "passed": true, "evidence": "'Google Search', 'Free Trial', 'Procurement', and 'Go-Live' all found in table column headers"}, {"text": "Emotion scores in data", "passed": true, "evidence": "Score 0.2 found in Contract column emotion cell and in scores array"}, {"text": "Pain point: trust reviews", "passed": true, "evidence": "'Hard to trust reviews' found in Pain Points row for Read Reviews column"}, {"text": "Opportunity: comparison tool", "passed": true, "evidence": "'Add comparison tool' found in Opportunities row for Discovery phase columns"}, {"text": "Pain point: procurement", "passed": true, "evidence": "'Complex procurement process' found in Pain Points row for Procurement column"}, {"text": "Opportunity: pre-built integrations", "passed": true, "evidence": "'Pre-built integrations' found in Opportunities row for Setup column"}, {"text": "Emotion curve SVG", "passed": true, "evidence": "SVG created via D3: d3.select('#chart').append('svg')"}], "pass_rate": 0.9}}], "previous_feedback": {}, "previous_outputs": {}, "benchmark": {"skill_name": "journey-map", "iteration": 1, "configurations": [{"name": "with_skill", "evals": [{"eval_name": "saas-onboarding", "pass_rate": 0.8, "passed": 8, "total": 10, "tokens": null, "time_seconds": null}, {"eval_name": "ecommerce-journey", "pass_rate": 0.875, "passed": 7, "total": 8, "tokens": null, "time_seconds": null}, {"eval_name": "structured-data", "pass_rate": 0.9, "passed": 9, "total": 10, "tokens": null, "time_seconds": null}], "aggregate": {"pass_rate": 0.8583, "pass_rate_stddev": 0.0416, "mean_tokens": null, "mean_time_seconds": null}}, {"name": "without_skill", "evals": [{"eval_name": "saas-onboarding", "pass_rate": 0.7, "passed": 7, "total": 10, "tokens": null, "time_seconds": null}, {"eval_name": "ecommerce-journey", "pass_rate": 0.875, "passed": 7, "total": 8, "tokens": null, "time_seconds": null}, {"eval_name": "structured-data", "pass_rate": 0.9, "passed": 9, "total": 10, "tokens": null, "time_seconds": null}], "aggregate": {"pass_rate": 0.825, "pass_rate_stddev": 0.0854, "mean_tokens": null, "mean_time_seconds": null}}], "delta": {"pass_rate": 0.0333}, "analyst_notes": "The delta is small (+3.3pp) because two assertions are non-discriminating: (1) 'Uses D3.js from CDN' checks for d3js.org but both configs use cdn.jsdelivr.net which is equally valid; (2) 'Interactive behavior' checks for addEventListener but D3 uses .on() for events. Both fail identically for both configs. The only discriminating assertion is 'Grid/table layout' \u2014 the skill drives CSS Grid usage while the baseline falls back to HTML tables. After removing non-discriminating assertions, the effective delta would be larger. Recommend fixing these assertions for iteration 2."}};
+
+    // ---- State ----
+    let feedbackMap = {};  // run_id -> feedback text
+    let currentIndex = 0;
+    let visitedRuns = new Set();
+
+    // ---- Init ----
+    async function init() {
+      // Load saved feedback from server — but only if this isn't a fresh
+      // iteration (indicated by previous_feedback being present). When
+      // previous feedback exists, the feedback.json on disk is stale from
+      // the prior iteration and should not pre-fill the textareas.
+      const hasPrevious = Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0
+        || Object.keys(EMBEDDED_DATA.previous_outputs || {}).length > 0;
+      if (!hasPrevious) {
+        try {
+          const resp = await fetch("/api/feedback");
+          const data = await resp.json();
+          if (data.reviews) {
+            for (const r of data.reviews) feedbackMap[r.run_id] = r.feedback;
+          }
+        } catch { /* first run, no feedback yet */ }
+      }
+
+      document.getElementById("skill-name").textContent = EMBEDDED_DATA.skill_name;
+      showRun(0);
+
+      // Wire up feedback auto-save
+      const textarea = document.getElementById("feedback");
+      let saveTimeout = null;
+      textarea.addEventListener("input", () => {
+        clearTimeout(saveTimeout);
+        document.getElementById("feedback-status").textContent = "";
+        saveTimeout = setTimeout(() => saveCurrentFeedback(), 800);
+      });
+    }
+
+    // ---- Navigation ----
+    function navigate(delta) {
+      const newIndex = currentIndex + delta;
+      if (newIndex >= 0 && newIndex < EMBEDDED_DATA.runs.length) {
+        saveCurrentFeedback();
+        showRun(newIndex);
+      }
+    }
+
+    function updateNavButtons() {
+      document.getElementById("prev-btn").disabled = currentIndex === 0;
+      document.getElementById("next-btn").disabled =
+        currentIndex === EMBEDDED_DATA.runs.length - 1;
+    }
+
+    // ---- Show a run ----
+    function showRun(index) {
+      currentIndex = index;
+      const run = EMBEDDED_DATA.runs[index];
+
+      // Progress
+      document.getElementById("progress").textContent =
+        `${index + 1} of ${EMBEDDED_DATA.runs.length}`;
+
+      // Prompt
+      document.getElementById("prompt-text").textContent = run.prompt;
+
+      // Config badge
+      const badge = document.getElementById("config-badge");
+      const configMatch = run.id.match(/(with_skill|without_skill|new_skill|old_skill)/);
+      if (configMatch) {
+        const config = configMatch[1];
+        const isBaseline = config === "without_skill" || config === "old_skill";
+        badge.textContent = config.replace(/_/g, " ");
+        badge.className = "config-badge " + (isBaseline ? "config-baseline" : "config-primary");
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+
+      // Outputs
+      renderOutputs(run);
+
+      // Previous outputs
+      renderPrevOutputs(run);
+
+      // Grades
+      renderGrades(run);
+
+      // Previous feedback
+      const prevFb = (EMBEDDED_DATA.previous_feedback || {})[run.id];
+      const prevEl = document.getElementById("prev-feedback");
+      if (prevFb) {
+        document.getElementById("prev-feedback-text").textContent = prevFb;
+        prevEl.style.display = "block";
+      } else {
+        prevEl.style.display = "none";
+      }
+
+      // Feedback
+      document.getElementById("feedback").value = feedbackMap[run.id] || "";
+      document.getElementById("feedback-status").textContent = "";
+
+      updateNavButtons();
+
+      // Track visited runs and promote done button when all visited
+      visitedRuns.add(index);
+      const doneBtn = document.getElementById("done-btn");
+      if (visitedRuns.size >= EMBEDDED_DATA.runs.length) {
+        doneBtn.classList.add("ready");
+      }
+
+      // Scroll main content to top
+      document.querySelector(".main").scrollTop = 0;
+    }
+
+    // ---- Render outputs ----
+    function renderOutputs(run) {
+      const container = document.getElementById("outputs-body");
+      container.innerHTML = "";
+
+      const outputs = run.outputs || [];
+      if (outputs.length === 0) {
+        container.innerHTML = '<div class="empty-state">No output files</div>';
+        return;
+      }
+
+      for (const file of outputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        // Always show file header with download link
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const content = document.createElement("div");
+        content.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          content.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          content.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          content.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(content, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          content.appendChild(a);
+        } else if (file.type === "error") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          pre.style.color = "var(--red)";
+          content.appendChild(pre);
+        }
+
+        fileDiv.appendChild(content);
+        container.appendChild(fileDiv);
+      }
+    }
+
+    // ---- XLSX rendering via SheetJS ----
+    function renderXlsx(container, b64Data) {
+      try {
+        const raw = Uint8Array.from(atob(b64Data), c => c.charCodeAt(0));
+        const wb = XLSX.read(raw, { type: "array" });
+
+        for (let i = 0; i < wb.SheetNames.length; i++) {
+          const sheetName = wb.SheetNames[i];
+          const ws = wb.Sheets[sheetName];
+
+          if (wb.SheetNames.length > 1) {
+            const sheetLabel = document.createElement("div");
+            sheetLabel.style.cssText =
+              "font-weight:600; font-size:0.8rem; color:#b0aea5; margin-top:0.5rem; margin-bottom:0.25rem;";
+            sheetLabel.textContent = "Sheet: " + sheetName;
+            container.appendChild(sheetLabel);
+          }
+
+          const htmlStr = XLSX.utils.sheet_to_html(ws, { editable: false });
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = htmlStr;
+          container.appendChild(wrapper);
+        }
+      } catch (err) {
+        container.textContent = "Error rendering spreadsheet: " + err.message;
+      }
+    }
+
+    // ---- Grades ----
+    function renderGrades(run) {
+      const section = document.getElementById("grades-section");
+      const content = document.getElementById("grades-content");
+
+      if (!run.grading) {
+        section.style.display = "none";
+        return;
+      }
+
+      const grading = run.grading;
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("grades-arrow").classList.remove("open");
+
+      const summary = grading.summary || {};
+      const expectations = grading.expectations || [];
+
+      let html = '<div style="padding: 1rem;">';
+
+      // Summary line
+      const passRate = summary.pass_rate != null
+        ? Math.round(summary.pass_rate * 100) + "%"
+        : "?";
+      const badgeClass = summary.pass_rate >= 0.8 ? "grade-pass" : summary.pass_rate >= 0.5 ? "" : "grade-fail";
+      html += '<div class="grades-summary">';
+      html += '<span class="grade-badge ' + badgeClass + '">' + passRate + '</span>';
+      html += '<span>' + (summary.passed || 0) + ' passed, ' + (summary.failed || 0) + ' failed of ' + (summary.total || 0) + '</span>';
+      html += '</div>';
+
+      // Assertions list
+      html += '<ul class="assertion-list">';
+      for (const exp of expectations) {
+        const statusClass = exp.passed ? "pass" : "fail";
+        const statusIcon = exp.passed ? "\u2713" : "\u2717";
+        html += '<li class="assertion-item">';
+        html += '<span class="assertion-status ' + statusClass + '">' + statusIcon + '</span>';
+        html += '<span>' + escapeHtml(exp.text) + '</span>';
+        if (exp.evidence) {
+          html += '<div class="assertion-evidence">' + escapeHtml(exp.evidence) + '</div>';
+        }
+        html += '</li>';
+      }
+      html += '</ul>';
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    function toggleGrades() {
+      const content = document.getElementById("grades-content");
+      const arrow = document.getElementById("grades-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Previous outputs (collapsible) ----
+    function renderPrevOutputs(run) {
+      const section = document.getElementById("prev-outputs-section");
+      const content = document.getElementById("prev-outputs-content");
+      const prevOutputs = (EMBEDDED_DATA.previous_outputs || {})[run.id];
+
+      if (!prevOutputs || prevOutputs.length === 0) {
+        section.style.display = "none";
+        return;
+      }
+
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("prev-outputs-arrow").classList.remove("open");
+
+      // Render the files into the content area
+      content.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.style.padding = "1rem";
+
+      for (const file of prevOutputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const fc = document.createElement("div");
+        fc.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          fc.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          fc.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          fc.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(fc, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          fc.appendChild(a);
+        }
+
+        fileDiv.appendChild(fc);
+        wrapper.appendChild(fileDiv);
+      }
+
+      content.appendChild(wrapper);
+    }
+
+    function togglePrevOutputs() {
+      const content = document.getElementById("prev-outputs-content");
+      const arrow = document.getElementById("prev-outputs-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Feedback (saved to server -> feedback.json) ----
+    function saveCurrentFeedback() {
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // Build reviews array from map
+      const reviews = [];
+      for (const [run_id, feedback] of Object.entries(feedbackMap)) {
+        if (feedback.trim()) {
+          reviews.push({ run_id, feedback, timestamp: new Date().toISOString() });
+        }
+      }
+
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviews, status: "in_progress" }),
+      }).then(() => {
+        document.getElementById("feedback-status").textContent = "Saved";
+      }).catch(() => {
+        // Static mode or server unavailable — no-op on auto-save,
+        // feedback will be downloaded on final submit
+        document.getElementById("feedback-status").textContent = "Will download on submit";
+      });
+    }
+
+    // ---- Done ----
+    function showDoneDialog() {
+      // Save current textarea to feedbackMap (but don't POST yet)
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // POST once with status: complete — include ALL runs so the model
+      // can distinguish "no feedback" (looks good) from "not reviewed"
+      const reviews = [];
+      const ts = new Date().toISOString();
+      for (const r of EMBEDDED_DATA.runs) {
+        reviews.push({ run_id: r.id, feedback: feedbackMap[r.id] || "", timestamp: ts });
+      }
+      const payload = JSON.stringify({ reviews, status: "complete" }, null, 2);
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      }).then(() => {
+        document.getElementById("done-overlay").classList.add("visible");
+      }).catch(() => {
+        // Server not available (static mode) — download as file
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "feedback.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById("done-overlay").classList.add("visible");
+      });
+    }
+
+    function closeDoneDialog() {
+      // Reset status back to in_progress
+      saveCurrentFeedback();
+      document.getElementById("done-overlay").classList.remove("visible");
+    }
+
+    // ---- Toast ----
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      setTimeout(() => toast.classList.remove("visible"), 2000);
+    }
+
+    // ---- Keyboard nav ----
+    document.addEventListener("keydown", (e) => {
+      // Don't capture when typing in textarea
+      if (e.target.tagName === "TEXTAREA") return;
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        navigate(-1);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        navigate(1);
+      }
+    });
+
+    // ---- Util ----
+    function getDownloadUri(file) {
+      if (file.data_uri) return file.data_uri;
+      if (file.data_b64) return "data:application/octet-stream;base64," + file.data_b64;
+      if (file.type === "text") return "data:text/plain;charset=utf-8," + encodeURIComponent(file.content);
+      return "#";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ---- View switching ----
+    function switchView(view) {
+      document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      document.querySelector(`[onclick="switchView('${view}')"]`).classList.add("active");
+      document.getElementById("panel-" + view).classList.add("active");
+    }
+
+    // ---- Benchmark rendering ----
+    function renderBenchmark() {
+      const data = EMBEDDED_DATA.benchmark;
+      if (!data) return;
+
+      // Show the tabs
+      document.getElementById("view-tabs").style.display = "flex";
+
+      const container = document.getElementById("benchmark-content");
+      const summary = data.run_summary || {};
+      const metadata = data.metadata || {};
+      const notes = data.notes || [];
+
+      let html = "";
+
+      // Header
+      html += "<h2 style='font-family: Poppins, sans-serif; margin-bottom: 0.5rem;'>Benchmark Results</h2>";
+      html += "<p style='color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;'>";
+      if (metadata.skill_name) html += "<strong>" + escapeHtml(metadata.skill_name) + "</strong> &mdash; ";
+      if (metadata.timestamp) html += metadata.timestamp + " &mdash; ";
+      if (metadata.evals_run) html += "Evals: " + metadata.evals_run.join(", ") + " &mdash; ";
+      html += (metadata.runs_per_configuration || "?") + " runs per configuration";
+      html += "</p>";
+
+      // Summary table
+      html += '<table class="benchmark-table">';
+
+      function fmtStat(stat, pct) {
+        if (!stat) return "—";
+        const suffix = pct ? "%" : "";
+        const m = pct ? (stat.mean * 100).toFixed(0) : stat.mean.toFixed(1);
+        const s = pct ? (stat.stddev * 100).toFixed(0) : stat.stddev.toFixed(1);
+        return m + suffix + " ± " + s + suffix;
+      }
+
+      function deltaClass(val) {
+        if (!val) return "";
+        const n = parseFloat(val);
+        if (n > 0) return "benchmark-delta-positive";
+        if (n < 0) return "benchmark-delta-negative";
+        return "";
+      }
+
+      // Discover config names dynamically (everything except "delta")
+      const configs = Object.keys(summary).filter(k => k !== "delta");
+      const configA = configs[0] || "config_a";
+      const configB = configs[1] || "config_b";
+      const labelA = configA.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const labelB = configB.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const a = summary[configA] || {};
+      const b = summary[configB] || {};
+      const delta = summary.delta || {};
+
+      html += "<thead><tr><th>Metric</th><th>" + escapeHtml(labelA) + "</th><th>" + escapeHtml(labelB) + "</th><th>Delta</th></tr></thead>";
+      html += "<tbody>";
+
+      html += "<tr><td><strong>Pass Rate</strong></td>";
+      html += "<td>" + fmtStat(a.pass_rate, true) + "</td>";
+      html += "<td>" + fmtStat(b.pass_rate, true) + "</td>";
+      html += '<td class="' + deltaClass(delta.pass_rate) + '">' + (delta.pass_rate || "—") + "</td></tr>";
+
+      // Time (only show row if data exists)
+      if (a.time_seconds || b.time_seconds) {
+        html += "<tr><td><strong>Time (s)</strong></td>";
+        html += "<td>" + fmtStat(a.time_seconds, false) + "</td>";
+        html += "<td>" + fmtStat(b.time_seconds, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.time_seconds) + '">' + (delta.time_seconds ? delta.time_seconds + "s" : "—") + "</td></tr>";
+      }
+
+      // Tokens (only show row if data exists)
+      if (a.tokens || b.tokens) {
+        html += "<tr><td><strong>Tokens</strong></td>";
+        html += "<td>" + fmtStat(a.tokens, false) + "</td>";
+        html += "<td>" + fmtStat(b.tokens, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.tokens) + '">' + (delta.tokens || "—") + "</td></tr>";
+      }
+
+      html += "</tbody></table>";
+
+      // Per-eval breakdown (if runs data available)
+      const runs = data.runs || [];
+      if (runs.length > 0) {
+        const evalIds = [...new Set(runs.map(r => r.eval_id))].sort((a, b) => a - b);
+
+        html += "<h3 style='font-family: Poppins, sans-serif; margin-bottom: 0.75rem;'>Per-Eval Breakdown</h3>";
+
+        const hasTime = runs.some(r => r.result && r.result.time_seconds != null);
+        const hasErrors = runs.some(r => r.result && r.result.errors > 0);
+
+        for (const evalId of evalIds) {
+          const evalRuns = runs.filter(r => r.eval_id === evalId);
+          const evalName = evalRuns[0] && evalRuns[0].eval_name ? evalRuns[0].eval_name : "Eval " + evalId;
+
+          html += "<h4 style='font-family: Poppins, sans-serif; margin: 1rem 0 0.5rem; color: var(--text);'>" + escapeHtml(evalName) + "</h4>";
+          html += '<table class="benchmark-table">';
+          html += "<thead><tr><th>Config</th><th>Run</th><th>Pass Rate</th>";
+          if (hasTime) html += "<th>Time (s)</th>";
+          if (hasErrors) html += "<th>Crashes During Execution</th>";
+          html += "</tr></thead>";
+          html += "<tbody>";
+
+          // Group by config and render with average rows
+          const configGroups = [...new Set(evalRuns.map(r => r.configuration))];
+          for (let ci = 0; ci < configGroups.length; ci++) {
+            const config = configGroups[ci];
+            const configRuns = evalRuns.filter(r => r.configuration === config);
+            if (configRuns.length === 0) continue;
+
+            const rowClass = ci === 0 ? "benchmark-row-with" : "benchmark-row-without";
+            const configLabel = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+            for (const run of configRuns) {
+              const r = run.result || {};
+              const prClass = r.pass_rate >= 0.8 ? "benchmark-delta-positive" : r.pass_rate < 0.5 ? "benchmark-delta-negative" : "";
+              html += '<tr class="' + rowClass + '">';
+              html += "<td>" + configLabel + "</td>";
+              html += "<td>" + run.run_number + "</td>";
+              html += '<td class="' + prClass + '">' + ((r.pass_rate || 0) * 100).toFixed(0) + "% (" + (r.passed || 0) + "/" + (r.total || 0) + ")</td>";
+              if (hasTime) html += "<td>" + (r.time_seconds != null ? r.time_seconds.toFixed(1) : "—") + "</td>";
+              if (hasErrors) html += "<td>" + (r.errors || 0) + "</td>";
+              html += "</tr>";
+            }
+
+            // Average row
+            const rates = configRuns.map(r => (r.result || {}).pass_rate || 0);
+            const avgRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+            const avgPrClass = avgRate >= 0.8 ? "benchmark-delta-positive" : avgRate < 0.5 ? "benchmark-delta-negative" : "";
+            html += '<tr class="benchmark-row-avg ' + rowClass + '">';
+            html += "<td>" + configLabel + "</td>";
+            html += "<td>Avg</td>";
+            html += '<td class="' + avgPrClass + '">' + (avgRate * 100).toFixed(0) + "%</td>";
+            if (hasTime) {
+              const times = configRuns.map(r => (r.result || {}).time_seconds).filter(t => t != null);
+              html += "<td>" + (times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1) : "—") + "</td>";
+            }
+            if (hasErrors) html += "<td></td>";
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+
+          // Per-assertion detail for this eval
+          const runsWithExpectations = {};
+          for (const config of configGroups) {
+            runsWithExpectations[config] = evalRuns.filter(r => r.configuration === config && r.expectations && r.expectations.length > 0);
+          }
+          const hasAnyExpectations = Object.values(runsWithExpectations).some(runs => runs.length > 0);
+          if (hasAnyExpectations) {
+            // Collect all unique assertion texts across all configs
+            const allAssertions = [];
+            const seen = new Set();
+            for (const config of configGroups) {
+              for (const run of runsWithExpectations[config]) {
+                for (const exp of (run.expectations || [])) {
+                  if (!seen.has(exp.text)) {
+                    seen.add(exp.text);
+                    allAssertions.push(exp.text);
+                  }
+                }
+              }
+            }
+
+            html += '<table class="benchmark-table" style="margin-top: 0.5rem;">';
+            html += "<thead><tr><th>Assertion</th>";
+            for (const config of configGroups) {
+              const label = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+              html += "<th>" + escapeHtml(label) + "</th>";
+            }
+            html += "</tr></thead><tbody>";
+
+            for (const assertionText of allAssertions) {
+              html += "<tr><td>" + escapeHtml(assertionText) + "</td>";
+
+              for (const config of configGroups) {
+                html += "<td>";
+                for (const run of runsWithExpectations[config]) {
+                  const exp = (run.expectations || []).find(e => e.text === assertionText);
+                  if (exp) {
+                    const cls = exp.passed ? "benchmark-delta-positive" : "benchmark-delta-negative";
+                    const icon = exp.passed ? "\u2713" : "\u2717";
+                    html += '<span class="' + cls + '" title="Run ' + run.run_number + ': ' + escapeHtml(exp.evidence || "") + '">' + icon + "</span> ";
+                  } else {
+                    html += "— ";
+                  }
+                }
+                html += "</td>";
+              }
+              html += "</tr>";
+            }
+            html += "</tbody></table>";
+          }
+        }
+      }
+
+      // Notes
+      if (notes.length > 0) {
+        html += '<div class="benchmark-notes">';
+        html += "<h3>Analysis Notes</h3>";
+        html += "<ul>";
+        for (const note of notes) {
+          html += "<li>" + escapeHtml(note) + "</li>";
+        }
+        html += "</ul></div>";
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ---- Start ----
+    init();
+    renderBenchmark();
+  </script>
+</body>
+</html>

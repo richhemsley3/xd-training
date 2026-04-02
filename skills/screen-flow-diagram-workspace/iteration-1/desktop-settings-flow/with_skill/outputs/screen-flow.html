@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Desktop Settings Flow — Screen Flow</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #F5F5F5;
+      color: #212529;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #title-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 56px;
+      background: white;
+      border-bottom: 1px solid #E0E0E0;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    #title-bar h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #212529;
+    }
+    #title-bar p {
+      font-size: 14px;
+      font-weight: 400;
+      color: #6C757D;
+      margin-left: 16px;
+    }
+
+    #flow-svg {
+      position: fixed;
+      top: 56px; left: 0;
+      width: 100vw;
+      height: calc(100vh - 56px);
+    }
+
+    #detail-panel {
+      position: fixed;
+      top: 56px;
+      right: -360px;
+      width: 340px;
+      height: calc(100vh - 56px);
+      background: white;
+      border-left: 1px solid #E0E0E0;
+      box-shadow: -2px 0 8px rgba(0,0,0,0.06);
+      z-index: 200;
+      transition: right 0.25s ease;
+      overflow-y: auto;
+      padding: 24px;
+    }
+    #detail-panel.open { right: 0; }
+    #detail-panel .close-btn {
+      position: absolute;
+      top: 12px; right: 12px;
+      width: 28px; height: 28px;
+      border: none; background: #F5F5F5;
+      border-radius: 50%;
+      font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: #6C757D;
+    }
+    #detail-panel .close-btn:hover { background: #E9ECEF; }
+    #detail-panel h2 { font-size: 18px; font-weight: 700; margin-bottom: 8px; color: #212529; }
+    #detail-panel .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 10px;
+      background: #E8F5E9;
+      color: #4CAF50;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    #detail-panel .desc {
+      font-size: 14px;
+      color: #6C757D;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+    #detail-panel h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: #212529;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    #detail-panel ul {
+      list-style: none;
+      margin-bottom: 16px;
+    }
+    #detail-panel li {
+      font-size: 13px;
+      padding: 6px 0;
+      border-bottom: 1px solid #F5F5F5;
+      color: #495057;
+    }
+    #detail-panel li .exit-action {
+      color: #66BB6A;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div id="title-bar">
+    <h1>Desktop Settings Flow</h1>
+    <p>Settings Overview &rarr; Profile &rarr; Notifications &rarr; Security &rarr; Delete Account Modal</p>
+  </div>
+  <svg id="flow-svg"></svg>
+  <div id="detail-panel">
+    <button class="close-btn" onclick="closePanel()">&times;</button>
+    <div id="panel-content"></div>
+  </div>
+
+  <script>
+    // ── Flow Data ──
+    const SCREEN_W = 280;
+    const SCREEN_H = 180;
+    const H_SPACING = 400;
+    const V_SPACING = 320;
+
+    const flowData = {
+      title: "Desktop Settings Flow",
+      description: "Settings navigation for a desktop web application",
+      deviceType: "desktop",
+      screens: [
+        {
+          id: "settings-overview",
+          name: "Settings Overview",
+          type: "settings",
+          description: "Top-level settings page showing a categorized list of setting groups. Each row leads to a specific settings section.",
+          navTitle: "Settings",
+          x: 80,
+          y: 120,
+          elements: [
+            { type: "navbar", content: "Settings" },
+            { type: "card-row", content: "Profile", icon: true },
+            { type: "card-row", content: "Notifications", icon: true },
+            { type: "card-row", content: "Security", icon: true },
+            { type: "card-row", content: "Billing", icon: true }
+          ],
+          exits: [
+            { action: "Click Profile", target: "profile-settings" },
+            { action: "Click Notifications", target: "notification-prefs" },
+            { action: "Click Security", target: "security-settings" }
+          ]
+        },
+        {
+          id: "profile-settings",
+          name: "Profile Settings",
+          type: "form",
+          description: "User profile editing form with fields for name, email, bio, and avatar upload. Submit saves changes and returns to overview.",
+          navTitle: "\u2190 Profile",
+          x: 480,
+          y: 120,
+          elements: [
+            { type: "navbar", content: "\u2190 Profile", hasBack: true },
+            { type: "input-field", content: "Full Name" },
+            { type: "input-field", content: "Email" },
+            { type: "input-field", content: "Bio" },
+            { type: "button", content: "Save Changes", isAction: true }
+          ],
+          exits: [
+            { action: "Click Save", target: "notification-prefs" },
+            { action: "Go Back", target: "settings-overview" }
+          ]
+        },
+        {
+          id: "notification-prefs",
+          name: "Notification Preferences",
+          type: "settings",
+          description: "Toggle switches for different notification channels: email, push, SMS, and in-app notifications. Each can be independently enabled or disabled.",
+          navTitle: "\u2190 Notifications",
+          x: 880,
+          y: 120,
+          elements: [
+            { type: "navbar", content: "\u2190 Notifications", hasBack: true },
+            { type: "toggle-row", content: "Email Notifications" },
+            { type: "toggle-row", content: "Push Notifications" },
+            { type: "toggle-row", content: "SMS Alerts" },
+            { type: "toggle-row", content: "In-App Notifications" }
+          ],
+          exits: [
+            { action: "Click Save", target: "security-settings" },
+            { action: "Go Back", target: "profile-settings" }
+          ]
+        },
+        {
+          id: "security-settings",
+          name: "Security Settings",
+          type: "form",
+          description: "Security form with password change fields and two-factor authentication toggle. Contains a destructive 'Delete Account' action that triggers a confirmation modal.",
+          navTitle: "\u2190 Security",
+          x: 1280,
+          y: 120,
+          elements: [
+            { type: "navbar", content: "\u2190 Security", hasBack: true },
+            { type: "input-field", content: "Current Password" },
+            { type: "input-field", content: "New Password" },
+            { type: "input-field", content: "Confirm Password" },
+            { type: "button", content: "Update Password", isAction: true },
+            { type: "button-danger", content: "Delete Account", isAction: true }
+          ],
+          exits: [
+            { action: "Go Back", target: "notification-prefs" },
+            { action: "Click Delete", target: "delete-modal" }
+          ]
+        },
+        {
+          id: "delete-modal",
+          name: "Delete Account",
+          type: "modal",
+          description: "Confirmation modal dialog warning the user that account deletion is permanent. Requires typing 'DELETE' to confirm. Has cancel and confirm buttons.",
+          navTitle: "Confirm Deletion",
+          x: 1280,
+          y: 440,
+          elements: [
+            { type: "modal-overlay" },
+            { type: "text-block", content: "Are you sure?" },
+            { type: "input-field", content: "Type DELETE" },
+            { type: "button-danger", content: "Confirm Delete", isAction: true },
+            { type: "button", content: "Cancel", isAction: true }
+          ],
+          exits: [
+            { action: "Click Cancel", target: "security-settings" }
+          ]
+        }
+      ]
+    };
+
+    // ── Connections ──
+    const connections = [
+      { source: "settings-overview", target: "profile-settings", label: "Click Profile" },
+      { source: "profile-settings", target: "notification-prefs", label: "Click Save" },
+      { source: "notification-prefs", target: "security-settings", label: "Click Save" },
+      { source: "security-settings", target: "delete-modal", label: "Click Delete" },
+      { source: "delete-modal", target: "security-settings", label: "Click Cancel" }
+    ];
+
+    // ── SVG Setup ──
+    const width = window.innerWidth;
+    const height = window.innerHeight - 56;
+
+    const svg = d3.select('#flow-svg')
+      .attr('width', width)
+      .attr('height', height);
+
+    const container = svg.append('g');
+
+    const zoom = d3.zoom()
+      .scaleExtent([0.15, 3])
+      .on('zoom', (event) => container.attr('transform', event.transform));
+
+    svg.call(zoom);
+
+    // ── Arrowhead Marker ──
+    svg.append('defs').append('marker')
+      .attr('id', 'arrowhead')
+      .attr('viewBox', '0 0 8 6')
+      .attr('refX', 8)
+      .attr('refY', 3)
+      .attr('markerWidth', 8)
+      .attr('markerHeight', 6)
+      .attr('orient', 'auto')
+      .append('path')
+      .attr('d', 'M0,0 L8,3 L0,6 Z')
+      .attr('fill', '#66BB6A');
+
+    // ── Drop Shadow Filter ──
+    const defs = svg.select('defs');
+    const filter = defs.append('filter')
+      .attr('id', 'drop-shadow')
+      .attr('x', '-10%').attr('y', '-10%')
+      .attr('width', '130%').attr('height', '140%');
+    filter.append('feDropShadow')
+      .attr('dx', 0).attr('dy', 2)
+      .attr('stdDeviation', 4)
+      .attr('flood-color', 'rgba(0,0,0,0.08)');
+
+    // ── Screen map ──
+    const screenMap = {};
+    flowData.screens.forEach(s => screenMap[s.id] = s);
+
+    // ── Draw Connectors ──
+    const connectorsGroup = container.append('g').attr('class', 'connectors');
+
+    connections.forEach(conn => {
+      const src = screenMap[conn.source];
+      const tgt = screenMap[conn.target];
+      if (!src || !tgt) return;
+
+      let exitX, exitY, entryX, entryY;
+
+      // Determine direction
+      const dx = tgt.x - src.x;
+      const dy = tgt.y - src.y;
+
+      if (conn.source === "delete-modal" && conn.target === "security-settings") {
+        // Modal cancel goes back up — exit from top, enter from bottom
+        exitX = src.x + SCREEN_W / 2 + 40;
+        exitY = src.y;
+        entryX = tgt.x + SCREEN_W / 2 + 40;
+        entryY = tgt.y + SCREEN_H;
+
+        const midY = (exitY + entryY) / 2;
+        const path = `M ${exitX},${exitY} V ${midY} H ${entryX} V ${entryY}`;
+
+        connectorsGroup.append('path')
+          .attr('d', path)
+          .attr('stroke', '#66BB6A')
+          .attr('stroke-width', 2)
+          .attr('fill', 'none')
+          .attr('marker-end', 'url(#arrowhead)');
+
+        // Ports
+        connectorsGroup.append('circle')
+          .attr('cx', exitX).attr('cy', exitY)
+          .attr('r', 5).attr('fill', '#66BB6A')
+          .attr('stroke', 'white').attr('stroke-width', 2);
+        connectorsGroup.append('circle')
+          .attr('cx', entryX).attr('cy', entryY)
+          .attr('r', 5).attr('fill', '#66BB6A')
+          .attr('stroke', 'white').attr('stroke-width', 2);
+
+        // Action pill
+        const midPillX = (exitX + entryX) / 2 + 20;
+        const midPillY = midY;
+        drawPill(connectorsGroup, midPillX, midPillY, conn.label);
+
+      } else if (conn.source === "security-settings" && conn.target === "delete-modal") {
+        // Go down — exit bottom, enter top
+        exitX = src.x + SCREEN_W / 2 - 40;
+        exitY = src.y + SCREEN_H;
+        entryX = tgt.x + SCREEN_W / 2 - 40;
+        entryY = tgt.y;
+
+        const midY = (exitY + entryY) / 2;
+        const path = `M ${exitX},${exitY} V ${midY} H ${entryX} V ${entryY}`;
+
+        connectorsGroup.append('path')
+          .attr('d', path)
+          .attr('stroke', '#66BB6A')
+          .attr('stroke-width', 2)
+          .attr('fill', 'none')
+          .attr('marker-end', 'url(#arrowhead)');
+
+        connectorsGroup.append('circle')
+          .attr('cx', exitX).attr('cy', exitY)
+          .attr('r', 5).attr('fill', '#66BB6A')
+          .attr('stroke', 'white').attr('stroke-width', 2);
+        connectorsGroup.append('circle')
+          .attr('cx', entryX).attr('cy', entryY)
+          .attr('r', 5).attr('fill', '#66BB6A')
+          .attr('stroke', 'white').attr('stroke-width', 2);
+
+        const midPillX = (exitX + entryX) / 2;
+        const midPillY = midY;
+        drawPill(connectorsGroup, midPillX, midPillY, conn.label);
+
+      } else {
+        // Horizontal flow — exit right, enter left
+        exitX = src.x + SCREEN_W;
+        exitY = src.y + SCREEN_H / 2;
+        entryX = tgt.x;
+        entryY = tgt.y + SCREEN_H / 2;
+
+        const midX = (exitX + entryX) / 2;
+        const path = `M ${exitX},${exitY} H ${midX} V ${entryY} H ${entryX}`;
+
+        connectorsGroup.append('path')
+          .attr('d', path)
+          .attr('stroke', '#66BB6A')
+          .attr('stroke-width', 2)
+          .attr('fill', 'none')
+          .attr('marker-end', 'url(#arrowhead)');
+
+        connectorsGroup.append('circle')
+          .attr('cx', exitX).attr('cy', exitY)
+          .attr('r', 5).attr('fill', '#66BB6A')
+          .attr('stroke', 'white').attr('stroke-width', 2);
+        connectorsGroup.append('circle')
+          .attr('cx', entryX).attr('cy', entryY)
+          .attr('r', 5).attr('fill', '#66BB6A')
+          .attr('stroke', 'white').attr('stroke-width', 2);
+
+        const midPillX = (exitX + entryX) / 2;
+        const midPillY = (exitY + entryY) / 2;
+        drawPill(connectorsGroup, midPillX, midPillY, conn.label);
+      }
+    });
+
+    function drawPill(parent, cx, cy, label) {
+      const g = parent.append('g')
+        .attr('transform', `translate(${cx}, ${cy})`)
+        .style('cursor', 'pointer');
+
+      const textWidth = label.length * 6.5 + 24;
+      g.append('rect')
+        .attr('x', -textWidth / 2).attr('y', -12)
+        .attr('width', textWidth).attr('height', 24)
+        .attr('rx', 12)
+        .attr('fill', '#66BB6A');
+
+      g.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '0.35em')
+        .attr('fill', 'white')
+        .attr('font-size', '11px')
+        .attr('font-weight', '500')
+        .style('pointer-events', 'none')
+        .text(label);
+
+      g.on('mouseover', function() {
+        d3.select(this).select('rect').attr('fill', '#4CAF50');
+      }).on('mouseout', function() {
+        d3.select(this).select('rect').attr('fill', '#66BB6A');
+      });
+    }
+
+    // ── Draw Screens ──
+    const screensGroup = container.append('g').attr('class', 'screens');
+
+    flowData.screens.forEach(screen => {
+      const g = screensGroup.append('g')
+        .attr('transform', `translate(${screen.x}, ${screen.y})`)
+        .style('cursor', 'pointer');
+
+      // Drop shadow frame
+      g.append('rect')
+        .attr('width', SCREEN_W).attr('height', SCREEN_H)
+        .attr('rx', 16).attr('ry', 16)
+        .attr('fill', '#FFFFFF')
+        .attr('stroke', '#E0E0E0')
+        .attr('stroke-width', 1)
+        .attr('filter', 'url(#drop-shadow)');
+
+      // Browser chrome bar (desktop)
+      g.append('rect')
+        .attr('x', 0).attr('y', 0)
+        .attr('width', SCREEN_W).attr('height', 24)
+        .attr('rx', 16).attr('ry', 16)
+        .attr('fill', '#F8F9FA');
+      // Fix bottom corners of chrome bar
+      g.append('rect')
+        .attr('x', 0).attr('y', 12)
+        .attr('width', SCREEN_W).attr('height', 12)
+        .attr('fill', '#F8F9FA');
+
+      // Browser dots
+      [12, 24, 36].forEach((cx, i) => {
+        const colors = ['#FF6058', '#FFBD2E', '#27CA40'];
+        g.append('circle')
+          .attr('cx', cx).attr('cy', 12)
+          .attr('r', 4)
+          .attr('fill', colors[i]);
+      });
+
+      // Separator line below chrome
+      g.append('line')
+        .attr('x1', 0).attr('y1', 24)
+        .attr('x2', SCREEN_W).attr('y2', 24)
+        .attr('stroke', '#E0E0E0').attr('stroke-width', 0.5);
+
+      // Nav title bar
+      g.append('rect')
+        .attr('x', 0).attr('y', 24)
+        .attr('width', SCREEN_W).attr('height', 22)
+        .attr('fill', '#F8F9FA');
+      g.append('line')
+        .attr('x1', 0).attr('y1', 46)
+        .attr('x2', SCREEN_W).attr('y2', 46)
+        .attr('stroke', '#E0E0E0').attr('stroke-width', 0.5);
+      g.append('text')
+        .attr('x', 12).attr('y', 38)
+        .attr('font-size', '10px')
+        .attr('font-weight', '600')
+        .attr('fill', '#212529')
+        .text(screen.navTitle);
+
+      // Content area starts at y=48
+      const contentY = 50;
+      const contentPadding = 10;
+
+      if (screen.type === 'settings') {
+        // Settings: stacked rows with label + toggle/chevron
+        const items = screen.elements.filter(e => e.type === 'card-row' || e.type === 'toggle-row');
+        items.forEach((item, i) => {
+          const rowY = contentY + i * 26;
+          // Row background
+          if (i === 0) {
+            g.append('rect')
+              .attr('x', contentPadding).attr('y', rowY)
+              .attr('width', SCREEN_W - contentPadding * 2).attr('height', 22)
+              .attr('rx', 4)
+              .attr('fill', '#E8F5E9');
+          }
+          // Icon placeholder
+          g.append('rect')
+            .attr('x', contentPadding + 4).attr('y', rowY + 4)
+            .attr('width', 14).attr('height', 14)
+            .attr('rx', 3)
+            .attr('fill', '#E9ECEF');
+          // Label text
+          g.append('text')
+            .attr('x', contentPadding + 24).attr('y', rowY + 15)
+            .attr('font-size', '8px')
+            .attr('fill', '#ADB5BD')
+            .text(item.content);
+
+          if (item.type === 'toggle-row') {
+            // Toggle switch
+            const toggleX = SCREEN_W - contentPadding - 28;
+            g.append('rect')
+              .attr('x', toggleX).attr('y', rowY + 5)
+              .attr('width', 22).attr('height', 12)
+              .attr('rx', 6)
+              .attr('fill', i % 2 === 0 ? '#66BB6A' : '#DEE2E6');
+            g.append('circle')
+              .attr('cx', i % 2 === 0 ? toggleX + 16 : toggleX + 6)
+              .attr('cy', rowY + 11)
+              .attr('r', 4)
+              .attr('fill', 'white');
+          } else {
+            // Chevron
+            g.append('text')
+              .attr('x', SCREEN_W - contentPadding - 12).attr('y', rowY + 15)
+              .attr('font-size', '10px')
+              .attr('fill', '#ADB5BD')
+              .text('\u203A');
+          }
+
+          // Separator
+          if (i < items.length - 1) {
+            g.append('line')
+              .attr('x1', contentPadding).attr('y1', rowY + 24)
+              .attr('x2', SCREEN_W - contentPadding).attr('y2', rowY + 24)
+              .attr('stroke', '#F0F0F0').attr('stroke-width', 0.5);
+          }
+        });
+
+        // Save button for notification prefs
+        if (screen.id === 'notification-prefs') {
+          g.append('rect')
+            .attr('x', contentPadding + 4).attr('y', SCREEN_H - 32)
+            .attr('width', SCREEN_W - contentPadding * 2 - 8).attr('height', 22)
+            .attr('rx', 6)
+            .attr('fill', '#66BB6A');
+          g.append('text')
+            .attr('x', SCREEN_W / 2).attr('y', SCREEN_H - 18)
+            .attr('text-anchor', 'middle')
+            .attr('font-size', '9px')
+            .attr('font-weight', '600')
+            .attr('fill', 'white')
+            .text('Save Preferences');
+        }
+
+      } else if (screen.type === 'form') {
+        // Form: stacked input fields + button
+        const fields = screen.elements.filter(e => e.type === 'input-field');
+        fields.forEach((field, i) => {
+          const fieldY = contentY + i * 26;
+          // Label
+          g.append('text')
+            .attr('x', contentPadding + 4).attr('y', fieldY + 8)
+            .attr('font-size', '7px')
+            .attr('fill', '#6C757D')
+            .text(field.content);
+          // Input box
+          g.append('rect')
+            .attr('x', contentPadding + 4).attr('y', fieldY + 10)
+            .attr('width', SCREEN_W - contentPadding * 2 - 8).attr('height', 14)
+            .attr('rx', 3)
+            .attr('fill', '#F8F9FA')
+            .attr('stroke', '#DEE2E6')
+            .attr('stroke-width', 0.5);
+
+          // Password dots for password fields
+          if (field.content.toLowerCase().includes('password')) {
+            const dots = '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022';
+            g.append('text')
+              .attr('x', contentPadding + 10).attr('y', fieldY + 21)
+              .attr('font-size', '8px')
+              .attr('fill', '#ADB5BD')
+              .text(dots);
+          }
+        });
+
+        // Buttons
+        const buttons = screen.elements.filter(e => e.type === 'button' || e.type === 'button-danger');
+        let btnY = contentY + fields.length * 26 + 4;
+        buttons.forEach((btn, i) => {
+          const isDanger = btn.type === 'button-danger';
+          g.append('rect')
+            .attr('x', contentPadding + 4).attr('y', btnY)
+            .attr('width', SCREEN_W - contentPadding * 2 - 8).attr('height', 18)
+            .attr('rx', 5)
+            .attr('fill', isDanger ? '#EF5350' : '#66BB6A');
+          g.append('text')
+            .attr('x', SCREEN_W / 2).attr('y', btnY + 12)
+            .attr('text-anchor', 'middle')
+            .attr('font-size', '8px')
+            .attr('font-weight', '600')
+            .attr('fill', 'white')
+            .text(btn.content);
+          btnY += 22;
+        });
+
+      } else if (screen.type === 'modal') {
+        // Modal: dimmed background + centered dialog
+        g.append('rect')
+          .attr('x', 0).attr('y', 46)
+          .attr('width', SCREEN_W).attr('height', SCREEN_H - 46)
+          .attr('fill', 'rgba(0,0,0,0.3)');
+
+        // Dialog box
+        const dlgW = SCREEN_W - 40;
+        const dlgH = 110;
+        const dlgX = 20;
+        const dlgY = 55;
+
+        g.append('rect')
+          .attr('x', dlgX).attr('y', dlgY)
+          .attr('width', dlgW).attr('height', dlgH)
+          .attr('rx', 10)
+          .attr('fill', 'white')
+          .attr('stroke', '#E0E0E0');
+
+        // Warning icon
+        g.append('text')
+          .attr('x', SCREEN_W / 2).attr('y', dlgY + 20)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '14px')
+          .text('\u26A0');
+
+        // Title
+        g.append('text')
+          .attr('x', SCREEN_W / 2).attr('y', dlgY + 36)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '9px')
+          .attr('font-weight', '700')
+          .attr('fill', '#212529')
+          .text('Delete Account?');
+
+        // Description placeholder
+        g.append('rect')
+          .attr('x', dlgX + 16).attr('y', dlgY + 42)
+          .attr('width', dlgW - 32).attr('height', 6)
+          .attr('rx', 2)
+          .attr('fill', '#DEE2E6');
+        g.append('rect')
+          .attr('x', dlgX + 30).attr('y', dlgY + 51)
+          .attr('width', dlgW - 60).attr('height', 6)
+          .attr('rx', 2)
+          .attr('fill', '#DEE2E6');
+
+        // Input field
+        g.append('rect')
+          .attr('x', dlgX + 12).attr('y', dlgY + 62)
+          .attr('width', dlgW - 24).attr('height', 14)
+          .attr('rx', 3)
+          .attr('fill', '#F8F9FA')
+          .attr('stroke', '#DEE2E6')
+          .attr('stroke-width', 0.5);
+        g.append('text')
+          .attr('x', dlgX + 18).attr('y', dlgY + 72)
+          .attr('font-size', '7px')
+          .attr('fill', '#ADB5BD')
+          .text('Type DELETE to confirm');
+
+        // Buttons row
+        const btnW = (dlgW - 36) / 2;
+        // Cancel
+        g.append('rect')
+          .attr('x', dlgX + 12).attr('y', dlgY + 82)
+          .attr('width', btnW).attr('height', 18)
+          .attr('rx', 5)
+          .attr('fill', '#E9ECEF');
+        g.append('text')
+          .attr('x', dlgX + 12 + btnW / 2).attr('y', dlgY + 94)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '8px')
+          .attr('font-weight', '600')
+          .attr('fill', '#495057')
+          .text('Cancel');
+        // Delete
+        g.append('rect')
+          .attr('x', dlgX + 24 + btnW).attr('y', dlgY + 82)
+          .attr('width', btnW).attr('height', 18)
+          .attr('rx', 5)
+          .attr('fill', '#EF5350');
+        g.append('text')
+          .attr('x', dlgX + 24 + btnW + btnW / 2).attr('y', dlgY + 94)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '8px')
+          .attr('font-weight', '600')
+          .attr('fill', 'white')
+          .text('Delete');
+      }
+
+      // Screen name label below frame
+      g.append('text')
+        .attr('x', SCREEN_W / 2)
+        .attr('y', SCREEN_H + 18)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '13px')
+        .attr('font-weight', '600')
+        .attr('fill', '#212529')
+        .text(screen.name);
+
+      // Hover effects
+      g.on('mouseover', function() {
+        d3.select(this).select('rect')
+          .attr('stroke', '#BDBDBD');
+      }).on('mouseout', function() {
+        d3.select(this).select('rect')
+          .attr('stroke', '#E0E0E0');
+      });
+
+      // Click to open detail panel
+      g.on('click', function(event) {
+        event.stopPropagation();
+        openPanel(screen);
+      });
+    });
+
+    // ── Detail Panel ──
+    function openPanel(screen) {
+      const panel = document.getElementById('detail-panel');
+      const content = document.getElementById('panel-content');
+
+      const typeLabels = {
+        settings: 'Settings View',
+        form: 'Form',
+        modal: 'Modal Dialog',
+        list: 'List View',
+        detail: 'Detail View',
+        dashboard: 'Dashboard'
+      };
+
+      let html = `<h2>${screen.name}</h2>`;
+      html += `<div class="badge">${typeLabels[screen.type] || screen.type}</div>`;
+      html += `<p class="desc">${screen.description}</p>`;
+
+      // UI Elements
+      const uiElements = screen.elements.filter(e => e.content);
+      if (uiElements.length > 0) {
+        html += `<h3>UI Elements</h3><ul>`;
+        uiElements.forEach(el => {
+          html += `<li>${el.content} <span style="color:#ADB5BD;font-size:11px">(${el.type})</span></li>`;
+        });
+        html += `</ul>`;
+      }
+
+      // Exits
+      if (screen.exits && screen.exits.length > 0) {
+        html += `<h3>Exits</h3><ul>`;
+        screen.exits.forEach(exit => {
+          const targetScreen = screenMap[exit.target];
+          const targetName = targetScreen ? targetScreen.name : exit.target;
+          html += `<li><span class="exit-action">${exit.action}</span> &rarr; ${targetName}</li>`;
+        });
+        html += `</ul>`;
+      }
+
+      content.innerHTML = html;
+      panel.classList.add('open');
+    }
+
+    function closePanel() {
+      document.getElementById('detail-panel').classList.remove('open');
+    }
+
+    // Close panel on canvas click
+    svg.on('click', () => closePanel());
+
+    // ── Fit to Content ──
+    function fitToContent() {
+      const bounds = container.node().getBBox();
+      if (bounds.width === 0 || bounds.height === 0) return;
+
+      const padding = 60;
+      const fullWidth = bounds.width + padding * 2;
+      const fullHeight = bounds.height + padding * 2;
+
+      const scale = Math.min(
+        width / fullWidth,
+        height / fullHeight,
+        1
+      );
+
+      const tx = (width - bounds.width * scale) / 2 - bounds.x * scale;
+      const ty = (height - bounds.height * scale) / 2 - bounds.y * scale;
+
+      svg.transition().duration(500).call(
+        zoom.transform,
+        d3.zoomIdentity.translate(tx, ty).scale(scale)
+      );
+    }
+
+    // Fit on load
+    fitToContent();
+
+    // Double-click canvas to re-fit
+    svg.on('dblclick.zoom', null);
+    svg.on('dblclick', () => fitToContent());
+
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '+' || e.key === '=') {
+        svg.transition().duration(200).call(zoom.scaleBy, 1.2);
+      } else if (e.key === '-') {
+        svg.transition().duration(200).call(zoom.scaleBy, 0.8);
+      } else if (e.key === '0') {
+        fitToContent();
+      } else if (e.key === 'Escape') {
+        closePanel();
+      }
+    });
+
+    // Handle resize
+    window.addEventListener('resize', () => {
+      svg.attr('width', window.innerWidth).attr('height', window.innerHeight - 56);
+      fitToContent();
+    });
+  </script>
+</body>
+</html>

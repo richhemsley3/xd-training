@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Access Requests — Request Detail</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sds-color-warm-gray-025: #FAF8F5;
+    --sds-color-warm-gray-050: #F4F1EB;
+    --sds-color-warm-gray-100: #EBE6DD;
+    --sds-color-warm-gray-150: #E0DCD3;
+    --sds-color-warm-gray-200: #D0CBC3;
+    --sds-color-warm-gray-300: #B0ABA2;
+    --sds-color-warm-gray-400: #948E85;
+    --sds-color-warm-gray-550: #6B6760;
+    --sds-color-warm-gray-650: #54514D;
+    --sds-color-warm-gray-700: #47443F;
+    --sds-color-warm-gray-900: #1C1A17;
+    --sds-color-blue-050: #EBF4F5;
+    --sds-color-blue-100: #D9EBED;
+    --sds-color-blue-150: #C1DDE3;
+    --sds-color-blue-700: #0C4A69;
+    --sds-color-blue-750: #013D5B;
+    --sds-color-blue-800: #05314D;
+    --sds-color-green-025: #F4FAEB;
+    --sds-color-green-400: #7A9A01;
+    --sds-color-green-500: #62800B;
+    --sds-color-yellow-025: #FCF9D9;
+    --sds-color-yellow-200: #EBCE2D;
+    --sds-color-yellow-500: #8A7515;
+    --sds-color-red-050: #FFEEEB;
+    --sds-color-red-500: #BF5547;
+    --sds-color-white: #FFFFFF;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--sds-color-white);
+    color: var(--sds-color-warm-gray-900);
+    line-height: 1.5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px; padding: 0 20px;
+    background: var(--sds-color-white);
+    border-bottom: 1px solid var(--sds-color-warm-gray-100);
+    flex-shrink: 0;
+  }
+  .header-logo { display: flex; align-items: center; gap: 10px; }
+  .header-logo-mark {
+    width: 28px; height: 28px; border-radius: 6px;
+    background: var(--sds-color-blue-750);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .header-logo-mark svg { width: 16px; height: 16px; fill: #FFFFFF; }
+  .header-logo-text { font-size: 15px; font-weight: 600; color: var(--sds-color-warm-gray-900); letter-spacing: -0.2px; }
+  .header-actions { display: flex; align-items: center; gap: 8px; }
+  .header-help {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1.5px solid var(--sds-color-warm-gray-300);
+    background: transparent; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--sds-color-warm-gray-550);
+    font-size: 14px; font-weight: 600; font-family: inherit;
+  }
+  .header-divider { width: 1px; height: 20px; background: var(--sds-color-warm-gray-150); margin: 0 4px; }
+  .header-profile {
+    display: flex; align-items: center; gap: 8px;
+    padding: 4px 8px 4px 4px; border-radius: 8px; cursor: pointer;
+    border: none; background: transparent; font-family: inherit;
+  }
+  .header-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--sds-color-blue-750); color: #FFFFFF;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600;
+  }
+  .header-username { font-size: 13px; font-weight: 500; color: var(--sds-color-warm-gray-900); }
+  .header-chevron svg { width: 14px; height: 14px; stroke: var(--sds-color-warm-gray-550); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ===== LAYOUT ===== */
+  .app-layout { display: flex; flex: 1; }
+
+  /* ===== SIDENAV ===== */
+  .sidenav {
+    width: 220px; min-width: 220px;
+    background: var(--sds-color-warm-gray-025);
+    border-right: 1px solid var(--sds-color-warm-gray-150);
+    display: flex; flex-direction: column; padding: 16px 12px; user-select: none;
+  }
+  .sidenav-group-label {
+    font-size: 11px; font-weight: 600; color: var(--sds-color-warm-gray-400);
+    text-transform: uppercase; letter-spacing: 0.4px; padding: 20px 12px 6px;
+  }
+  .sidenav-group-label:first-child { padding-top: 8px; }
+  .sidenav-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+    border-radius: 8px; font-size: 14px; color: var(--sds-color-warm-gray-700);
+    cursor: pointer; text-decoration: none; margin: 1px 0;
+  }
+  .sidenav-item:hover { background: var(--sds-color-warm-gray-050); }
+  .sidenav-item.active { background: var(--sds-color-blue-100); color: var(--sds-color-blue-750); font-weight: 500; }
+  .sidenav-icon { width: 20px; height: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .sidenav-icon svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .sidenav-badge { margin-left: auto; font-size: 11px; font-weight: 600; background: var(--sds-color-red-500); color: white; padding: 1px 7px; border-radius: 10px; }
+
+  /* ===== MAIN ===== */
+  .main-content { flex: 1; padding: 24px 32px; overflow-y: auto; }
+  .breadcrumb { font-size: 13px; color: var(--sds-color-blue-750); margin-bottom: 4px; }
+  .breadcrumb .sep { color: var(--sds-color-warm-gray-300); margin: 0 6px; }
+  .breadcrumb a { color: var(--sds-color-blue-750); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+
+  .page-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 28px;
+  }
+  .page-title { font-size: 24px; font-weight: 600; }
+  .page-subtitle { font-size: 14px; color: var(--sds-color-warm-gray-550); margin-top: 2px; }
+
+  /* Status badge */
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 14px; border-radius: 14px;
+    font-size: 13px; font-weight: 500;
+  }
+  .status-badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; }
+  .status-pending { background: var(--sds-color-yellow-025); color: var(--sds-color-yellow-500); }
+  .status-pending::before { background: var(--sds-color-yellow-500); }
+
+  /* Two-column detail layout */
+  .detail-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 28px;
+  }
+
+  /* Timeline */
+  .section-title {
+    font-size: 14px; font-weight: 600; color: var(--sds-color-warm-gray-900);
+    margin-bottom: 16px;
+  }
+  .timeline { position: relative; padding-left: 28px; }
+  .timeline::before {
+    content: ''; position: absolute; left: 9px; top: 8px; bottom: 8px;
+    width: 2px; background: var(--sds-color-warm-gray-150);
+  }
+  .timeline-item {
+    position: relative; padding: 0 0 20px;
+  }
+  .timeline-item:last-child { padding-bottom: 0; }
+  .timeline-dot {
+    position: absolute; left: -24px; top: 4px;
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 2px solid var(--sds-color-white);
+    background: var(--sds-color-warm-gray-200);
+    z-index: 1;
+  }
+  .timeline-item.completed .timeline-dot { background: var(--sds-color-green-400); }
+  .timeline-item.current .timeline-dot {
+    background: var(--sds-color-yellow-200);
+    box-shadow: 0 0 0 3px rgba(235, 206, 45, 0.25);
+  }
+  .timeline-item.future .timeline-dot { background: var(--sds-color-warm-gray-150); }
+  .timeline-label { font-size: 14px; font-weight: 500; color: var(--sds-color-warm-gray-900); }
+  .timeline-item.future .timeline-label { color: var(--sds-color-warm-gray-300); }
+  .timeline-meta { font-size: 13px; color: var(--sds-color-warm-gray-550); margin-top: 1px; }
+  .timeline-item.future .timeline-meta { color: var(--sds-color-warm-gray-300); }
+
+  /* Activity feed */
+  .activity-feed {
+    border: 1px solid var(--sds-color-warm-gray-150);
+    border-radius: 10px; overflow: hidden; margin-top: 8px;
+  }
+  .activity-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--sds-color-warm-gray-100);
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--sds-color-warm-gray-150);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; color: var(--sds-color-warm-gray-550);
+    flex-shrink: 0;
+  }
+  .activity-avatar.system { background: var(--sds-color-blue-100); color: var(--sds-color-blue-750); }
+  .activity-body { flex: 1; }
+  .activity-text { font-size: 13px; color: var(--sds-color-warm-gray-650); }
+  .activity-text strong { color: var(--sds-color-warm-gray-900); font-weight: 500; }
+  .activity-time { font-size: 12px; color: var(--sds-color-warm-gray-400); margin-top: 1px; }
+
+  /* Sidebar metadata card */
+  .meta-card {
+    border: 1px solid var(--sds-color-warm-gray-150);
+    border-radius: 10px; padding: 20px; background: var(--sds-color-white);
+  }
+  .meta-card-title {
+    font-size: 11px; font-weight: 600; color: var(--sds-color-warm-gray-400);
+    text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 16px;
+  }
+  .meta-row { margin-bottom: 14px; }
+  .meta-row:last-child { margin-bottom: 0; }
+  .meta-label { font-size: 12px; color: var(--sds-color-warm-gray-400); margin-bottom: 1px; }
+  .meta-value { font-size: 14px; color: var(--sds-color-warm-gray-900); font-weight: 500; }
+  .meta-value.muted { font-weight: 400; color: var(--sds-color-warm-gray-650); }
+
+  /* Approver chip */
+  .approver-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px 4px 4px; border-radius: 20px;
+    background: var(--sds-color-warm-gray-050);
+    font-size: 13px; font-weight: 500; color: var(--sds-color-warm-gray-900);
+  }
+  .approver-chip .chip-avatar {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--sds-color-blue-750); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 600;
+  }
+
+  /* Action buttons at bottom of sidebar */
+  .sidebar-actions { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .btn-secondary {
+    width: 100%; padding: 9px 16px; text-align: center;
+    background: var(--sds-color-white); color: var(--sds-color-warm-gray-900);
+    border: 1px solid var(--sds-color-warm-gray-200); border-radius: 8px;
+    font-size: 14px; font-weight: 500; font-family: inherit; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-secondary:hover { background: var(--sds-color-warm-gray-050); }
+  .btn-danger-outline {
+    width: 100%; padding: 9px 16px; text-align: center;
+    background: var(--sds-color-white); color: var(--sds-color-red-500);
+    border: 1px solid var(--sds-color-red-500); border-radius: 8px;
+    font-size: 14px; font-weight: 500; font-family: inherit; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-danger-outline:hover { background: var(--sds-color-red-050); }
+
+  /* SLA indicator */
+  .sla-bar {
+    margin-top: 16px; padding: 12px 16px;
+    background: var(--sds-color-yellow-025);
+    border: 1px solid rgba(138, 117, 21, 0.15);
+    border-radius: 8px;
+  }
+  .sla-label { font-size: 12px; font-weight: 600; color: var(--sds-color-yellow-500); margin-bottom: 4px; }
+  .sla-text { font-size: 13px; color: var(--sds-color-warm-gray-650); }
+  .sla-progress {
+    margin-top: 8px; height: 4px; border-radius: 2px;
+    background: var(--sds-color-warm-gray-150);
+  }
+  .sla-progress-fill {
+    height: 100%; border-radius: 2px;
+    background: var(--sds-color-yellow-200);
+    width: 65%;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-logo">
+    <div class="header-logo-mark"><svg viewBox="0 0 16 16"><path d="M8 1L2 4.5v7L8 15l6-3.5v-7L8 1z"/></svg></div>
+    <span class="header-logo-text">Beacon</span>
+  </div>
+  <div class="header-actions">
+    <button class="header-help">?</button>
+    <div class="header-divider"></div>
+    <button class="header-profile">
+      <span class="header-avatar">PM</span>
+      <span class="header-username">Priya Mehta</span>
+      <span class="header-chevron"><svg viewBox="0 0 14 14"><path d="M4 5.5l3 3 3-3"/></svg></span>
+    </button>
+  </div>
+</header>
+
+<div class="app-layout">
+  <!-- SIDENAV -->
+  <nav class="sidenav">
+    <a class="sidenav-item" href="#">
+      <span class="sidenav-icon"><svg viewBox="0 0 18 18"><path d="M3 3h4.5v4.5H3z M10.5 3H15v4.5h-4.5z M3 10.5h4.5V15H3z M10.5 10.5H15V15h-4.5z"/></svg></span>
+      Getting started
+    </a>
+    <div class="sidenav-group-label">Tokenization</div>
+    <a class="sidenav-item" href="#"><span class="sidenav-icon"><svg viewBox="0 0 18 18"><rect x="2" y="3" width="14" height="12" rx="1.5"/><path d="M2 7h14 M6 7v8"/></svg></span> Data catalog</a>
+    <a class="sidenav-item" href="#"><span class="sidenav-icon"><svg viewBox="0 0 18 18"><rect x="3" y="2" width="12" height="14" rx="1.5"/><path d="M6 5h6 M6 8h6 M6 11h3"/></svg></span> Activity</a>
+    <a class="sidenav-item" href="#"><span class="sidenav-icon"><svg viewBox="0 0 18 18"><path d="M9 2L3 6v6.5C3 15 9 16.5 9 16.5s6-1.5 6-4.5V6L9 2z"/></svg></span> Protection policies</a>
+    <div class="sidenav-group-label">Access</div>
+    <a class="sidenav-item active" href="#"><span class="sidenav-icon"><svg viewBox="0 0 18 18"><path d="M5 9V7a4 4 0 118 0v2"/><rect x="3" y="9" width="12" height="7" rx="1.5"/><circle cx="9" cy="12.5" r="1"/></svg></span> My Requests</a>
+    <a class="sidenav-item" href="#"><span class="sidenav-icon"><svg viewBox="0 0 18 18"><path d="M9 2l7 4v3c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-4z"/><path d="M6.5 9.5l2 2 3.5-4"/></svg></span> Approval Queue <span class="sidenav-badge">5</span></a>
+    <a class="sidenav-item" href="#"><span class="sidenav-icon"><svg viewBox="0 0 18 18"><path d="M3 14V4h12v10H3z M3 7h12 M7 7v7"/></svg></span> Access Audit</a>
+    <div class="sidenav-group-label">Administration</div>
+    <a class="sidenav-item" href="#"><span class="sidenav-icon"><svg viewBox="0 0 18 18"><path d="M6 15H3.5A1.5 1.5 0 012 13.5V13a3 3 0 013-3h1 M12 15h2.5a1.5 1.5 0 001.5-1.5V13a3 3 0 00-3-3h-1"/><circle cx="8.5" cy="6" r="2.5"/><circle cx="13.5" cy="6.5" r="2.5"/></svg></span> Connections</a>
+    <a class="sidenav-item" href="#"><span class="sidenav-icon"><svg viewBox="0 0 18 18"><circle cx="9" cy="6" r="3"/><path d="M3 15.5v-1A3.5 3.5 0 016.5 11h5a3.5 3.5 0 013.5 3.5v1"/></svg></span> Users</a>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <div class="breadcrumb">
+      <a href="#">Access</a> <span class="sep">/</span>
+      <a href="#">My Requests</a> <span class="sep">/</span>
+      REQ-0042
+    </div>
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">REQ-0042</h1>
+        <div class="page-subtitle">customer_events (prod) &mdash; Read access &mdash; 90 days</div>
+      </div>
+      <span class="status-badge status-pending">Pending Approval</span>
+    </div>
+
+    <div class="detail-layout">
+      <!-- LEFT: Timeline + Activity -->
+      <div>
+        <h2 class="section-title">Request Timeline</h2>
+        <div class="timeline">
+          <div class="timeline-item completed">
+            <div class="timeline-dot"></div>
+            <div class="timeline-label">Submitted</div>
+            <div class="timeline-meta">Mar 18, 2026 at 2:15 PM by Priya Mehta</div>
+          </div>
+          <div class="timeline-item completed">
+            <div class="timeline-dot"></div>
+            <div class="timeline-label">Auto-Routed</div>
+            <div class="timeline-meta">Mar 18, 2026 at 2:15 PM &mdash; Sent to Marcus Chen (Customer Analytics domain owner)</div>
+          </div>
+          <div class="timeline-item current">
+            <div class="timeline-dot"></div>
+            <div class="timeline-label">Pending Approval</div>
+            <div class="timeline-meta">Waiting for Marcus Chen &mdash; 2 days elapsed</div>
+          </div>
+          <div class="timeline-item future">
+            <div class="timeline-dot"></div>
+            <div class="timeline-label">Provisioning</div>
+            <div class="timeline-meta">Auto-provisioned on approval</div>
+          </div>
+          <div class="timeline-item future">
+            <div class="timeline-dot"></div>
+            <div class="timeline-label">Active</div>
+            <div class="timeline-meta">Access will be granted for 90 days</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 32px;">
+          <h2 class="section-title">Activity</h2>
+          <div class="activity-feed">
+            <div class="activity-item">
+              <div class="activity-avatar">PM</div>
+              <div class="activity-body">
+                <div class="activity-text"><strong>Priya Mehta</strong> submitted this request</div>
+                <div class="activity-time">Mar 18, 2026 at 2:15 PM</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-avatar system">S</div>
+              <div class="activity-body">
+                <div class="activity-text">Request auto-routed to <strong>Marcus Chen</strong> (Customer Analytics domain owner)</div>
+                <div class="activity-time">Mar 18, 2026 at 2:15 PM</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-avatar system">S</div>
+              <div class="activity-body">
+                <div class="activity-text">Reminder sent to <strong>Marcus Chen</strong> &mdash; request pending for 24 hours</div>
+                <div class="activity-time">Mar 19, 2026 at 9:00 AM</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-avatar system">S</div>
+              <div class="activity-body">
+                <div class="activity-text">Second reminder sent to <strong>Marcus Chen</strong> &mdash; request pending for 48 hours</div>
+                <div class="activity-time">Mar 20, 2026 at 9:00 AM</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Metadata sidebar -->
+      <div>
+        <div class="meta-card">
+          <div class="meta-card-title">Request Details</div>
+          <div class="meta-row">
+            <div class="meta-label">Data Asset</div>
+            <div class="meta-value">customer_events (prod)</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-label">Domain</div>
+            <div class="meta-value">Customer Analytics</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-label">Access Level</div>
+            <div class="meta-value">Read</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-label">Duration</div>
+            <div class="meta-value">90 days</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-label">Requestor</div>
+            <div class="meta-value">Priya Mehta</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-label">Approver</div>
+            <div class="approver-chip">
+              <span class="chip-avatar">MC</span>
+              Marcus Chen
+            </div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-label">Justification</div>
+            <div class="meta-value muted">Need read access to build customer journey analytics pipeline for Q2 product review.</div>
+          </div>
+        </div>
+
+        <div class="sla-bar">
+          <div class="sla-label">Approval SLA</div>
+          <div class="sla-text">2 of 3 days elapsed</div>
+          <div class="sla-progress"><div class="sla-progress-fill"></div></div>
+        </div>
+
+        <div class="sidebar-actions">
+          <button class="btn-danger-outline">Cancel Request</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

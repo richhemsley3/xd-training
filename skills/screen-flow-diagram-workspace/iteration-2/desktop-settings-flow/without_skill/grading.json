@@ -1,0 +1,57 @@
+{
+  "eval_name": "desktop-settings-flow",
+  "configuration": "without_skill",
+  "expectations": [
+    {
+      "text": "HTML file exists",
+      "passed": true,
+      "evidence": "Found: screen-flow.html exists in outputs directory"
+    },
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": false,
+      "evidence": "Missing: 'd3@7' not found in output"
+    },
+    {
+      "text": "Settings overview screen",
+      "passed": true,
+      "evidence": "Found: 'Settings Overview' in output"
+    },
+    {
+      "text": "Profile settings screen",
+      "passed": true,
+      "evidence": "Found: 'Profile' in output"
+    },
+    {
+      "text": "Notification prefs screen",
+      "passed": true,
+      "evidence": "Found: 'Notification' in output"
+    },
+    {
+      "text": "Security settings screen",
+      "passed": true,
+      "evidence": "Found: 'Security' in output"
+    },
+    {
+      "text": "Delete account modal",
+      "passed": true,
+      "evidence": "Found: 'Delete Account' in output"
+    },
+    {
+      "text": "Desktop proportions used",
+      "passed": true,
+      "evidence": "Found: 'desktop' in output"
+    },
+    {
+      "text": "SDS interactive-primary color",
+      "passed": false,
+      "evidence": "Missing: '#013D5B' not found in output"
+    },
+    {
+      "text": "SVG rendering",
+      "passed": true,
+      "evidence": "Found: '<svg' in output"
+    }
+  ],
+  "pass_rate": 0.8
+}

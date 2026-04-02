@@ -1,0 +1,85 @@
+{
+  "eval_id": 1,
+  "eval_name": "checkout-flow",
+  "variant": "with_skill",
+  "pass_rate": 1.0,
+  "passed": 15,
+  "total": 15,
+  "expectations": [
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": true,
+      "evidence": "Found: ...tive Flow</title>   <script src=\"https://cdn.jsdelivr.net/npm/d3@7\"></script>   <style>..."
+    },
+    {
+      "text": "Single standalone HTML file",
+      "passed": true,
+      "evidence": "Found: ...<!DOCTYPE html> <html lang=\"e..."
+    },
+    {
+      "text": "Nodes are clickable (click handlers)",
+      "passed": true,
+      "evidence": "Found: ...pointer')           .on('click', () => {..."
+    },
+    {
+      "text": "Multiple zoom levels (at least 2 distinct views)",
+      "passed": true,
+      "evidence": "Found: ...ainer');      const zoom = d3.zoom()       .sc..."
+    },
+    {
+      "text": "Breadcrumb or back navigation",
+      "passed": true,
+      "evidence": "Found: ...dden;     }      /* Breadcrumb */     #breadcrumb..."
+    },
+    {
+      "text": "Custom styled nodes (not default SVG)",
+      "passed": true,
+      "evidence": "Found: ...height: 28px;       border-radius: 6px;       background:..."
+    },
+    {
+      "text": "Smooth transitions between states",
+      "passed": true,
+      "evidence": "Found: ...sor: pointer;       transition: color 0.15s;     }     .breadcr..."
+    },
+    {
+      "text": "Dark theme styling (#0F0F0F or similar dark background)",
+      "passed": true,
+      "evidence": "Found: ...}     body {       background: #0F0F0F;       color: #FFFF..."
+    },
+    {
+      "text": "Orthogonal connectors (right-angle paths)",
+      "passed": true,
+      "evidence": "Found: ...3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2...."
+    },
+    {
+      "text": "Action pills on connectors",
+      "passed": true,
+      "evidence": "Found: ...el: \"View product\", actionPill: \"View Product\", is..."
+    },
+    {
+      "text": "Decision diamonds for validation steps",
+      "passed": true,
+      "evidence": "Found: ...type: \"decision\",               lab..."
+    },
+    {
+      "text": "Error paths with distinct red styling",
+      "passed": true,
+      "evidence": "Found: ...id: \"address-error\",               type: \"error\",               label: \"Address Error\",               screenType: \"form\"......"
+    },
+    {
+      "text": "Happy path visually highlighted",
+      "passed": true,
+      "evidence": "Found: ...: \"View Product\", isHappyPath: true },..."
+    },
+    {
+      "text": "Uses Software DS color tokens",
+      "passed": true,
+      "evidence": "Found: ...borderColor: \"#0C4A69\",           nodes:..."
+    },
+    {
+      "text": "Three distinct zoom levels",
+      "passed": true,
+      "evidence": "Found: ...}      /* Detail sidebar */     #detail-side..."
+    }
+  ]
+}

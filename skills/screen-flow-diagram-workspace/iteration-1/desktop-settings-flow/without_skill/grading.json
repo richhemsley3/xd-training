@@ -1,0 +1,57 @@
+{
+  "eval_name": "desktop-settings-flow",
+  "configuration": "without_skill",
+  "expectations": [
+    {
+      "text": "HTML file exists",
+      "passed": true,
+      "evidence": "screen-flow.html exists in outputs directory"
+    },
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": true,
+      "evidence": "Found: d3js.org/d3.v7.min.js"
+    },
+    {
+      "text": "Settings overview screen",
+      "passed": true,
+      "evidence": "Found: Settings Overview screen defined with id 'settings-overview'"
+    },
+    {
+      "text": "Profile settings screen",
+      "passed": true,
+      "evidence": "Found: Profile Settings screen defined"
+    },
+    {
+      "text": "Notification prefs screen",
+      "passed": true,
+      "evidence": "Found: Notification Preferences screen defined"
+    },
+    {
+      "text": "Security settings screen",
+      "passed": true,
+      "evidence": "Found: Security Settings screen defined"
+    },
+    {
+      "text": "Delete account modal",
+      "passed": true,
+      "evidence": "Found: Delete Account modal screen defined with type 'modal'"
+    },
+    {
+      "text": "Desktop proportions used",
+      "passed": true,
+      "evidence": "Found: 'Desktop web application' in description, SCREEN_W=320 (wider than tall)"
+    },
+    {
+      "text": "Green accent color",
+      "passed": false,
+      "evidence": "Missing: #66BB6A; File uses #90caf9 (blue) for connectors and #1976d2 for primary actions"
+    },
+    {
+      "text": "SVG rendering",
+      "passed": true,
+      "evidence": "Found: <svg id=\"flow-svg\">"
+    }
+  ],
+  "pass_rate": 0.9
+}

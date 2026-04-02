@@ -1,0 +1,60 @@
+{
+  "prompt": "Build me an interactive user flow for an e-commerce checkout: Browse → Cart → Shipping → Payment → Confirmation, with error handling for payment failure and address validation. Include decision diamonds for the validation steps and highlight the happy path.",
+  "expected_output": "A standalone HTML file with D3.js showing a checkout flow with decision diamonds for payment/address validation, error nodes with salmon fill, and a visually distinct happy path in green. Figma-matched node colors on warm canvas.",
+  "assertions": [
+    {
+      "type": "file_exists",
+      "name": "HTML file exists",
+      "pattern": "*.html"
+    },
+    {
+      "type": "contains",
+      "name": "Uses D3.js from CDN",
+      "text": "d3@7"
+    },
+    {
+      "type": "contains",
+      "name": "Checkout phases present",
+      "text": "Cart",
+      "also_contains": [
+        "Payment",
+        "Confirmation"
+      ]
+    },
+    {
+      "type": "contains",
+      "name": "Decision diamonds",
+      "text": "diamond"
+    },
+    {
+      "type": "contains",
+      "name": "Error handling nodes",
+      "text": "error"
+    },
+    {
+      "type": "contains",
+      "name": "Happy path styling",
+      "text": "happy"
+    },
+    {
+      "type": "contains",
+      "name": "Warm canvas background",
+      "text": "#FAF8F5"
+    },
+    {
+      "type": "contains",
+      "name": "Process node fill color",
+      "text": "#C1DDE3"
+    },
+    {
+      "type": "contains",
+      "name": "SVG rendering",
+      "text": "<svg"
+    },
+    {
+      "type": "contains",
+      "name": "Zoom behavior for pan",
+      "text": "zoom"
+    }
+  ]
+}

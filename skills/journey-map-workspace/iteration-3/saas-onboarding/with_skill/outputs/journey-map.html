@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SaaS Onboarding — Customer Journey Map</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    /* ─── Reset ─── */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* ─── CSS Custom Properties ─── */
+    :root {
+      --bg-canvas: #FAF8F5;
+      --bg-card: #FFFFFF;
+      --bg-header: #F4F1EB;
+      --bg-elevated: #FFFFFF;
+
+      --border-subtle: #EBE6DD;
+      --border-default: #E0DCD3;
+      --border-strong: #D0CBC3;
+      --border-focus: #013D5B;
+
+      --text-primary: #1C1A17;
+      --text-secondary: #54514D;
+      --text-tertiary: #6B6760;
+      --text-disabled: #B0ABA2;
+      --text-on-primary: #FFFFFF;
+
+      --interactive-primary: #013D5B;
+      --interactive-primary-hover: #05314D;
+      --interactive-primary-subtle: #D9EBED;
+
+      --phase-header-bg: #F4F1EB;
+
+      --phase-1: #805AA1;
+      --phase-2: #013D5B;
+      --phase-3: #0C4A69;
+      --phase-4: #7A9A01;
+
+      --emotion-positive: #7A9A01;
+      --emotion-neutral: #0C4A69;
+      --emotion-negative: #CF6253;
+
+      --accent-pain: #BF5547;
+      --accent-pain-bg: #FFEEEB;
+      --accent-opportunity: #62800B;
+      --accent-opportunity-bg: #F4FAEB;
+      --accent-need: #8A7515;
+      --accent-need-bg: #FCF9D9;
+
+      --role-1: #013D5B;
+      --role-2: #4A6E82;
+      --role-3: #5C7A3D;
+      --role-4: #805AA1;
+      --role-5: #8A7515;
+      --role-6: #CF6253;
+    }
+
+    body {
+      background: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 32px;
+    }
+
+    /* ─── Title Bar ─── */
+    .title-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      padding: 0 0 16px 0;
+      border-bottom: 1px solid var(--border-default);
+    }
+    .title-bar h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .title-bar h1 .separator {
+      color: var(--text-disabled);
+      font-weight: 300;
+      margin: 0 8px;
+    }
+    .title-bar h1 .subtitle {
+      font-weight: 400;
+      color: var(--text-tertiary);
+      font-size: 18px;
+    }
+    .persona-info {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    .persona-info strong {
+      color: var(--text-primary);
+    }
+
+    /* ─── Role Legend ─── */
+    .role-legend {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-size: 9px;
+      color: var(--text-tertiary);
+      padding-top: 6px;
+    }
+    .role-legend-label {
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .role-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .role-legend-item .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: box-shadow 0.2s;
+    }
+    .role-legend-item.faded {
+      opacity: 0.3;
+    }
+    .role-legend-item.active .dot {
+      box-shadow: 0 0 0 2px white, 0 0 0 3.5px currentColor;
+    }
+
+    /* ─── Grid Container ─── */
+    .journey-grid-wrapper {
+      overflow-x: auto;
+      overflow-y: auto;
+      border: 1px solid var(--border-default);
+      border-radius: 8px;
+      background: var(--bg-card);
+      max-height: calc(100vh - 140px);
+      position: relative;
+    }
+    .journey-grid {
+      display: grid;
+      min-width: max-content;
+    }
+
+    /* ─── Row Labels (first column) ─── */
+    .row-label {
+      position: sticky;
+      left: 0;
+      z-index: 3;
+      width: 140px;
+      min-width: 140px;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border-default);
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+    }
+    .row-label-sub {
+      display: block;
+      font-size: 9px;
+      font-weight: 400;
+      color: var(--text-disabled);
+      text-transform: none;
+      letter-spacing: 0;
+      margin-top: 2px;
+    }
+
+    /* ─── Phase Header Band ─── */
+    .phase-header {
+      background: #F4F1EB;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #1C1A17;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border-default);
+      cursor: pointer;
+    }
+    .phase-header + .phase-header {
+      border-left: 1px solid var(--border-default);
+    }
+
+    /* ─── Sticky Phase Row ─── */
+    .sticky-phase-row {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #F4F1EB;
+    }
+    .sticky-phase-label {
+      position: sticky;
+      top: 0;
+      left: 0;
+      z-index: 4;
+      background: #F4F1EB;
+    }
+
+    /* ─── Sticky Step Row ─── */
+    .sticky-step-row {
+      position: sticky;
+      top: 44px;
+      z-index: 2;
+      background: #FFFFFF;
+    }
+    .sticky-step-label {
+      position: sticky;
+      top: 44px;
+      left: 0;
+      z-index: 4;
+      background: #FFFFFF;
+    }
+
+    /* ─── Step Labels ─── */
+    .step-label {
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 400;
+      color: #6B6760;
+      background: var(--bg-card);
+      border-bottom: 1px solid rgba(208, 203, 195, 0.4);
+    }
+
+    /* ─── Content Cells ─── */
+    .cell {
+      padding: 12px 16px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid rgba(208, 203, 195, 0.4);
+      border-right: 1px solid rgba(208, 203, 195, 0.4);
+      min-height: 72px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: #FAF8F5;
+      transition: background 0.15s;
+    }
+    .cell:hover {
+      background: rgba(244, 241, 235, 0.6);
+    }
+    .cell.zebra-alt {
+      background: #FAFAF8;
+    }
+    .cell.zebra-alt:hover {
+      background: rgba(244, 241, 235, 0.6);
+    }
+
+    /* Phase separator on cells */
+    .phase-separator-left {
+      border-left: 1px solid var(--border-default);
+    }
+
+    /* ─── Role Badge (Primary) ─── */
+    .role-badge-primary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 28px;
+      padding: 0 12px;
+      border-radius: 14px;
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      max-width: 180px;
+      margin: 0 auto;
+      transition: box-shadow 0.15s, opacity 0.2s;
+    }
+    .role-badge-primary.active-role {
+      box-shadow: 0 0 0 2px white, 0 0 0 4px currentColor;
+    }
+    .role-badge-primary.faded {
+      opacity: 0.3;
+    }
+
+    /* ─── Role Badge (Secondary) ─── */
+    .role-badge-secondary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 22px;
+      padding: 0 10px;
+      border-radius: 11px;
+      color: white;
+      font-size: 10px;
+      font-weight: 500;
+      cursor: pointer;
+      margin: 2px auto;
+      transition: box-shadow 0.15s, opacity 0.2s;
+    }
+    .role-badge-secondary.active-role {
+      box-shadow: 0 0 0 2px white, 0 0 0 3px currentColor;
+    }
+    .role-badge-secondary.faded {
+      opacity: 0.3;
+    }
+
+    /* ─── Role Rows ─── */
+    .role-cell {
+      padding: 12px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      border-bottom: 1px solid rgba(208, 203, 195, 0.4);
+      border-right: 1px solid rgba(208, 203, 195, 0.4);
+      min-height: 52px;
+      background: var(--bg-card);
+    }
+
+    /* ─── Emotion Row ─── */
+    .emotion-row-container {
+      position: relative;
+      overflow: visible;
+      z-index: 1;
+      height: 150px;
+      border-bottom: 1px solid rgba(208, 203, 195, 0.4);
+      background: var(--bg-card);
+    }
+
+    /* ─── Pain Points ─── */
+    .pain-point-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 4px;
+      margin-bottom: 4px;
+      color: var(--accent-pain);
+      font-size: 12px;
+    }
+    .cell.pain-cell {
+      background: var(--accent-pain-bg);
+    }
+
+    /* ─── Opportunities ─── */
+    .opportunity-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 4px;
+      margin-bottom: 4px;
+      color: var(--accent-opportunity);
+      font-size: 12px;
+    }
+    .cell.opportunity-cell {
+      background: var(--accent-opportunity-bg);
+    }
+
+    /* ─── Needs ─── */
+    .need-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 4px;
+      margin-bottom: 4px;
+      color: var(--accent-need);
+      font-size: 12px;
+      font-style: italic;
+    }
+    .cell.need-cell {
+      background: var(--accent-need-bg);
+    }
+
+    /* ─── Touchpoints ─── */
+    .touchpoint-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 2px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* ─── Metrics ─── */
+    .metric-card {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+    }
+    .metric-value {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .metric-name {
+      font-size: 10px;
+      color: var(--text-tertiary);
+      margin-top: 2px;
+    }
+
+    /* ─── Support Reliance ─── */
+    .support-bar-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      width: 100%;
+    }
+    .support-bar {
+      width: 80%;
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .support-label {
+      font-size: 10px;
+      color: var(--text-tertiary);
+    }
+
+    /* ─── Tooltip ─── */
+    .tooltip {
+      position: fixed;
+      pointer-events: none;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-default);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      z-index: 1000;
+      max-width: 260px;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .tooltip.visible { opacity: 1; }
+    .tooltip .tooltip-title {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    .tooltip .tooltip-score {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    /* ─── Empty Cell ─── */
+    .cell.empty-cell {
+      border: 1px dashed var(--border-subtle);
+      color: var(--text-disabled);
+      font-style: italic;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* ─── Role dot prefix ─── */
+    .role-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 4px;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+
+    /* ─── Print ─── */
+    @media print {
+      body { padding: 16px; background: white; }
+      .journey-grid-wrapper { overflow: visible; border: none; max-height: none; }
+      .journey-grid { min-width: unset; }
+      .tooltip { display: none; }
+      .sticky-phase-row, .sticky-step-row, .sticky-phase-label, .sticky-step-label {
+        position: static;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="title-bar">
+    <div>
+      <h1>
+        SaaS Onboarding Experience<span class="separator">|</span><span class="subtitle">Customer Journey Map</span>
+      </h1>
+      <div class="persona-info">
+        <strong>Persona:</strong> New SaaS Customer &mdash; <strong>Goal:</strong> Successfully onboard and adopt the platform for daily use
+      </div>
+    </div>
+    <div class="role-legend" id="role-legend"></div>
+  </div>
+
+  <div class="journey-grid-wrapper">
+    <div class="journey-grid" id="journey-grid">
+      <div id="emotion-row" class="emotion-row-container">
+        <svg id="emotion-svg"></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="tooltip" id="tooltip"></div>
+
+  <script>
+    /* ─── Journey Data ─── */
+    const journeyData = {
+      title: "SaaS Onboarding Experience",
+      persona: {
+        name: "New SaaS Customer",
+        role: "End User / Decision Maker",
+        goal: "Successfully onboard and adopt the platform for daily use"
+      },
+      phases: [
+        {
+          id: "awareness",
+          label: "Awareness",
+          color: "#805AA1",
+          steps: [
+            {
+              id: "landing-page",
+              label: "Landing Page",
+              primaryUser: { name: "Prospect", color: "#013D5B" },
+              secondaryUsers: [
+                { name: "New User", color: "#4A6E82" }
+              ],
+              emotion: { score: 0.7, label: "Curious", annotation: "Prospect discovers the product and is intrigued by the value proposition" },
+              needs: {
+                "Prospect": "Understand what the product does and how it solves their problem",
+                "New User": "Clearly see onboarding expectations before signing up"
+              },
+              workarounds: "Scans headlines, watches hero video, checks competitor sites",
+              touchpoints: ["Website", "Social Media"],
+              painPoints: {
+                "Prospect": ["Too much jargon on the landing page", "Unclear differentiation from competitors"],
+                "New User": ["No preview of the actual product interface"]
+              },
+              opportunities: {
+                "Prospect": ["Add interactive product demo on landing page"],
+                "New User": ["Show screenshot walkthrough of onboarding flow"]
+              },
+              metrics: { name: "Bounce Rate", value: "52%" },
+              supportReliance: "light"
+            },
+            {
+              id: "pricing-page",
+              label: "Pricing Page",
+              primaryUser: { name: "Prospect", color: "#013D5B" },
+              secondaryUsers: [
+                { name: "Active User", color: "#5C7A3D" }
+              ],
+              emotion: { score: 0.6, label: "Evaluating", annotation: "Comparing pricing tiers and trying to figure out the right plan" },
+              needs: {
+                "Prospect": "Quickly understand which plan fits their needs and budget",
+                "Active User": "Evaluate upgrade paths for expanded team usage"
+              },
+              workarounds: "Opens competitor pricing tabs, uses calculator to compare costs",
+              touchpoints: ["Website", "Email"],
+              painPoints: {
+                "Prospect": ["Confusing tier names and feature comparison", "Hidden costs not visible upfront"],
+                "Active User": ["Unclear what features unlock at higher tiers"]
+              },
+              opportunities: {
+                "Prospect": ["Add plan recommendation quiz", "Show total cost calculator"],
+                "Active User": ["Feature comparison table with current plan highlighted"]
+              },
+              metrics: { name: "Pricing CTR", value: "18%" },
+              supportReliance: "light"
+            }
+          ]
+        },
+        {
+          id: "signup",
+          label: "Sign Up",
+          color: "#013D5B",
+          steps: [
+            {
+              id: "registration",
+              label: "Registration",
+              primaryUser: { name: "New User", color: "#4A6E82" },
+              secondaryUsers: [
+                { name: "Prospect", color: "#013D5B" }
+              ],
+              emotion: { score: 0.8, label: "Excited", annotation: "User is motivated and ready to get started with the product" },
+              needs: {
+                "New User": "Quick and frictionless sign-up process",
+                "Prospect": "Confidence that signing up is risk-free"
+              },
+              workarounds: "Tries SSO options first, falls back to email form",
+              touchpoints: ["Web App", "Email"],
+              painPoints: {
+                "New User": ["Too many required fields", "No SSO option available"],
+                "Prospect": ["Unclear what happens after sign-up"]
+              },
+              opportunities: {
+                "New User": ["Offer Google/SSO sign-up", "Reduce form to 3 fields"],
+                "Prospect": ["Show post-signup preview on registration page"]
+              },
+              metrics: { name: "Form Completion", value: "64%" },
+              supportReliance: "light"
+            },
+            {
+              id: "email-verification",
+              label: "Email Verification",
+              primaryUser: { name: "New User", color: "#4A6E82" },
+              secondaryUsers: [
+                { name: "Active User", color: "#5C7A3D" }
+              ],
+              emotion: { score: 0.65, label: "Waiting", annotation: "Momentum drops as user waits for verification email to arrive" },
+              needs: {
+                "New User": "Instant email delivery and easy verification",
+                "Active User": "Seamless re-verification when changing email"
+              },
+              workarounds: "Checks spam folder, clicks resend, tries different email",
+              touchpoints: ["Email", "Web App"],
+              painPoints: {
+                "New User": ["Verification email delayed or in spam", "Having to leave the app to check email"],
+                "Active User": ["Re-verification required too frequently"]
+              },
+              opportunities: {
+                "New User": ["Magic link instead of code", "Allow exploring app while verifying"],
+                "Active User": ["Remember verified devices to reduce re-auth"]
+              },
+              metrics: { name: "Verification Rate", value: "78%" },
+              supportReliance: "light"
+            }
+          ]
+        },
+        {
+          id: "onboarding",
+          label: "Onboarding",
+          color: "#0C4A69",
+          steps: [
+            {
+              id: "product-tour",
+              label: "Product Tour",
+              primaryUser: { name: "New User", color: "#4A6E82" },
+              secondaryUsers: [
+                { name: "Active User", color: "#5C7A3D" },
+                { name: "Prospect", color: "#013D5B" }
+              ],
+              emotion: { score: 0.5, label: "Overwhelmed", annotation: "Too many features shown at once; user feels lost in the interface" },
+              needs: {
+                "New User": "Guided introduction focused on their specific use case",
+                "Active User": "Quick refresher on new features after updates"
+              },
+              workarounds: "Skips the tour, tries to figure things out alone",
+              touchpoints: ["Web App", "In-app Guide"],
+              painPoints: {
+                "New User": ["Tour is too long and generic", "Can't skip steps or go back", "Features don't match their use case"],
+                "Active User": ["No way to re-access tour for new features"]
+              },
+              opportunities: {
+                "New User": ["Personalized tour based on role/use case", "Let users skip and resume later"],
+                "Active User": ["Feature-specific micro-tours on demand"]
+              },
+              metrics: { name: "Tour Completion", value: "34%" },
+              supportReliance: "medium"
+            },
+            {
+              id: "first-project",
+              label: "First Project",
+              primaryUser: { name: "New User", color: "#4A6E82" },
+              secondaryUsers: [
+                { name: "Active User", color: "#5C7A3D" }
+              ],
+              emotion: { score: 0.3, label: "Frustrated", annotation: "User struggles to create their first project; unclear workflow and terminology" },
+              needs: {
+                "New User": "Clear step-by-step guidance for creating their first project",
+                "Active User": "Templates and shortcuts for common project types"
+              },
+              workarounds: "Watches YouTube tutorials, contacts support, reads docs",
+              touchpoints: ["Web App", "Support", "Docs"],
+              painPoints: {
+                "New User": ["Blank canvas problem \u2014 no templates", "Confusing terminology", "No clear 'next step' guidance"],
+                "Active User": ["Repetitive setup for similar projects"]
+              },
+              opportunities: {
+                "New User": ["Provide starter templates", "Add contextual help tooltips", "Show progress checklist"],
+                "Active User": ["Clone and modify existing projects"]
+              },
+              metrics: { name: "First Project Created", value: "41%" },
+              supportReliance: "heavy"
+            },
+            {
+              id: "invite-team",
+              label: "Invite Team",
+              primaryUser: { name: "New User", color: "#4A6E82" },
+              secondaryUsers: [
+                { name: "Active User", color: "#5C7A3D" },
+                { name: "Prospect", color: "#013D5B" }
+              ],
+              emotion: { score: 0.35, label: "Hesitant", annotation: "Unsure if the product is ready to share; worried about team perception" },
+              needs: {
+                "New User": "Confidence that the product works before inviting colleagues",
+                "Active User": "Easy team management and role assignment"
+              },
+              workarounds: "Tests alone first, sends screenshots instead of inviting",
+              touchpoints: ["Web App", "Email Invites"],
+              painPoints: {
+                "New User": ["Unclear role/permission model", "No way to preview teammate experience"],
+                "Active User": ["Complex permission setup", "No bulk invite option"]
+              },
+              opportunities: {
+                "New User": ["Show 'invite team' prompt after first success", "Provide shareable demo link"],
+                "Active User": ["Simplify roles to 3 tiers", "Add CSV bulk invite"]
+              },
+              metrics: { name: "Team Invite Rate", value: "28%" },
+              supportReliance: "medium"
+            }
+          ]
+        },
+        {
+          id: "adoption",
+          label: "Adoption",
+          color: "#7A9A01",
+          steps: [
+            {
+              id: "daily-usage",
+              label: "Daily Usage",
+              primaryUser: { name: "Active User", color: "#5C7A3D" },
+              secondaryUsers: [
+                { name: "New User", color: "#4A6E82" },
+                { name: "Prospect", color: "#013D5B" }
+              ],
+              emotion: { score: 0.6, label: "Settling In", annotation: "User builds habits and starts seeing value; confidence grows" },
+              needs: {
+                "Active User": "Streamlined daily workflows without friction",
+                "New User": "Guidance on building productive daily habits"
+              },
+              workarounds: "Creates personal shortcuts, bookmarks key pages",
+              touchpoints: ["Web App", "Mobile App", "Email Digests"],
+              painPoints: {
+                "Active User": ["Repetitive tasks lack automation", "Navigation requires too many clicks"],
+                "New User": ["Hard to know which features to use daily"]
+              },
+              opportunities: {
+                "Active User": ["Add keyboard shortcuts and quick actions", "Customizable dashboard"],
+                "New User": ["Daily tip notifications", "Suggested daily workflow"]
+              },
+              metrics: { name: "DAU/MAU Ratio", value: "32%" },
+              supportReliance: "light"
+            },
+            {
+              id: "feature-discovery",
+              label: "Feature Discovery",
+              primaryUser: { name: "Active User", color: "#5C7A3D" },
+              secondaryUsers: [
+                { name: "New User", color: "#4A6E82" }
+              ],
+              emotion: { score: 0.75, label: "Delighted", annotation: "User discovers powerful features they didn't know existed; satisfaction peaks" },
+              needs: {
+                "Active User": "Organic discovery of features relevant to their workflow",
+                "New User": "Surface advanced features at the right moment"
+              },
+              workarounds: "Stumbles on features accidentally, asks colleagues for tips",
+              touchpoints: ["Web App", "Feature Announcements", "Community"],
+              painPoints: {
+                "Active User": ["Advanced features are buried in menus", "No guidance on when to use what"],
+                "New User": ["Power features feel intimidating"]
+              },
+              opportunities: {
+                "Active User": ["Contextual feature suggestions based on usage", "Power user tips in-app"],
+                "New User": ["Progressive feature disclosure", "Achievement badges for feature adoption"]
+              },
+              metrics: { name: "Feature Adoption", value: "22%" },
+              supportReliance: "light"
+            }
+          ]
+        }
+      ],
+      roles: [
+        { name: "Prospect", abbrev: "Prsp", color: "#013D5B" },
+        { name: "New User", abbrev: "New", color: "#4A6E82" },
+        { name: "Active User", abbrev: "Act", color: "#5C7A3D" }
+      ]
+    };
+
+    /* ─── State ─── */
+    let activeRole = null;
+    const tooltip = document.getElementById('tooltip');
+
+    /* ─── Flatten Steps ─── */
+    const allSteps = journeyData.phases.flatMap(p => p.steps);
+    const totalSteps = allSteps.length;
+
+    /* ─── Helper: get role color from data ─── */
+    function getRoleColor(roleName) {
+      const role = journeyData.roles.find(r => r.name === roleName);
+      return role ? role.color : '#6B6760';
+    }
+
+    /* ─── Build Role Legend ─── */
+    function buildRoleLegend() {
+      const legend = document.getElementById('role-legend');
+      const span = document.createElement('span');
+      span.className = 'role-legend-label';
+      span.textContent = 'Roles:';
+      legend.appendChild(span);
+
+      journeyData.roles.forEach(role => {
+        const item = document.createElement('div');
+        item.className = 'role-legend-item';
+        item.dataset.roleName = role.name;
+        item.innerHTML = `<span class="dot" style="background:${role.color}; color:${role.color}"></span>${role.name}`;
+        item.addEventListener('click', () => toggleRoleFilter(role.name));
+        legend.appendChild(item);
+      });
+    }
+
+    /* ─── Role Filter Toggle ─── */
+    function toggleRoleFilter(roleName) {
+      activeRole = activeRole === roleName ? null : roleName;
+      updateRoleFilterDisplay();
+    }
+
+    function updateRoleFilterDisplay() {
+      // Update legend items
+      document.querySelectorAll('.role-legend-item').forEach(el => {
+        const name = el.dataset.roleName;
+        if (!name) return;
+        if (activeRole) {
+          if (name === activeRole) {
+            el.classList.add('active');
+            el.classList.remove('faded');
+          } else {
+            el.classList.remove('active');
+            el.classList.add('faded');
+          }
+        } else {
+          el.classList.remove('active', 'faded');
+        }
+      });
+
+      // Update all role badges (both primary and secondary)
+      document.querySelectorAll('[data-role-badge]').forEach(el => {
+        const badgeRole = el.dataset.roleBadge;
+        if (activeRole) {
+          if (badgeRole === activeRole) {
+            el.classList.add('active-role');
+            el.classList.remove('faded');
+          } else {
+            el.classList.remove('active-role');
+            el.classList.add('faded');
+          }
+        } else {
+          el.classList.remove('active-role', 'faded');
+        }
+      });
+
+      // Update filterable content cells
+      document.querySelectorAll('[data-role-content]').forEach(el => {
+        if (!activeRole) {
+          el.style.display = '';
+        } else {
+          el.style.display = el.dataset.roleContent === activeRole ? '' : 'none';
+        }
+      });
+    }
+
+    /* ─── Build Grid ─── */
+    function buildGrid() {
+      const grid = document.getElementById('journey-grid');
+      const colTemplate = `140px repeat(${totalSteps}, minmax(180px, 220px))`;
+      grid.style.gridTemplateColumns = colTemplate;
+
+      // ── ROW 1: Phase Headers (STICKY) ──
+      const phaseRowLabel = document.createElement('div');
+      phaseRowLabel.className = 'row-label sticky-phase-label';
+      phaseRowLabel.style.gridRow = '1';
+      phaseRowLabel.style.gridColumn = '1';
+      phaseRowLabel.style.background = '#F4F1EB';
+      phaseRowLabel.style.height = '44px';
+      phaseRowLabel.style.borderBottom = '1px solid var(--border-default)';
+      phaseRowLabel.textContent = 'Phase';
+      grid.appendChild(phaseRowLabel);
+
+      let colIndex = 2;
+      journeyData.phases.forEach((phase, pi) => {
+        const phaseHeader = document.createElement('div');
+        phaseHeader.className = 'phase-header sticky-phase-row';
+        phaseHeader.style.gridRow = '1';
+        phaseHeader.style.gridColumn = `${colIndex} / span ${phase.steps.length}`;
+        if (pi > 0) {
+          phaseHeader.style.borderLeft = '1px solid var(--border-default)';
+        }
+        phaseHeader.textContent = phase.label;
+        phaseHeader.addEventListener('click', () => {
+          phaseHeader.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+        });
+        grid.appendChild(phaseHeader);
+        colIndex += phase.steps.length;
+      });
+
+      // ── ROW 2: Step Labels (STICKY at top: 44px) ──
+      const stepRowLabel = document.createElement('div');
+      stepRowLabel.className = 'row-label sticky-step-label';
+      stepRowLabel.style.gridRow = '2';
+      stepRowLabel.style.gridColumn = '1';
+      stepRowLabel.style.height = '36px';
+      stepRowLabel.style.borderBottom = '1px solid rgba(208, 203, 195, 0.4)';
+      stepRowLabel.style.background = '#FFFFFF';
+      stepRowLabel.textContent = 'Steps';
+      grid.appendChild(stepRowLabel);
+
+      colIndex = 2;
+      journeyData.phases.forEach((phase, pi) => {
+        phase.steps.forEach((step, si) => {
+          const stepCell = document.createElement('div');
+          stepCell.className = 'step-label sticky-step-row';
+          stepCell.style.gridRow = '2';
+          stepCell.style.gridColumn = `${colIndex}`;
+          if (si === 0 && pi > 0) {
+            stepCell.classList.add('phase-separator-left');
+          }
+          stepCell.textContent = step.label;
+          grid.appendChild(stepCell);
+          colIndex++;
+        });
+      });
+
+      // ── ROW 3: Primary User ──
+      addRowLabel(grid, 3, 'Primary User');
+      colIndex = 2;
+      journeyData.phases.forEach((phase, pi) => {
+        phase.steps.forEach((step, si) => {
+          const cell = document.createElement('div');
+          cell.className = 'role-cell';
+          cell.style.gridRow = '3';
+          cell.style.gridColumn = `${colIndex}`;
+          if (si === 0 && pi > 0) cell.classList.add('phase-separator-left');
+
+          const badge = document.createElement('div');
+          badge.className = 'role-badge-primary';
+          badge.style.background = step.primaryUser.color;
+          badge.textContent = step.primaryUser.name;
+          badge.dataset.roleBadge = step.primaryUser.name;
+          badge.addEventListener('click', () => toggleRoleFilter(step.primaryUser.name));
+          cell.appendChild(badge);
+          grid.appendChild(cell);
+          colIndex++;
+        });
+      });
+
+      // ── ROW 4: Secondary Users ──
+      addRowLabel(grid, 4, 'Secondary Users');
+      colIndex = 2;
+      journeyData.phases.forEach((phase, pi) => {
+        phase.steps.forEach((step, si) => {
+          const cell = document.createElement('div');
+          cell.className = 'role-cell';
+          cell.style.gridRow = '4';
+          cell.style.gridColumn = `${colIndex}`;
+          if (si === 0 && pi > 0) cell.classList.add('phase-separator-left');
+
+          (step.secondaryUsers || []).forEach(su => {
+            const badge = document.createElement('div');
+            badge.className = 'role-badge-secondary';
+            badge.style.background = su.color;
+            badge.textContent = su.name;
+            badge.dataset.roleBadge = su.name;
+            badge.addEventListener('click', () => toggleRoleFilter(su.name));
+            cell.appendChild(badge);
+          });
+          grid.appendChild(cell);
+          colIndex++;
+        });
+      });
+
+      // ── ROW 5: UX Score (emotion curve) ──
+      const emotionLabel = document.createElement('div');
+      emotionLabel.className = 'row-label';
+      emotionLabel.style.gridRow = '5';
+      emotionLabel.style.gridColumn = '1';
+      emotionLabel.style.height = '150px';
+      emotionLabel.style.borderBottom = '1px solid rgba(208, 203, 195, 0.4)';
+      emotionLabel.innerHTML = 'UX Score<span class="row-label-sub">Emotion curve</span>';
+      emotionLabel.style.flexDirection = 'column';
+      emotionLabel.style.alignItems = 'flex-start';
+      emotionLabel.style.justifyContent = 'center';
+      grid.appendChild(emotionLabel);
+
+      const emotionContainer = document.getElementById('emotion-row');
+      emotionContainer.style.gridRow = '5';
+      emotionContainer.style.gridColumn = `2 / ${totalSteps + 2}`;
+
+      // ── ROW 6: Critical Unmet Needs ──
+      addRowLabel(grid, 6, 'Critical Unmet Needs');
+      colIndex = 2;
+      journeyData.phases.forEach((phase, pi) => {
+        phase.steps.forEach((step, si) => {
+          const cell = document.createElement('div');
+          cell.className = 'cell need-cell';
+          cell.style.gridRow = '6';
+          cell.style.gridColumn = `${colIndex}`;
+          if (si === 0 && pi > 0) cell.classList.add('phase-separator-left');
+
+          if (step.needs && typeof step.needs === 'object' && !Array.isArray(step.needs)) {
+            Object.entries(step.needs).forEach(([role, text]) => {
+              const item = document.createElement('div');
+              item.className = 'need-item';
+              item.dataset.roleContent = role;
+              const dotColor = getRoleColor(role);
+              item.innerHTML = `<span class="role-dot" style="background:${dotColor}"></span>${text}`;
+              cell.appendChild(item);
+            });
+          } else if (step.needs) {
+            const item = document.createElement('div');
+            item.className = 'need-item';
+            item.textContent = step.needs;
+            cell.appendChild(item);
+          } else {
+            cell.classList.add('empty-cell');
+            cell.textContent = '\u2014';
+          }
+          grid.appendChild(cell);
+          colIndex++;
+        });
+      });
+
+      // ── ROW 7: Workarounds ──
+      addRowLabel(grid, 7, 'Workarounds');
+      colIndex = 2;
+      journeyData.phases.forEach((phase, pi) => {
+        phase.steps.forEach((step, si) => {
+          const cell = document.createElement('div');
+          cell.className = 'cell' + (si % 2 === 1 ? ' zebra-alt' : '');
+          cell.style.gridRow = '7';
+          cell.style.gridColumn = `${colIndex}`;
+          if (si === 0 && pi > 0) cell.classList.add('phase-separator-left');
+          cell.textContent = step.workarounds || '\u2014';
+          if (!step.workarounds) cell.classList.add('empty-cell');
+          grid.appendChild(cell);
+          colIndex++;
+        });
+      });
+
+      // ── ROW 8: Touchpoints ──
+      addRowLabel(grid, 8, 'Touchpoints');
+      colIndex = 2;
+      journeyData.phases.forEach((phase, pi) => {
+        phase.steps.forEach((step, si) => {
+          const cell = document.createElement('div');
+          cell.className = 'cell' + (si % 2 === 0 ? ' zebra-alt' : '');
+          cell.style.gridRow = '8';
+          cell.style.gridColumn = `${colIndex}`;
+          if (si === 0 && pi > 0) cell.classList.add('phase-separator-left');
+
+          if (step.touchpoints && step.touchpoints.length) {
+            step.touchpoints.forEach(tp => {
+              const item = document.createElement('div');
+              item.className = 'touchpoint-item';
+              item.textContent = tp;
+              cell.appendChild(item);
+            });
+          } else {
+            cell.classList.add('empty-cell');
+            cell.textContent = '\u2014';
+          }
+          grid.appendChild(cell);
+          colIndex++;
+        });
+      });
+
+      // ── ROW 9: Pain Points (no icons, plain text with red accents) ──
+      addRowLabel(grid, 9, 'Pain Points');
+      colIndex = 2;
+      journeyData.phases.forEach((phase, pi) => {
+        phase.steps.forEach((step, si) => {
+          const cell = document.createElement('div');
+          cell.className = 'cell pain-cell';
+          cell.style.gridRow = '9';
+          cell.style.gridColumn = `${colIndex}`;
+          if (si === 0 && pi > 0) cell.classList.add('phase-separator-left');
+
+          if (step.painPoints && typeof step.painPoints === 'object' && !Array.isArray(step.painPoints)) {
+            Object.entries(step.painPoints).forEach(([role, points]) => {
+              const dotColor = getRoleColor(role);
+              points.forEach(pt => {
+                const item = document.createElement('div');
+                item.className = 'pain-point-item';
+                item.dataset.roleContent = role;
+                item.innerHTML = `<span class="role-dot" style="background:${dotColor}"></span>${pt}`;
+                cell.appendChild(item);
+              });
+            });
+          } else if (step.painPoints) {
+            const pts = Array.isArray(step.painPoints) ? step.painPoints : [step.painPoints];
+            pts.forEach(pt => {
+              const item = document.createElement('div');
+              item.className = 'pain-point-item';
+              item.textContent = pt;
+              cell.appendChild(item);
+            });
+          } else {
+            cell.classList.add('empty-cell');
+            cell.textContent = '\u2014';
+          }
+          grid.appendChild(cell);
+          colIndex++;
+        });
+      });
+
+      // ── ROW 10: Opportunities (no icons, plain text with green accents) ──
+      addRowLabel(grid, 10, 'Opportunities');
+      colIndex = 2;
+      journeyData.phases.forEach((phase, pi) => {
+        phase.steps.forEach((step, si) => {
+          const cell = document.createElement('div');
+          cell.className = 'cell opportunity-cell';
+          cell.style.gridRow = '10';
+          cell.style.gridColumn = `${colIndex}`;
+          if (si === 0 && pi > 0) cell.classList.add('phase-separator-left');
+
+          if (step.opportunities && typeof step.opportunities === 'object' && !Array.isArray(step.opportunities)) {
+            Object.entries(step.opportunities).forEach(([role, opps]) => {
+              const dotColor = getRoleColor(role);
+              opps.forEach(opp => {
+                const item = document.createElement('div');
+                item.className = 'opportunity-item';
+                item.dataset.roleContent = role;
+                item.innerHTML = `<span class="role-dot" style="background:${dotColor}"></span>${opp}`;
+                cell.appendChild(item);
+              });
+            });
+          } else if (step.opportunities) {
+            const opps = Array.isArray(step.opportunities) ? step.opportunities : [step.opportunities];
+            opps.forEach(opp => {
+              const item = document.createElement('div');
+              item.className = 'opportunity-item';
+              item.textContent = opp;
+              cell.appendChild(item);
+            });
+          } else {
+            cell.classList.add('empty-cell');
+            cell.textContent = '\u2014';
+          }
+          grid.appendChild(cell);
+          colIndex++;
+        });
+      });
+
+      // ── ROW 11: Metrics ──
+      addRowLabel(grid, 11, 'Metrics / KPIs');
+      colIndex = 2;
+      journeyData.phases.forEach((phase, pi) => {
+        phase.steps.forEach((step, si) => {
+          const cell = document.createElement('div');
+          cell.className = 'cell' + (si % 2 === 1 ? ' zebra-alt' : '');
+          cell.style.gridRow = '11';
+          cell.style.gridColumn = `${colIndex}`;
+          cell.style.alignItems = 'center';
+          if (si === 0 && pi > 0) cell.classList.add('phase-separator-left');
+
+          if (step.metrics) {
+            const card = document.createElement('div');
+            card.className = 'metric-card';
+            card.innerHTML = `<span class="metric-value" style="color:${phase.color}">${step.metrics.value}</span><span class="metric-name">${step.metrics.name}</span>`;
+            cell.appendChild(card);
+          } else {
+            cell.classList.add('empty-cell');
+            cell.textContent = '\u2014';
+          }
+          grid.appendChild(cell);
+          colIndex++;
+        });
+      });
+
+      // ── ROW 12: Reliance on Support ──
+      addRowLabel(grid, 12, 'Support Reliance');
+      colIndex = 2;
+      journeyData.phases.forEach((phase, pi) => {
+        phase.steps.forEach((step, si) => {
+          const cell = document.createElement('div');
+          cell.className = 'cell' + (si % 2 === 0 ? ' zebra-alt' : '');
+          cell.style.gridRow = '12';
+          cell.style.gridColumn = `${colIndex}`;
+          cell.style.alignItems = 'center';
+          if (si === 0 && pi > 0) cell.classList.add('phase-separator-left');
+
+          if (step.supportReliance) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'support-bar-wrapper';
+            const bar = document.createElement('div');
+            bar.className = 'support-bar';
+            let barColor, labelText;
+            if (step.supportReliance === 'heavy') {
+              barColor = '#1C1A17'; labelText = 'Heavy';
+            } else if (step.supportReliance === 'medium') {
+              barColor = '#54514D'; labelText = 'Medium';
+            } else {
+              barColor = '#B0ABA2'; labelText = 'Light';
+            }
+            bar.style.background = barColor;
+            wrapper.appendChild(bar);
+            const label = document.createElement('span');
+            label.className = 'support-label';
+            label.textContent = labelText;
+            wrapper.appendChild(label);
+            cell.appendChild(wrapper);
+          } else {
+            cell.classList.add('empty-cell');
+            cell.textContent = '\u2014';
+          }
+          grid.appendChild(cell);
+          colIndex++;
+        });
+      });
+    }
+
+    function addRowLabel(grid, row, text) {
+      const label = document.createElement('div');
+      label.className = 'row-label';
+      label.style.gridRow = `${row}`;
+      label.style.gridColumn = '1';
+      label.style.borderBottom = '1px solid rgba(208, 203, 195, 0.4)';
+      label.textContent = text;
+      grid.appendChild(label);
+    }
+
+    /* ─── Build Emotion Curve (D3) ─── */
+    function buildEmotionCurve() {
+      requestAnimationFrame(() => {
+        const container = document.getElementById('emotion-row');
+        const totalContentWidth = container.scrollWidth || container.clientWidth;
+        const height = 150;
+        const padding = { top: 20, bottom: 30, left: 0, right: 0 };
+
+        // Select the existing static SVG element (NOT append)
+        const svg = d3.select('#emotion-svg')
+          .attr('width', totalContentWidth)
+          .attr('height', height)
+          .style('overflow', 'visible')
+          .style('position', 'relative')
+          .style('z-index', '1');
+
+        // Background bands for positive / neutral / negative zones
+        const chartTop = padding.top;
+        const chartBottom = height - padding.bottom;
+        const chartHeight = chartBottom - chartTop;
+        const bandHeight = chartHeight / 3;
+
+        svg.append('rect')
+          .attr('x', 0).attr('y', chartTop)
+          .attr('width', totalContentWidth).attr('height', bandHeight)
+          .attr('fill', 'rgba(122,154,1, 0.04)');
+        svg.append('rect')
+          .attr('x', 0).attr('y', chartTop + bandHeight)
+          .attr('width', totalContentWidth).attr('height', bandHeight)
+          .attr('fill', 'rgba(12,74,105, 0.04)');
+        svg.append('rect')
+          .attr('x', 0).attr('y', chartTop + 2 * bandHeight)
+          .attr('width', totalContentWidth).attr('height', bandHeight)
+          .attr('fill', 'rgba(207,98,83, 0.04)');
+
+        // Calculate column centers
+        const colWidth = totalContentWidth / totalSteps;
+        const xScale = d3.scaleLinear()
+          .domain([0, totalSteps - 1])
+          .range([colWidth / 2, totalContentWidth - colWidth / 2]);
+
+        const yScale = d3.scaleLinear()
+          .domain([0, 1])
+          .range([chartBottom, chartTop]);
+
+        // Line generator
+        const line = d3.line()
+          .x((d, i) => xScale(i))
+          .y(d => yScale(d.emotion.score))
+          .curve(d3.curveMonotoneX);
+
+        // Draw primary emotion line
+        svg.append('path')
+          .datum(allSteps)
+          .attr('d', line)
+          .attr('fill', 'none')
+          .attr('stroke', '#0C4A69')
+          .attr('stroke-width', 2.5)
+          .attr('stroke-linecap', 'round');
+
+        // Draw primary data points
+        svg.selectAll('.emotion-dot')
+          .data(allSteps)
+          .join('circle')
+          .attr('class', 'emotion-dot')
+          .attr('cx', (d, i) => xScale(i))
+          .attr('cy', d => yScale(d.emotion.score))
+          .attr('r', 5)
+          .attr('fill', d => d.emotion.score > 0.6 ? '#7A9A01'
+                          : d.emotion.score > 0.3 ? '#0C4A69' : '#CF6253')
+          .attr('cursor', 'pointer')
+          .on('mouseenter', function(event, d) {
+            d3.select(this).transition().duration(150).attr('r', 10);
+            showTooltip(event, d);
+          })
+          .on('mouseleave', function() {
+            d3.select(this).transition().duration(150).attr('r', 5);
+            hideTooltip();
+          });
+
+        // Emoji markers above primary data points
+        svg.selectAll('.emotion-emoji')
+          .data(allSteps)
+          .join('text')
+          .attr('class', 'emotion-emoji')
+          .attr('x', (d, i) => xScale(i))
+          .attr('y', d => yScale(d.emotion.score) - 14)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '14px')
+          .text(d => d.emotion.score > 0.6 ? '\ud83d\ude0a'
+                    : d.emotion.score > 0.3 ? '\ud83d\ude10' : '\ud83d\ude1e');
+
+        // Score labels below data points
+        svg.selectAll('.emotion-score-label')
+          .data(allSteps)
+          .join('text')
+          .attr('class', 'emotion-score-label')
+          .attr('x', (d, i) => xScale(i))
+          .attr('y', d => yScale(d.emotion.score) + 18)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '10px')
+          .attr('fill', '#6B6760')
+          .attr('font-weight', '600')
+          .text(d => d.emotion.label);
+      });
+    }
+
+    /* ─── Tooltip ─── */
+    function showTooltip(event, step) {
+      const tt = document.getElementById('tooltip');
+      const scoreColor = step.emotion.score > 0.6 ? '#7A9A01'
+                       : step.emotion.score > 0.3 ? '#0C4A69' : '#CF6253';
+      tt.innerHTML = `
+        <div class="tooltip-title">${step.label}</div>
+        <div class="tooltip-score" style="color:${scoreColor}">${step.emotion.label} (${(step.emotion.score * 100).toFixed(0)}%)</div>
+        <div>${step.emotion.annotation}</div>
+      `;
+      tt.classList.add('visible');
+      const x = Math.min(event.clientX + 12, window.innerWidth - 280);
+      const y = Math.min(event.clientY + 12, window.innerHeight - 100);
+      tt.style.left = x + 'px';
+      tt.style.top = y + 'px';
+    }
+
+    function hideTooltip() {
+      const tt = document.getElementById('tooltip');
+      tt.classList.remove('visible');
+    }
+
+    /* ─── Initialize ─── */
+    buildRoleLegend();
+    buildGrid();
+    buildEmotionCurve();
+  </script>
+</body>
+</html>

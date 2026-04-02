@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Lineage — Wireframes</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #FAF8F5;
+    color: #1C1A17;
+    padding: 48px 40px;
+    line-height: 1.5;
+  }
+
+  h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+  .subtitle { font-size: 16px; color: #6B6760; margin-bottom: 48px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 48px 0 8px; }
+  .desc { font-size: 13px; color: #6B6760; margin-bottom: 20px; }
+  .section-divider { border: none; border-top: 1px solid #E0DCD3; margin: 48px 0 32px; }
+  .demo-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6B6760;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+  }
+
+  /* ===== WIREFRAME STYLES ===== */
+  .wireframe {
+    border: 2px solid #CACCCF;
+    border-radius: 8px;
+    background: #FFFFFF;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+
+  .wf-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 600px;
+  }
+
+  /* Wireframe header */
+  .wf-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 48px;
+    padding: 0 16px;
+    border-bottom: 1px solid #CACCCF;
+    background: #F2F3F4;
+  }
+  .wf-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .wf-logo-box {
+    width: 24px;
+    height: 24px;
+    background: #8B9298;
+    border-radius: 4px;
+  }
+  .wf-logo-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #6F757B;
+  }
+  .wf-header-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .wf-header-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #CACCCF;
+  }
+  .wf-header-pill {
+    width: 100px;
+    height: 28px;
+    border-radius: 14px;
+    background: #CACCCF;
+  }
+
+  /* Wireframe body */
+  .wf-body {
+    display: flex;
+    flex: 1;
+  }
+
+  /* Wireframe sidebar */
+  .wf-sidebar {
+    width: 180px;
+    min-width: 180px;
+    border-right: 1px solid #CACCCF;
+    background: #F8F8F9;
+    padding: 12px 8px;
+  }
+  .wf-nav-group {
+    font-size: 9px;
+    font-weight: 700;
+    color: #989FA5;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 16px 10px 4px;
+  }
+  .wf-nav-group:first-child { padding-top: 4px; }
+  .wf-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #6F757B;
+    margin: 1px 0;
+  }
+  .wf-nav-item.active {
+    background: #D9EBED;
+    color: #013D5B;
+    font-weight: 500;
+  }
+  .wf-nav-icon {
+    width: 16px;
+    height: 16px;
+    background: #B8BCC0;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .wf-nav-item.active .wf-nav-icon {
+    background: #6AA5B8;
+  }
+
+  /* Wireframe main content */
+  .wf-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #FFFFFF;
+  }
+
+  /* Page header */
+  .wf-page-header {
+    padding: 20px 24px 0;
+  }
+  .wf-breadcrumb {
+    font-size: 11px;
+    color: #989FA5;
+    margin-bottom: 4px;
+  }
+  .wf-page-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #40454A;
+    margin-bottom: 16px;
+  }
+
+  /* Search bar */
+  .wf-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 24px 16px;
+    padding: 10px 14px;
+    border: 2px solid #CACCCF;
+    border-radius: 8px;
+    background: #F8F8F9;
+  }
+  .wf-search-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #989FA5;
+    flex-shrink: 0;
+  }
+  .wf-search-text {
+    font-size: 13px;
+    color: #989FA5;
+  }
+
+  /* Toolbar */
+  .wf-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 24px;
+    border-bottom: 1px solid #E2E4E6;
+    flex-wrap: wrap;
+  }
+  .wf-toolbar-btn {
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 11px;
+    color: #6F757B;
+    border: 1px solid #CACCCF;
+    background: #FFFFFF;
+  }
+  .wf-toolbar-btn.active {
+    background: #D9EBED;
+    color: #013D5B;
+    border-color: #6AA5B8;
+  }
+  .wf-toolbar-divider {
+    width: 1px;
+    height: 20px;
+    background: #E2E4E6;
+    margin: 0 4px;
+  }
+  .wf-toolbar-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #989FA5;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  /* Canvas area */
+  .wf-canvas {
+    flex: 1;
+    position: relative;
+    background: #FAFAFA;
+    background-image:
+      radial-gradient(circle, #E2E4E6 1px, transparent 1px);
+    background-size: 20px 20px;
+    min-height: 380px;
+    overflow: hidden;
+  }
+
+  /* Wireframe nodes */
+  .wf-node {
+    position: absolute;
+    border: 2px solid #CACCCF;
+    border-radius: 8px;
+    background: #FFFFFF;
+    padding: 10px 14px;
+    min-width: 140px;
+    text-align: center;
+  }
+  .wf-node-type {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #989FA5;
+    margin-bottom: 4px;
+  }
+  .wf-node-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: #40454A;
+    margin-bottom: 6px;
+  }
+  .wf-node-status {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 4px;
+  }
+  .wf-node-status.green { background: #7A9A01; }
+  .wf-node-status.yellow { background: #D6BB31; }
+  .wf-node-status.red { background: #CF6253; }
+  .wf-node-status.gray { background: #CACCCF; }
+  .wf-node-status-text {
+    font-size: 10px;
+    color: #989FA5;
+  }
+
+  .wf-node.selected {
+    border-color: #013D5B;
+    box-shadow: 0 0 0 2px rgba(1,61,91,0.15);
+  }
+  .wf-node.source { border-left: 4px solid #6AA5B8; }
+  .wf-node.transform { border-left: 4px solid #C39DE3; }
+  .wf-node.destination { border-left: 4px solid #7A9A01; }
+
+  /* Wireframe edges (simplified with CSS) */
+  .wf-edge {
+    position: absolute;
+    height: 2px;
+    background: #CACCCF;
+  }
+  .wf-edge::after {
+    content: '';
+    position: absolute;
+    right: -6px;
+    top: -4px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid #CACCCF;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+  }
+
+  /* Detail panel */
+  .wf-detail-panel {
+    width: 280px;
+    border-left: 1px solid #CACCCF;
+    background: #FFFFFF;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .wf-detail-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #40454A;
+  }
+  .wf-detail-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #989FA5;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 4px;
+  }
+  .wf-detail-value {
+    font-size: 12px;
+    color: #5B6066;
+  }
+  .wf-detail-section {
+    border-top: 1px solid #E2E4E6;
+    padding-top: 12px;
+  }
+  .wf-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+  }
+  .wf-detail-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 500;
+  }
+  .wf-detail-badge.protected {
+    background: #E2EDCC;
+    color: #3E5917;
+  }
+  .wf-detail-badge.pii {
+    background: #FFE1DB;
+    color: #8F3629;
+  }
+  .wf-detail-badge.healthy {
+    background: #E2EDCC;
+    color: #3E5917;
+  }
+  .wf-placeholder {
+    width: 100%;
+    height: 24px;
+    background: #F2F3F4;
+    border-radius: 4px;
+    margin: 2px 0;
+  }
+  .wf-placeholder.short { width: 60%; }
+  .wf-placeholder.medium { width: 80%; }
+
+  /* Minimap */
+  .wf-minimap {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    width: 120px;
+    height: 80px;
+    border: 1px solid #CACCCF;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: #989FA5;
+  }
+
+  /* Annotation callouts */
+  .wf-annotation {
+    position: absolute;
+    font-size: 10px;
+    color: #CF6253;
+    font-weight: 600;
+    font-style: italic;
+    max-width: 160px;
+  }
+  .wf-annotation::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #CF6253;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+
+  /* SVG connectors */
+  .wf-svg-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<h1>Data Lineage — Wireframes</h1>
+<p class="subtitle">Low-fidelity wireframes for data lineage visualization feature</p>
+
+<!-- ===== WIREFRAME 1: MAIN LINEAGE EXPLORER ===== -->
+<h2>1. Lineage Explorer — Default View</h2>
+<p class="desc">The primary lineage page with search-first entry, graph canvas, and contextual detail panel. Search bar is prominent at the top. Overlay toggles in toolbar. Detail panel slides in on node selection.</p>
+
+<div class="demo-label">Wireframe — Full page layout with selected node</div>
+<div class="wireframe">
+  <div class="wf-shell">
+    <!-- Header -->
+    <div class="wf-header">
+      <div class="wf-logo">
+        <div class="wf-logo-box"></div>
+        <span class="wf-logo-text">Beacon</span>
+      </div>
+      <div class="wf-header-actions">
+        <div class="wf-header-circle"></div>
+        <div class="wf-header-pill"></div>
+      </div>
+    </div>
+
+    <div class="wf-body">
+      <!-- Sidebar -->
+      <div class="wf-sidebar">
+        <div class="wf-nav-item">
+          <div class="wf-nav-icon"></div>
+          Getting started
+        </div>
+        <div class="wf-nav-group">Tokenization</div>
+        <div class="wf-nav-item">
+          <div class="wf-nav-icon"></div>
+          Data catalog
+        </div>
+        <div class="wf-nav-item active">
+          <div class="wf-nav-icon"></div>
+          Data lineage
+        </div>
+        <div class="wf-nav-item">
+          <div class="wf-nav-icon"></div>
+          Activity
+        </div>
+        <div class="wf-nav-item">
+          <div class="wf-nav-icon"></div>
+          Protection policies
+        </div>
+        <div class="wf-nav-group">Administration</div>
+        <div class="wf-nav-item">
+          <div class="wf-nav-icon"></div>
+          Connections
+        </div>
+        <div class="wf-nav-item">
+          <div class="wf-nav-icon"></div>
+          Users
+        </div>
+        <div class="wf-nav-item">
+          <div class="wf-nav-icon"></div>
+          Domains
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <div class="wf-main">
+        <div class="wf-page-header">
+          <div class="wf-page-title">Data Lineage</div>
+        </div>
+
+        <!-- Search -->
+        <div class="wf-search">
+          <div class="wf-search-icon"></div>
+          <span class="wf-search-text">Search assets, tables, pipelines, columns...</span>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="wf-toolbar">
+          <span class="wf-toolbar-label">View:</span>
+          <div class="wf-toolbar-btn active">Graph</div>
+          <div class="wf-toolbar-btn">List</div>
+          <div class="wf-toolbar-divider"></div>
+          <span class="wf-toolbar-label">Level:</span>
+          <div class="wf-toolbar-btn">System</div>
+          <div class="wf-toolbar-btn active">Table</div>
+          <div class="wf-toolbar-btn">Column</div>
+          <div class="wf-toolbar-divider"></div>
+          <span class="wf-toolbar-label">Overlays:</span>
+          <div class="wf-toolbar-btn active">Protection</div>
+          <div class="wf-toolbar-btn active">Quality</div>
+          <div class="wf-toolbar-btn">Classifications</div>
+        </div>
+
+        <div style="display: flex; flex: 1;">
+          <!-- Canvas -->
+          <div class="wf-canvas">
+            <!-- SVG Connectors -->
+            <svg class="wf-svg-overlay" viewBox="0 0 700 380" preserveAspectRatio="none">
+              <!-- Source to Transform edges -->
+              <line x1="175" y1="80" x2="285" y2="150" stroke="#CACCCF" stroke-width="2" marker-end="url(#arrowhead)"/>
+              <line x1="175" y1="220" x2="285" y2="170" stroke="#CACCCF" stroke-width="2" marker-end="url(#arrowhead)"/>
+              <line x1="175" y1="320" x2="285" y2="190" stroke="#CACCCF" stroke-width="2" marker-end="url(#arrowhead)"/>
+              <!-- Transform to Destination edges -->
+              <line x1="440" y1="160" x2="510" y2="90" stroke="#CACCCF" stroke-width="2" marker-end="url(#arrowhead)"/>
+              <line x1="440" y1="170" x2="510" y2="200" stroke="#CACCCF" stroke-width="2" marker-end="url(#arrowhead)"/>
+              <line x1="440" y1="180" x2="510" y2="310" stroke="#CACCCF" stroke-width="2" marker-end="url(#arrowhead)"/>
+              <defs>
+                <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#CACCCF"/>
+                </marker>
+              </defs>
+            </svg>
+
+            <!-- Source nodes -->
+            <div class="wf-node source" style="left: 30px; top: 55px;">
+              <div class="wf-node-type">Source</div>
+              <div class="wf-node-name">postgres.users</div>
+              <span class="wf-node-status green"></span>
+              <span class="wf-node-status-text">Protected</span>
+            </div>
+
+            <div class="wf-node source" style="left: 30px; top: 185px;">
+              <div class="wf-node-type">Source</div>
+              <div class="wf-node-name">salesforce.contacts</div>
+              <span class="wf-node-status yellow"></span>
+              <span class="wf-node-status-text">Partial</span>
+            </div>
+
+            <div class="wf-node source" style="left: 30px; top: 295px;">
+              <div class="wf-node-type">Source</div>
+              <div class="wf-node-name">s3://raw-events</div>
+              <span class="wf-node-status red"></span>
+              <span class="wf-node-status-text">Unprotected</span>
+            </div>
+
+            <!-- Transform node -->
+            <div class="wf-node transform selected" style="left: 280px; top: 130px;">
+              <div class="wf-node-type">Transform</div>
+              <div class="wf-node-name">dbt: customer_360</div>
+              <span class="wf-node-status green"></span>
+              <span class="wf-node-status-text">Protected</span>
+            </div>
+
+            <!-- Destination nodes -->
+            <div class="wf-node destination" style="left: 510px; top: 55px;">
+              <div class="wf-node-type">Warehouse</div>
+              <div class="wf-node-name">snowflake.analytics</div>
+              <span class="wf-node-status green"></span>
+              <span class="wf-node-status-text">Protected</span>
+            </div>
+
+            <div class="wf-node destination" style="left: 510px; top: 175px;">
+              <div class="wf-node-type">BI Tool</div>
+              <div class="wf-node-name">looker.exec_dash</div>
+              <span class="wf-node-status green"></span>
+              <span class="wf-node-status-text">Protected</span>
+            </div>
+
+            <div class="wf-node destination" style="left: 510px; top: 280px;">
+              <div class="wf-node-type">Export</div>
+              <div class="wf-node-name">partner_data_share</div>
+              <span class="wf-node-status red"></span>
+              <span class="wf-node-status-text">Unprotected</span>
+            </div>
+
+            <!-- Minimap -->
+            <div class="wf-minimap">Minimap</div>
+
+            <!-- Annotations -->
+            <div class="wf-annotation" style="left: 515px; top: 340px;">Unprotected PII in external share -- needs policy</div>
+          </div>
+
+          <!-- Detail Panel -->
+          <div class="wf-detail-panel">
+            <div>
+              <div class="wf-detail-title">dbt: customer_360</div>
+              <div class="wf-detail-value" style="margin-top: 4px;">Transformation model</div>
+            </div>
+
+            <div>
+              <div class="wf-detail-label">Protection Status</div>
+              <div class="wf-detail-badge protected">Protected</div>
+            </div>
+
+            <div>
+              <div class="wf-detail-label">Classifications</div>
+              <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                <div class="wf-detail-badge pii">PII</div>
+                <div class="wf-detail-badge" style="background: #EBF4F5; color: #0C4A69;">Financial</div>
+              </div>
+            </div>
+
+            <div>
+              <div class="wf-detail-label">Data Quality</div>
+              <div class="wf-detail-badge healthy">Healthy</div>
+            </div>
+
+            <div class="wf-detail-section">
+              <div class="wf-detail-label">Upstream (3 sources)</div>
+              <div class="wf-placeholder"></div>
+              <div class="wf-placeholder"></div>
+              <div class="wf-placeholder short"></div>
+            </div>
+
+            <div class="wf-detail-section">
+              <div class="wf-detail-label">Downstream (3 consumers)</div>
+              <div class="wf-placeholder"></div>
+              <div class="wf-placeholder"></div>
+              <div class="wf-placeholder medium"></div>
+            </div>
+
+            <div class="wf-detail-section">
+              <div class="wf-detail-label">Owner</div>
+              <div class="wf-detail-value">Data Engineering Team</div>
+            </div>
+
+            <div class="wf-detail-section">
+              <div class="wf-detail-label">Last Updated</div>
+              <div class="wf-detail-value">2 hours ago</div>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: auto;">
+              <div class="wf-toolbar-btn" style="flex: 1; text-align: center;">View in Catalog</div>
+              <div class="wf-toolbar-btn" style="flex: 1; text-align: center;">Edit Policy</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ===== WIREFRAME 2: SEARCH STATE ===== -->
+<h2>2. Search Autocomplete State</h2>
+<p class="desc">When the user begins typing in the search bar, autocomplete results appear with asset type icons, names, and classification badges. This is the primary entry point for lineage exploration.</p>
+
+<div class="demo-label">Wireframe — Search with autocomplete dropdown</div>
+<div class="wireframe" style="max-width: 640px;">
+  <div style="padding: 32px 24px;">
+    <!-- Active search -->
+    <div style="border: 2px solid #013D5B; border-radius: 8px; background: #FFFFFF; overflow: hidden;">
+      <div style="display: flex; align-items: center; gap: 8px; padding: 10px 14px;">
+        <div class="wf-search-icon" style="border-color: #013D5B;"></div>
+        <span style="font-size: 13px; color: #40454A;">customer_</span>
+        <span style="font-size: 13px; color: #989FA5;">|</span>
+      </div>
+      <!-- Results dropdown -->
+      <div style="border-top: 1px solid #E2E4E6;">
+        <!-- Result 1 -->
+        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #F2F3F4;">
+          <div style="width: 20px; height: 20px; border-radius: 4px; background: #6AA5B8; flex-shrink: 0;"></div>
+          <div style="flex: 1;">
+            <div style="font-size: 12px; font-weight: 500; color: #40454A;">customer_360</div>
+            <div style="font-size: 10px; color: #989FA5;">dbt model &middot; snowflake.analytics</div>
+          </div>
+          <div class="wf-detail-badge pii" style="font-size: 9px;">PII</div>
+        </div>
+        <!-- Result 2 -->
+        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px;">
+          <div style="width: 20px; height: 20px; border-radius: 4px; background: #B8BCC0; flex-shrink: 0;"></div>
+          <div style="flex: 1;">
+            <div style="font-size: 12px; font-weight: 500; color: #40454A;">customer_orders</div>
+            <div style="font-size: 10px; color: #989FA5;">table &middot; postgres.production</div>
+          </div>
+          <div class="wf-detail-badge pii" style="font-size: 9px;">PII</div>
+        </div>
+        <!-- Result 3 -->
+        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px;">
+          <div style="width: 20px; height: 20px; border-radius: 4px; background: #B8BCC0; flex-shrink: 0;"></div>
+          <div style="flex: 1;">
+            <div style="font-size: 12px; font-weight: 500; color: #40454A;">customer_events</div>
+            <div style="font-size: 10px; color: #989FA5;">table &middot; s3://raw-events</div>
+          </div>
+        </div>
+        <!-- Result 4 -->
+        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px;">
+          <div style="width: 20px; height: 20px; border-radius: 4px; background: #C39DE3; flex-shrink: 0;"></div>
+          <div style="flex: 1;">
+            <div style="font-size: 12px; font-weight: 500; color: #40454A;">customer_segmentation</div>
+            <div style="font-size: 10px; color: #989FA5;">pipeline &middot; airflow.daily_etl</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="font-size: 10px; color: #989FA5; margin-top: 8px; text-align: center;">Type to search &middot; Use arrow keys to navigate &middot; Enter to select</div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ===== WIREFRAME 3: IMPACT ANALYSIS VIEW ===== -->
+<h2>3. Impact Analysis View</h2>
+<p class="desc">When a user selects "View Impact" on a node, the graph highlights all downstream consumers with impact severity indicators. An impact summary panel replaces the detail panel.</p>
+
+<div class="demo-label">Wireframe — Impact analysis for schema change</div>
+<div class="wireframe" style="max-width: 640px;">
+  <div style="padding: 24px;">
+    <!-- Impact header -->
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+      <div style="width: 32px; height: 32px; border-radius: 50%; background: #FFE1DB; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #8F3629; font-weight: 700;">!</div>
+      <div>
+        <div style="font-size: 14px; font-weight: 600; color: #40454A;">Impact Analysis: raw_user_events</div>
+        <div style="font-size: 11px; color: #989FA5;">Schema change would affect the following downstream assets</div>
+      </div>
+    </div>
+
+    <!-- Impact summary cards -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
+      <div style="border: 1px solid #E2E4E6; border-radius: 8px; padding: 12px; text-align: center;">
+        <div style="font-size: 24px; font-weight: 700; color: #40454A;">12</div>
+        <div style="font-size: 10px; color: #989FA5;">Tables</div>
+      </div>
+      <div style="border: 1px solid #E2E4E6; border-radius: 8px; padding: 12px; text-align: center;">
+        <div style="font-size: 24px; font-weight: 700; color: #40454A;">3</div>
+        <div style="font-size: 10px; color: #989FA5;">dbt Models</div>
+      </div>
+      <div style="border: 1px solid #E2E4E6; border-radius: 8px; padding: 12px; text-align: center;">
+        <div style="font-size: 24px; font-weight: 700; color: #CF6253;">5</div>
+        <div style="font-size: 10px; color: #989FA5;">Dashboards</div>
+      </div>
+      <div style="border: 1px solid #E2E4E6; border-radius: 8px; padding: 12px; text-align: center;">
+        <div style="font-size: 24px; font-weight: 700; color: #CF6253;">2</div>
+        <div style="font-size: 10px; color: #989FA5;">Data Shares</div>
+      </div>
+    </div>
+
+    <!-- Affected assets list -->
+    <div style="font-size: 10px; font-weight: 600; color: #989FA5; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 8px;">Affected Assets (by severity)</div>
+    <div style="border: 1px solid #E2E4E6; border-radius: 8px; overflow: hidden;">
+      <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #FFF6F5; border-bottom: 1px solid #E2E4E6;">
+        <span class="wf-node-status red"></span>
+        <div style="flex: 1; font-size: 12px; color: #40454A; font-weight: 500;">partner_data_share</div>
+        <div style="font-size: 10px; color: #CF6253;">Critical &middot; External share</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #FFF6F5; border-bottom: 1px solid #E2E4E6;">
+        <span class="wf-node-status red"></span>
+        <div style="flex: 1; font-size: 12px; color: #40454A; font-weight: 500;">exec_revenue_dashboard</div>
+        <div style="font-size: 10px; color: #CF6253;">Critical &middot; Exec dashboard</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid #E2E4E6;">
+        <span class="wf-node-status yellow"></span>
+        <div style="flex: 1; font-size: 12px; color: #40454A;">customer_360</div>
+        <div style="font-size: 10px; color: #96811A;">Medium &middot; dbt model</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px;">
+        <span class="wf-node-status yellow"></span>
+        <div style="flex: 1; font-size: 12px; color: #40454A;">analytics.user_metrics</div>
+        <div style="font-size: 10px; color: #96811A;">Medium &middot; Table</div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 8px; margin-top: 16px;">
+      <div class="wf-toolbar-btn" style="flex: 1; text-align: center; padding: 8px;">Export Impact Report</div>
+      <div class="wf-toolbar-btn" style="flex: 1; text-align: center; padding: 8px;">Notify Owners</div>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ===== WIREFRAME 4: EMPTY/ONBOARDING STATE ===== -->
+<h2>4. Empty State / Onboarding</h2>
+<p class="desc">When lineage data has not been connected yet, or when the user first visits the page. Guides users to connect data sources.</p>
+
+<div class="demo-label">Wireframe — First-time experience</div>
+<div class="wireframe" style="max-width: 480px;">
+  <div style="padding: 48px 32px; text-align: center;">
+    <div style="width: 64px; height: 64px; border-radius: 16px; background: #F2F3F4; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
+      <div style="width: 32px; height: 2px; background: #CACCCF; position: relative;">
+        <div style="width: 10px; height: 10px; border-radius: 50%; background: #989FA5; position: absolute; left: -14px; top: -4px;"></div>
+        <div style="width: 10px; height: 10px; border-radius: 50%; background: #989FA5; position: absolute; right: -14px; top: -4px;"></div>
+      </div>
+    </div>
+    <div style="font-size: 16px; font-weight: 600; color: #40454A; margin-bottom: 8px;">Visualize your data lineage</div>
+    <div style="font-size: 13px; color: #989FA5; margin-bottom: 24px; max-width: 320px; margin-left: auto; margin-right: auto;">
+      Connect your data sources to see how data flows through your organization, with protection status at every step.
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; max-width: 300px; margin: 0 auto;">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 1px solid #E2E4E6; border-radius: 8px; text-align: left;">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #E2E4E6; flex-shrink: 0;"></div>
+        <div>
+          <div style="font-size: 12px; font-weight: 500; color: #40454A;">Connect a data source</div>
+          <div style="font-size: 10px; color: #989FA5;">Snowflake, PostgreSQL, S3, BigQuery...</div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 1px solid #E2E4E6; border-radius: 8px; text-align: left;">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #E2E4E6; flex-shrink: 0;"></div>
+        <div>
+          <div style="font-size: 12px; font-weight: 500; color: #40454A;">Import from dbt</div>
+          <div style="font-size: 10px; color: #989FA5;">Auto-detect models and dependencies</div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 1px solid #E2E4E6; border-radius: 8px; text-align: left;">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #E2E4E6; flex-shrink: 0;"></div>
+        <div>
+          <div style="font-size: 12px; font-weight: 500; color: #40454A;">Connect an orchestrator</div>
+          <div style="font-size: 10px; color: #989FA5;">Airflow, Dagster, Prefect...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

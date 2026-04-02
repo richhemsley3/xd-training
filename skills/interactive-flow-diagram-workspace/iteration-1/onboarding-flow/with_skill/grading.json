@@ -1,0 +1,54 @@
+{
+  "eval_name": "onboarding-flow",
+  "variant": "with_skill",
+  "pass_rate": 1.0,
+  "passed": 9,
+  "total": 9,
+  "expectations": [
+    {
+      "text": "Uses D3.js from CDN",
+      "passed": true,
+      "evidence": "Found in onboarding-flow.html"
+    },
+    {
+      "text": "Single standalone HTML file",
+      "passed": true,
+      "evidence": "Found in onboarding-flow.html"
+    },
+    {
+      "text": "Nodes are clickable (click handlers)",
+      "passed": true,
+      "evidence": "Found in onboarding-flow.html"
+    },
+    {
+      "text": "Multiple zoom levels (at least 2 distinct views)",
+      "passed": true,
+      "evidence": "Found in onboarding-flow.html"
+    },
+    {
+      "text": "Breadcrumb or back navigation",
+      "passed": true,
+      "evidence": "Found in onboarding-flow.html"
+    },
+    {
+      "text": "Custom styled nodes (not default SVG)",
+      "passed": true,
+      "evidence": "Found in onboarding-flow.html"
+    },
+    {
+      "text": "Smooth transitions between states",
+      "passed": true,
+      "evidence": "Found in onboarding-flow.html"
+    },
+    {
+      "text": "Uses Software DS color tokens",
+      "passed": true,
+      "evidence": "Found in onboarding-flow.html"
+    },
+    {
+      "text": "Three distinct zoom levels",
+      "passed": true,
+      "evidence": "Found in onboarding-flow.html"
+    }
+  ]
+}

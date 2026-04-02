@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Data Lineage Visualization — Customer Journey Map</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #FAF8F5;
+      color: #1C1A17;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── CSS Variables ─── */
+    :root {
+      --bg-canvas: #FAF8F5;
+      --bg-card: #FFFFFF;
+      --bg-header: #F4F1EB;
+      --border-subtle: #EBE6DD;
+      --border-default: #E0DCD3;
+      --border-strong: #D0CBC3;
+      --border-focus: #013D5B;
+      --text-primary: #1C1A17;
+      --text-secondary: #54514D;
+      --text-tertiary: #6B6760;
+      --text-disabled: #B0ABA2;
+      --interactive-primary: #013D5B;
+      --interactive-primary-subtle: #D9EBED;
+      --phase-1: #805AA1;
+      --phase-2: #013D5B;
+      --phase-3: #0C4A69;
+      --phase-4: #7A9A01;
+      --phase-5: #8A7515;
+      --emotion-positive: #7A9A01;
+      --emotion-neutral: #0C4A69;
+      --emotion-negative: #CF6253;
+      --accent-pain: #BF5547;
+      --accent-pain-bg: #FFEEEB;
+      --accent-opportunity: #62800B;
+      --accent-opportunity-bg: #F4FAEB;
+      --accent-need: #8A7515;
+      --accent-need-bg: #FCF9D9;
+      --role-1: #013D5B;
+      --role-2: #4A6E82;
+      --role-3: #5C7A3D;
+      --role-4: #805AA1;
+      --role-5: #CF6253;
+    }
+
+    /* ─── Title Bar ─── */
+    .title-bar {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      padding: 32px 40px 24px; background: var(--bg-canvas);
+    }
+    .title-bar h1 {
+      font-size: 24px; font-weight: 700; color: var(--text-primary); line-height: 1.2;
+    }
+    .title-bar .subtitle {
+      font-size: 13px; color: var(--text-tertiary); margin-top: 4px; font-weight: 400;
+    }
+    .role-legend {
+      display: flex; gap: 24px; align-items: center; padding-top: 6px;
+    }
+    .role-legend-item {
+      display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-tertiary);
+      cursor: pointer; user-select: none; transition: opacity 0.2s;
+    }
+    .role-legend-item .dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+    .role-legend-item.dimmed { opacity: 0.3; }
+
+    /* ─── Grid Container ─── */
+    .journey-grid-wrapper {
+      overflow-x: auto; padding: 0 40px 40px;
+    }
+    .journey-grid {
+      display: grid;
+      grid-template-columns: 140px repeat(14, minmax(180px, 220px));
+      min-width: max-content;
+    }
+
+    /* ─── Row Label Column ─── */
+    .row-label {
+      position: sticky; left: 0; z-index: 3;
+      background: var(--bg-canvas);
+      padding: 12px 16px;
+      font-size: 12px; font-weight: 600; color: var(--text-tertiary);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      display: flex; align-items: center;
+      border-bottom: 1px solid rgba(208, 203, 195, 0.4);
+    }
+    .row-label-sub {
+      display: block; font-size: 9px; color: var(--text-disabled);
+      text-transform: none; letter-spacing: normal; font-weight: 400; margin-top: 2px;
+    }
+
+    /* ─── Phase Header Band ─── */
+    .phase-header {
+      background: var(--bg-header);
+      padding: 0 16px;
+      font-size: 14px; font-weight: 700; color: var(--text-primary);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      display: flex; align-items: center; justify-content: center;
+      height: 44px;
+      border-right: 1px solid var(--border-default);
+    }
+    .phase-header-corner {
+      position: sticky; left: 0; z-index: 4;
+      background: var(--bg-header);
+      height: 44px;
+    }
+
+    /* ─── Step Header ─── */
+    .step-header {
+      background: var(--bg-card);
+      padding: 8px 16px;
+      font-size: 12px; font-weight: 400; color: var(--text-tertiary);
+      text-align: center;
+      height: 36px; display: flex; align-items: center; justify-content: center;
+      border-bottom: 1px solid rgba(208, 203, 195, 0.4);
+    }
+    .step-header-corner {
+      position: sticky; left: 0; z-index: 4;
+      background: var(--bg-card);
+      height: 36px;
+      border-bottom: 1px solid rgba(208, 203, 195, 0.4);
+    }
+
+    /* ─── Content Cells ─── */
+    .cell {
+      padding: 12px 16px;
+      font-size: 12px; color: var(--text-secondary);
+      border-bottom: 1px solid rgba(208, 203, 195, 0.4);
+      border-right: 1px solid rgba(208, 203, 195, 0.15);
+      background: var(--bg-card);
+      min-height: 72px;
+      transition: background 0.12s;
+      line-height: 1.5;
+    }
+    .cell:hover { background: rgba(244, 241, 235, 0.6); }
+    .cell.empty-cell {
+      color: var(--text-disabled); font-style: italic;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ─── Role Badge Pills ─── */
+    .role-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      height: 28px; padding: 0 12px; border-radius: 14px;
+      color: white; font-size: 11px; font-weight: 600;
+      width: 100%; text-align: center;
+      transition: opacity 0.2s;
+    }
+    .role-badge.dimmed { opacity: 0.3; }
+    .role-badge-secondary {
+      display: inline-flex; align-items: center; justify-content: center;
+      height: 22px; padding: 0 10px; border-radius: 11px;
+      color: white; font-size: 10px; font-weight: 500;
+      margin-bottom: 4px;
+      transition: opacity 0.2s;
+    }
+    .role-badge-secondary.dimmed { opacity: 0.3; }
+    .cell.role-cell {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 52px; gap: 4px;
+    }
+
+    /* ─── Pain / Opportunity / Need ─── */
+    .pain-text { color: var(--accent-pain); }
+    .opp-text { color: var(--accent-opportunity); }
+    .need-text { color: var(--accent-need); }
+    .role-dot {
+      display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+      margin-right: 4px; vertical-align: middle;
+    }
+
+    /* ─── Emotion Row ─── */
+    .emotion-row-container {
+      position: relative; min-height: 150px;
+      border-bottom: 1px solid rgba(208, 203, 195, 0.4);
+      background: var(--bg-card);
+      overflow: visible;
+    }
+    #emotion-svg { overflow: visible; position: relative; z-index: 1; }
+
+    /* ─── Tooltip ─── */
+    .tooltip {
+      position: fixed; z-index: 100;
+      background: white; border: 1px solid var(--border-default);
+      border-radius: 8px; padding: 10px 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      font-size: 12px; color: var(--text-secondary);
+      pointer-events: none; opacity: 0; transition: opacity 0.15s;
+      max-width: 240px;
+    }
+    .tooltip.visible { opacity: 1; }
+    .tooltip strong { color: var(--text-primary); display: block; margin-bottom: 2px; }
+
+    /* ─── Support Bar ─── */
+    .support-bar {
+      height: 8px; border-radius: 4px; width: 100%;
+    }
+    .support-label {
+      font-size: 10px; color: var(--text-tertiary); margin-top: 4px; text-align: center;
+    }
+
+    /* ─── Print ─── */
+    @media print {
+      .journey-grid-wrapper { overflow: visible; }
+      .journey-grid { min-width: auto; }
+      body { background: white; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="title-bar">
+    <div>
+      <h1>Data Lineage Visualization &mdash; Customer Journey</h1>
+      <div class="subtitle">Diana (Data Governance Lead) &bull; Primary goal: Trace sensitive data flows and prove compliance</div>
+    </div>
+    <div class="role-legend" id="role-legend"></div>
+  </div>
+
+  <div class="journey-grid-wrapper">
+    <div class="journey-grid" id="journey-grid"></div>
+  </div>
+
+  <div class="emotion-row-container" id="emotion-row" style="margin: 0 40px; border-radius: 0 0 8px 8px;">
+    <svg id="emotion-svg"></svg>
+  </div>
+
+  <div class="tooltip" id="tooltip"></div>
+
+  <script>
+    const journeyData = {
+      title: "Data Lineage Visualization — Customer Journey",
+      persona: {
+        name: "Diana",
+        role: "Data Governance Lead",
+        goal: "Trace sensitive data flows and prove compliance across the data estate"
+      },
+      roles: [
+        { name: "Governance Lead", abbrev: "Gov", color: "#013D5B" },
+        { name: "Data Engineer", abbrev: "Eng", color: "#4A6E82" },
+        { name: "CISO / Security", abbrev: "Sec", color: "#5C7A3D" },
+        { name: "Compliance Officer", abbrev: "Comp", color: "#805AA1" },
+        { name: "Business Analyst", abbrev: "BA", color: "#CF6253" }
+      ],
+      phases: [
+        {
+          id: "awareness",
+          label: "Awareness",
+          color: "#805AA1",
+          steps: [
+            {
+              id: "s1", label: "Recognize lineage need",
+              primaryUser: { name: "Governance Lead", color: "#013D5B" },
+              secondaryUsers: [{ name: "CISO / Security", color: "#5C7A3D" }],
+              emotion: { score: 0.3, label: "Frustrated", annotation: "Realizes sensitive data flows are undocumented after a compliance gap is found" },
+              needs: { "Governance Lead": "Understand where sensitive data actually flows", "CISO / Security": "Visibility into data exposure risk" },
+              painPoints: { "Governance Lead": ["No visibility into data flows across systems"], "CISO / Security": ["Cannot assess data exposure without manual investigation"] },
+              opportunities: { "Governance Lead": ["Automated lineage discovery from existing connections"] },
+              touchpoints: ["Internal audit report", "Compliance meeting"],
+              supportReliance: "heavy"
+            },
+            {
+              id: "s2", label: "Evaluate market options",
+              primaryUser: { name: "Governance Lead", color: "#013D5B" },
+              secondaryUsers: [{ name: "Data Engineer", color: "#4A6E82" }],
+              emotion: { score: 0.35, label: "Overwhelmed", annotation: "Too many tools, unclear how they differ from general lineage" },
+              needs: { "Governance Lead": "Understand which tools solve the security + lineage problem", "Data Engineer": "Technical assessment of integration feasibility" },
+              painPoints: { "Governance Lead": ["Existing tools focus on general lineage, not security-aware lineage"], "Data Engineer": ["Unclear integration requirements with existing stack"] },
+              opportunities: { "Governance Lead": ["Position as security-first lineage — fewer direct competitors"] },
+              touchpoints: ["Vendor websites", "Gartner reports", "Peer reviews (G2)"],
+              supportReliance: "medium"
+            },
+            {
+              id: "s3", label: "Build internal case",
+              primaryUser: { name: "Governance Lead", color: "#013D5B" },
+              secondaryUsers: [{ name: "CISO / Security", color: "#5C7A3D" }, { name: "Compliance Officer", color: "#805AA1" }],
+              emotion: { score: 0.4, label: "Cautious", annotation: "Needs to justify cost and effort to leadership" },
+              needs: { "Governance Lead": "ROI data and compliance risk reduction metrics" },
+              painPoints: { "Governance Lead": ["Hard to quantify the cost of NOT having lineage"] },
+              opportunities: { "Governance Lead": ["Provide ROI calculator and compliance risk scoring"] },
+              touchpoints: ["Budget proposal", "Executive presentation"],
+              supportReliance: "light"
+            }
+          ]
+        },
+        {
+          id: "onboarding",
+          label: "Onboarding",
+          color: "#013D5B",
+          steps: [
+            {
+              id: "s4", label: "Connect data sources",
+              primaryUser: { name: "Data Engineer", color: "#4A6E82" },
+              secondaryUsers: [{ name: "Governance Lead", color: "#013D5B" }],
+              emotion: { score: 0.5, label: "Hopeful", annotation: "Initial setup begins — connecting existing data sources" },
+              needs: { "Data Engineer": "Simple connector setup with existing infrastructure", "Governance Lead": "See progress of source connections" },
+              painPoints: { "Data Engineer": ["Complex connector configurations for hybrid environments"], "Governance Lead": ["No visibility into setup progress"] },
+              opportunities: { "Data Engineer": ["One-click connectors for common sources (Snowflake, dbt, AWS)"], "Governance Lead": ["Setup progress dashboard"] },
+              touchpoints: ["Product UI — connections page", "Documentation"],
+              supportReliance: "heavy"
+            },
+            {
+              id: "s5", label: "Initial lineage scan",
+              primaryUser: { name: "Data Engineer", color: "#4A6E82" },
+              secondaryUsers: [],
+              emotion: { score: 0.6, label: "Encouraged", annotation: "First lineage graph appears — data flows become visible" },
+              needs: { "Data Engineer": "Accurate automated lineage discovery" },
+              painPoints: { "Data Engineer": ["Incomplete lineage from complex ETL/ELT transformations"] },
+              opportunities: { "Data Engineer": ["Show confidence scores on lineage edges"] },
+              touchpoints: ["Product UI — lineage graph"],
+              supportReliance: "medium"
+            },
+            {
+              id: "s6", label: "Map security policies",
+              primaryUser: { name: "Governance Lead", color: "#013D5B" },
+              secondaryUsers: [{ name: "CISO / Security", color: "#5C7A3D" }],
+              emotion: { score: 0.55, label: "Engaged", annotation: "Security classifications begin to overlay on lineage graph" },
+              needs: { "Governance Lead": "See which data assets are classified and protected", "CISO / Security": "Identify unprotected sensitive data in the lineage" },
+              painPoints: { "Governance Lead": ["Manual effort to tag data classifications"], "CISO / Security": ["Unclear which policies apply to which data flows"] },
+              opportunities: { "Governance Lead": ["Auto-inherit classifications from existing security product"], "CISO / Security": ["Visual gap analysis — highlight unprotected sensitive data"] },
+              touchpoints: ["Product UI — policy overlay", "Security policy settings"],
+              supportReliance: "medium"
+            }
+          ]
+        },
+        {
+          id: "daily-use",
+          label: "Daily Use",
+          color: "#0C4A69",
+          steps: [
+            {
+              id: "s7", label: "Explore lineage graph",
+              primaryUser: { name: "Governance Lead", color: "#013D5B" },
+              secondaryUsers: [{ name: "Data Engineer", color: "#4A6E82" }, { name: "Business Analyst", color: "#CF6253" }],
+              emotion: { score: 0.7, label: "Confident", annotation: "Can now trace any sensitive data flow visually" },
+              needs: { "Governance Lead": "Fast, intuitive graph navigation", "Data Engineer": "Column-level drill-down", "Business Analyst": "Simple business-level view" },
+              painPoints: { "Governance Lead": ["Large graphs become hard to navigate"], "Data Engineer": ["Need to switch between table and column views frequently"] },
+              opportunities: { "Governance Lead": ["Search-first navigation with smart filtering"], "Data Engineer": ["Smooth zoom between abstraction levels"] },
+              touchpoints: ["Product UI — lineage explorer"],
+              supportReliance: "light"
+            },
+            {
+              id: "s8", label: "Impact analysis",
+              primaryUser: { name: "Data Engineer", color: "#4A6E82" },
+              secondaryUsers: [{ name: "Governance Lead", color: "#013D5B" }],
+              emotion: { score: 0.75, label: "Empowered", annotation: "Can assess downstream impact before making changes" },
+              needs: { "Data Engineer": "See all downstream consumers of a data asset before changing it", "Governance Lead": "Know if a change affects compliance-critical data" },
+              painPoints: { "Data Engineer": ["Cannot predict which reports break from a schema change"] },
+              opportunities: { "Data Engineer": ["Automated impact scoring with security severity"] },
+              touchpoints: ["Product UI — impact analysis view"],
+              supportReliance: "light"
+            },
+            {
+              id: "s9", label: "Investigate incidents",
+              primaryUser: { name: "CISO / Security", color: "#5C7A3D" },
+              secondaryUsers: [{ name: "Data Engineer", color: "#4A6E82" }, { name: "Governance Lead", color: "#013D5B" }],
+              emotion: { score: 0.45, label: "Stressed", annotation: "Under time pressure during a security incident" },
+              needs: { "CISO / Security": "Rapid path tracing from breached asset to all affected systems", "Data Engineer": "Technical root cause analysis" },
+              painPoints: { "CISO / Security": ["Manual investigation across multiple tools takes days"], "Data Engineer": ["No quick way to find all downstream consumers of compromised data"] },
+              opportunities: { "CISO / Security": ["One-click breach blast radius visualization"], "Data Engineer": ["Automated affected-asset inventory"] },
+              touchpoints: ["Product UI — incident investigation", "SIEM integration"],
+              supportReliance: "heavy"
+            }
+          ]
+        },
+        {
+          id: "compliance",
+          label: "Compliance & Reporting",
+          color: "#7A9A01",
+          steps: [
+            {
+              id: "s10", label: "Generate audit reports",
+              primaryUser: { name: "Compliance Officer", color: "#805AA1" },
+              secondaryUsers: [{ name: "Governance Lead", color: "#013D5B" }],
+              emotion: { score: 0.65, label: "Relieved", annotation: "Automated report generation replaces weeks of manual work" },
+              needs: { "Compliance Officer": "Audit-ready reports showing data flow + protection status", "Governance Lead": "Shareable compliance evidence" },
+              painPoints: { "Compliance Officer": ["Audit preparation currently takes weeks"], "Governance Lead": ["Manual screenshot-based documentation"] },
+              opportunities: { "Compliance Officer": ["One-click audit report generation"], "Governance Lead": ["Exportable, versioned compliance snapshots"] },
+              touchpoints: ["Product UI — reports", "PDF/Excel exports"],
+              supportReliance: "light"
+            },
+            {
+              id: "s11", label: "Present to leadership",
+              primaryUser: { name: "CISO / Security", color: "#5C7A3D" },
+              secondaryUsers: [{ name: "Compliance Officer", color: "#805AA1" }],
+              emotion: { score: 0.7, label: "Confident", annotation: "Can demonstrate data security posture with visual evidence" },
+              needs: { "CISO / Security": "Executive dashboard with risk scoring", "Compliance Officer": "Visual compliance status for board presentations" },
+              painPoints: { "CISO / Security": ["No visual way to communicate data security posture to non-technical executives"] },
+              opportunities: { "CISO / Security": ["Executive lineage dashboard with traffic-light risk indicators"] },
+              touchpoints: ["Executive dashboard", "Board presentation"],
+              supportReliance: "light"
+            }
+          ]
+        },
+        {
+          id: "optimization",
+          label: "Optimization",
+          color: "#8A7515",
+          steps: [
+            {
+              id: "s12", label: "Refine policies",
+              primaryUser: { name: "Governance Lead", color: "#013D5B" },
+              secondaryUsers: [{ name: "CISO / Security", color: "#5C7A3D" }],
+              emotion: { score: 0.8, label: "Proactive", annotation: "Using lineage insights to improve security policies" },
+              needs: { "Governance Lead": "Identify over-protected and under-protected data flows" },
+              painPoints: { "Governance Lead": ["Policies applied too broadly or too narrowly without data flow context"] },
+              opportunities: { "Governance Lead": ["Policy recommendation engine based on lineage patterns"] },
+              touchpoints: ["Product UI — policy management", "Lineage analytics"],
+              supportReliance: "light"
+            },
+            {
+              id: "s13", label: "Expand coverage",
+              primaryUser: { name: "Data Engineer", color: "#4A6E82" },
+              secondaryUsers: [{ name: "Governance Lead", color: "#013D5B" }],
+              emotion: { score: 0.75, label: "Motivated", annotation: "Adding more data sources to expand lineage coverage" },
+              needs: { "Data Engineer": "Easy addition of new data sources and pipelines" },
+              painPoints: { "Data Engineer": ["Adding new sources requires re-scanning entire lineage"] },
+              opportunities: { "Data Engineer": ["Incremental lineage updates for new sources"] },
+              touchpoints: ["Product UI — connections", "API integrations"],
+              supportReliance: "light"
+            },
+            {
+              id: "s14", label: "Advocate internally",
+              primaryUser: { name: "Governance Lead", color: "#013D5B" },
+              secondaryUsers: [{ name: "Business Analyst", color: "#CF6253" }],
+              emotion: { score: 0.85, label: "Satisfied", annotation: "Proven value drives internal advocacy and expansion" },
+              needs: { "Governance Lead": "Usage metrics and value reports to justify continued investment" },
+              painPoints: { "Governance Lead": ["Hard to quantify ongoing value beyond initial compliance win"] },
+              opportunities: { "Governance Lead": ["Value dashboard showing time saved, risks prevented, coverage growth"] },
+              touchpoints: ["Product UI — analytics", "Internal presentations"],
+              supportReliance: "light"
+            }
+          ]
+        }
+      ]
+    };
+
+    // ─── Build Role Legend ───
+    const legendContainer = document.getElementById('role-legend');
+    let activeRole = null;
+
+    journeyData.roles.forEach(role => {
+      const item = document.createElement('div');
+      item.className = 'role-legend-item';
+      item.dataset.role = role.name;
+      item.innerHTML = `<span class="dot" style="background:${role.color}"></span>${role.abbrev}`;
+      item.addEventListener('click', () => toggleRoleFilter(role.name));
+      legendContainer.appendChild(item);
+    });
+
+    function toggleRoleFilter(roleName) {
+      if (activeRole === roleName) {
+        activeRole = null;
+      } else {
+        activeRole = roleName;
+      }
+      applyRoleFilter();
+    }
+
+    function applyRoleFilter() {
+      // Legend
+      document.querySelectorAll('.role-legend-item').forEach(el => {
+        el.classList.toggle('dimmed', activeRole && el.dataset.role !== activeRole);
+      });
+      // Role badges
+      document.querySelectorAll('[data-role-badge]').forEach(el => {
+        el.classList.toggle('dimmed', activeRole && el.dataset.roleBadge !== activeRole);
+      });
+      // Per-role content
+      document.querySelectorAll('[data-role-content]').forEach(el => {
+        if (!activeRole) {
+          el.style.display = '';
+        } else {
+          el.style.display = el.dataset.roleContent === activeRole ? '' : 'none';
+        }
+      });
+    }
+
+    // ─── Build Grid ───
+    const grid = document.getElementById('journey-grid');
+    const allSteps = journeyData.phases.flatMap(p => p.steps);
+    const totalCols = allSteps.length;
+
+    // Phase header row
+    const phaseCorner = document.createElement('div');
+    phaseCorner.className = 'phase-header-corner';
+    grid.appendChild(phaseCorner);
+
+    journeyData.phases.forEach(phase => {
+      const header = document.createElement('div');
+      header.className = 'phase-header';
+      header.style.gridColumn = `span ${phase.steps.length}`;
+      header.textContent = phase.label;
+      grid.appendChild(header);
+    });
+
+    // Step header row
+    const stepCorner = document.createElement('div');
+    stepCorner.className = 'step-header-corner';
+    grid.appendChild(stepCorner);
+
+    allSteps.forEach(step => {
+      const header = document.createElement('div');
+      header.className = 'step-header';
+      header.textContent = step.label;
+      grid.appendChild(header);
+    });
+
+    // Helper: add a row
+    function addRow(label, sublabel, renderCell) {
+      const rowLabel = document.createElement('div');
+      rowLabel.className = 'row-label';
+      rowLabel.innerHTML = label + (sublabel ? `<span class="row-label-sub">${sublabel}</span>` : '');
+      grid.appendChild(rowLabel);
+
+      allSteps.forEach((step, i) => {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        renderCell(cell, step, i);
+        grid.appendChild(cell);
+      });
+    }
+
+    // Primary User row
+    addRow('Primary User', '', (cell, step) => {
+      cell.className = 'cell role-cell';
+      if (step.primaryUser) {
+        const badge = document.createElement('div');
+        badge.className = 'role-badge';
+        badge.style.background = step.primaryUser.color;
+        badge.textContent = step.primaryUser.name;
+        badge.dataset.roleBadge = step.primaryUser.name;
+        badge.addEventListener('click', () => toggleRoleFilter(step.primaryUser.name));
+        badge.style.cursor = 'pointer';
+        cell.appendChild(badge);
+      }
+    });
+
+    // Secondary Users row
+    addRow('Secondary Users', '', (cell, step) => {
+      cell.className = 'cell role-cell';
+      if (step.secondaryUsers && step.secondaryUsers.length > 0) {
+        step.secondaryUsers.forEach(u => {
+          const badge = document.createElement('div');
+          badge.className = 'role-badge-secondary';
+          badge.style.background = u.color;
+          badge.textContent = u.name;
+          badge.dataset.roleBadge = u.name;
+          badge.addEventListener('click', () => toggleRoleFilter(u.name));
+          badge.style.cursor = 'pointer';
+          cell.appendChild(badge);
+        });
+      } else {
+        cell.className = 'cell empty-cell';
+        cell.textContent = '—';
+      }
+    });
+
+    // Critical Unmet Needs row
+    addRow('Critical Unmet<br>Needs', '', (cell, step) => {
+      if (step.needs && typeof step.needs === 'object') {
+        Object.entries(step.needs).forEach(([role, text]) => {
+          const div = document.createElement('div');
+          div.dataset.roleContent = role;
+          const roleObj = journeyData.roles.find(r => r.name === role);
+          const dotColor = roleObj ? roleObj.color : '#999';
+          div.innerHTML = `<span class="role-dot" style="background:${dotColor}"></span><span class="need-text">${text}</span>`;
+          div.style.marginBottom = '4px';
+          cell.appendChild(div);
+        });
+      } else {
+        cell.className = 'cell empty-cell';
+        cell.textContent = '—';
+      }
+    });
+
+    // Touchpoints row
+    addRow('Touchpoints', '', (cell, step) => {
+      if (step.touchpoints && step.touchpoints.length > 0) {
+        cell.innerHTML = step.touchpoints.map(t => `<div style="margin-bottom:2px;">${t}</div>`).join('');
+      } else {
+        cell.className = 'cell empty-cell';
+        cell.textContent = '—';
+      }
+    });
+
+    // Pain Points row
+    addRow('Pain Points', '', (cell, step) => {
+      if (step.painPoints && typeof step.painPoints === 'object') {
+        Object.entries(step.painPoints).forEach(([role, points]) => {
+          points.forEach(point => {
+            const div = document.createElement('div');
+            div.dataset.roleContent = role;
+            const roleObj = journeyData.roles.find(r => r.name === role);
+            const dotColor = roleObj ? roleObj.color : '#999';
+            div.innerHTML = `<span class="role-dot" style="background:${dotColor}"></span><span class="pain-text">${point}</span>`;
+            div.style.marginBottom = '4px';
+            cell.appendChild(div);
+          });
+        });
+      } else {
+        cell.className = 'cell empty-cell';
+        cell.textContent = '—';
+      }
+    });
+
+    // Opportunities row
+    addRow('Opportunities', '', (cell, step) => {
+      if (step.opportunities && typeof step.opportunities === 'object') {
+        Object.entries(step.opportunities).forEach(([role, opps]) => {
+          opps.forEach(opp => {
+            const div = document.createElement('div');
+            div.dataset.roleContent = role;
+            const roleObj = journeyData.roles.find(r => r.name === role);
+            const dotColor = roleObj ? roleObj.color : '#999';
+            div.innerHTML = `<span class="role-dot" style="background:${dotColor}"></span><span class="opp-text">${opp}</span>`;
+            div.style.marginBottom = '4px';
+            cell.appendChild(div);
+          });
+        });
+      } else {
+        cell.className = 'cell empty-cell';
+        cell.textContent = '—';
+      }
+    });
+
+    // Reliance on Support row
+    addRow('Reliance on<br>Support', '', (cell, step) => {
+      const level = step.supportReliance || 'light';
+      const colors = { heavy: '#1C1A17', medium: '#54514D', light: '#B0ABA2' };
+      const widths = { heavy: '100%', medium: '60%', light: '30%' };
+      cell.innerHTML = `
+        <div style="background: #F4F1EB; border-radius: 4px; height: 8px; width: 100%; overflow: hidden;">
+          <div class="support-bar" style="background: ${colors[level]}; width: ${widths[level]};"></div>
+        </div>
+        <div class="support-label">${level.charAt(0).toUpperCase() + level.slice(1)}</div>
+      `;
+    });
+
+    // ─── Emotion Curve (D3) ───
+    requestAnimationFrame(() => {
+      const emotionContainer = document.getElementById('emotion-row');
+      const gridEl = document.getElementById('journey-grid');
+      const totalContentWidth = gridEl.scrollWidth - 140; // subtract row label width
+
+      const svg = d3.select('#emotion-svg')
+        .attr('width', totalContentWidth)
+        .attr('height', 150)
+        .style('overflow', 'visible')
+        .style('position', 'relative')
+        .style('z-index', '1')
+        .style('margin-left', '140px');
+
+      const margin = { top: 15, bottom: 15 };
+      const chartHeight = 150 - margin.top - margin.bottom;
+      const colWidth = totalContentWidth / allSteps.length;
+
+      const xScale = d3.scaleLinear()
+        .domain([0, allSteps.length - 1])
+        .range([colWidth / 2, totalContentWidth - colWidth / 2]);
+
+      const yScale = d3.scaleLinear()
+        .domain([0, 1])
+        .range([chartHeight + margin.top, margin.top]);
+
+      // Background bands
+      svg.append('rect').attr('x', 0).attr('y', yScale(1)).attr('width', totalContentWidth)
+        .attr('height', yScale(0.6) - yScale(1)).attr('fill', 'rgba(122,154,1,0.04)');
+      svg.append('rect').attr('x', 0).attr('y', yScale(0.6)).attr('width', totalContentWidth)
+        .attr('height', yScale(0.3) - yScale(0.6)).attr('fill', 'rgba(12,74,105,0.04)');
+      svg.append('rect').attr('x', 0).attr('y', yScale(0.3)).attr('width', totalContentWidth)
+        .attr('height', yScale(0) - yScale(0.3)).attr('fill', 'rgba(207,98,83,0.04)');
+
+      // Line
+      const line = d3.line()
+        .x((d, i) => xScale(i))
+        .y(d => yScale(d.emotion.score))
+        .curve(d3.curveMonotoneX);
+
+      svg.append('path')
+        .datum(allSteps)
+        .attr('d', line)
+        .attr('fill', 'none')
+        .attr('stroke', '#0C4A69')
+        .attr('stroke-width', 2.5)
+        .attr('stroke-linecap', 'round');
+
+      // Data points
+      const tooltip = document.getElementById('tooltip');
+      svg.selectAll('.emotion-dot')
+        .data(allSteps)
+        .join('circle')
+        .attr('cx', (d, i) => xScale(i))
+        .attr('cy', d => yScale(d.emotion.score))
+        .attr('r', 5)
+        .attr('fill', d => d.emotion.score > 0.6 ? '#7A9A01' : d.emotion.score > 0.3 ? '#0C4A69' : '#CF6253')
+        .style('cursor', 'pointer')
+        .on('mouseenter', (event, d) => {
+          tooltip.innerHTML = `<strong>${d.label}</strong>${d.emotion.label} (${(d.emotion.score * 100).toFixed(0)}%)<br>${d.emotion.annotation}`;
+          tooltip.classList.add('visible');
+        })
+        .on('mousemove', (event) => {
+          tooltip.style.left = (event.clientX + 12) + 'px';
+          tooltip.style.top = (event.clientY - 10) + 'px';
+        })
+        .on('mouseleave', () => {
+          tooltip.classList.remove('visible');
+        });
+
+      // Emoji markers
+      svg.selectAll('.emotion-emoji')
+        .data(allSteps)
+        .join('text')
+        .attr('x', (d, i) => xScale(i))
+        .attr('y', d => yScale(d.emotion.score) - 12)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '14px')
+        .text(d => d.emotion.score > 0.6 ? '\u{1F60A}' : d.emotion.score > 0.3 ? '\u{1F610}' : '\u{1F61E}');
+    });
+  </script>
+</body>
+</html>

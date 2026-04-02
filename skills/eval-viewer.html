@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eval Review Viewer</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0F0F0F;
+    color: #E0E0E0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.5;
+  }
+
+  /* ── Top Navigation ── */
+  .top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #161616;
+    border-bottom: 1px solid #2A2A2A;
+  }
+  .top-bar-inner {
+    max-width: 1600px;
+    margin: 0 auto;
+    display: flex;
+    align-items: stretch;
+  }
+  .logo {
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #888;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-right: 1px solid #2A2A2A;
+    white-space: nowrap;
+  }
+  .logo svg { flex-shrink: 0; }
+
+  .tab-list {
+    display: flex;
+    flex: 1;
+    overflow-x: auto;
+  }
+  .tab {
+    position: relative;
+    padding: 16px 28px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: #888;
+    font-size: 14px;
+    font-family: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: color 0.15s, background 0.15s;
+    white-space: nowrap;
+    border-right: 1px solid #1E1E1E;
+  }
+  .tab:hover { color: #CCC; background: #1A1A1A; }
+  .tab.active { color: #FFF; background: #1A1A1A; }
+  .tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: #6366F1;
+  }
+  .tab-name { font-weight: 600; }
+  .tab-scores {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .score-with { color: #4ADE80; }
+  .score-without { color: #FB923C; }
+
+  /* ── Main Content ── */
+  .main {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  .skill-panel { display: none; }
+  .skill-panel.active { display: block; }
+
+  .skill-header {
+    margin-bottom: 32px;
+  }
+  .skill-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #FFF;
+    margin-bottom: 4px;
+  }
+  .skill-subtitle {
+    font-size: 14px;
+    color: #666;
+  }
+
+  /* ── Eval Card ── */
+  .eval-card {
+    background: #161616;
+    border: 1px solid #2A2A2A;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .eval-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .eval-header:hover { background: #1A1A1A; }
+  .eval-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #FFF;
+    flex: 1;
+  }
+  .eval-badges {
+    display: flex;
+    gap: 8px;
+  }
+  .badge {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+  .badge-with {
+    background: rgba(74, 222, 128, 0.12);
+    color: #4ADE80;
+  }
+  .badge-without {
+    background: rgba(251, 146, 60, 0.12);
+    color: #FB923C;
+  }
+  .chevron {
+    color: #555;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .eval-card.open .chevron { transform: rotate(180deg); }
+
+  .eval-prompt {
+    display: none;
+    padding: 0 20px 16px;
+    font-size: 13px;
+    color: #999;
+    border-bottom: 1px solid #222;
+  }
+  .eval-card.open .eval-prompt { display: block; }
+  .prompt-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #555;
+    margin-bottom: 4px;
+  }
+
+  /* ── Side-by-side ── */
+  .eval-body {
+    display: none;
+    padding: 20px;
+  }
+  .eval-card.open .eval-body { display: block; }
+
+  .comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .config-col {}
+  .config-label {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .config-label.with { color: #4ADE80; }
+  .config-label.without { color: #FB923C; }
+
+  .iframe-wrap {
+    border: 1px solid #2A2A2A;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #111;
+  }
+  .iframe-wrap iframe {
+    width: 100%;
+    height: 600px;
+    border: none;
+    display: block;
+  }
+
+  /* ── Grading Results ── */
+  .grading {
+    margin-top: 12px;
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 12px 16px;
+  }
+  .grading-header {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #555;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .grading-pass-rate {
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .grading-pass-rate.high { color: #4ADE80; }
+  .grading-pass-rate.mid { color: #FACC15; }
+  .grading-pass-rate.low { color: #F87171; }
+
+  .assertion {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 5px 0;
+    font-size: 13px;
+    border-top: 1px solid #1A1A1A;
+  }
+  .assertion:first-of-type { border-top: none; }
+  .assertion-icon {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    margin-top: 1px;
+  }
+  .assertion-icon.pass { color: #4ADE80; }
+  .assertion-icon.fail { color: #F87171; }
+  .assertion-text { color: #BBB; }
+  .assertion-text.fail { color: #999; }
+
+  .grading-loading {
+    font-size: 13px;
+    color: #555;
+    padding: 8px 0;
+  }
+  .grading-error {
+    font-size: 13px;
+    color: #F87171;
+    padding: 8px 0;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 1100px) {
+    .comparison {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+
+<nav class="top-bar">
+  <div class="top-bar-inner">
+    <div class="logo">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect width="16" height="16" rx="3" fill="#6366F1"/><path d="M4 8h8M8 4v8" stroke="#FFF" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Eval Viewer
+    </div>
+    <div class="tab-list" id="tabList"></div>
+  </div>
+</nav>
+
+<main class="main" id="main"></main>
+
+<script>
+const BASE = 'http://localhost:8095';
+
+const SKILLS = [
+  {
+    id: 'interactive-flow-diagram',
+    name: 'Interactive Flow Diagram',
+    iteration: 'Iteration 4 (SDS Light)',
+    workspace: 'interactive-flow-diagram-workspace/iteration-4',
+    benchmarkWith: '--',
+    benchmarkWithout: '--',
+    evals: [
+      {
+        name: 'onboarding-flow',
+        outputWith: 'onboarding-flow.html',
+        outputWithout: 'onboarding-flow.html'
+      },
+      {
+        name: 'checkout-flow',
+        outputWith: 'checkout-flow.html',
+        outputWithout: 'checkout-flow.html'
+      },
+      {
+        name: 'mermaid-conversion',
+        outputWith: 'product-search-flow.html',
+        outputWithout: 'flow-diagram.html'
+      }
+    ]
+  },
+  {
+    id: 'journey-map',
+    name: 'Journey Map',
+    iteration: 'Iteration 2 (SDS Light)',
+    workspace: 'journey-map-workspace/iteration-2',
+    benchmarkWith: '--',
+    benchmarkWithout: '--',
+    evals: [
+      {
+        name: 'saas-onboarding',
+        outputWith: 'journey-map.html',
+        outputWithout: 'journey-map.html'
+      },
+      {
+        name: 'ecommerce-journey',
+        outputWith: 'journey-map.html',
+        outputWithout: 'journey-map.html'
+      },
+      {
+        name: 'structured-data',
+        outputWith: 'journey-map.html',
+        outputWithout: 'journey-map.html'
+      }
+    ]
+  },
+  {
+    id: 'screen-flow-diagram',
+    name: 'Screen Flow Diagram',
+    iteration: 'Iteration 2 (SDS Light)',
+    workspace: 'screen-flow-diagram-workspace/iteration-2',
+    benchmarkWith: '--',
+    benchmarkWithout: '--',
+    evals: [
+      {
+        name: 'food-delivery-flow',
+        outputWith: 'screen-flow.html',
+        outputWithout: 'screen-flow.html'
+      },
+      {
+        name: 'login-signup-flow',
+        outputWith: 'screen-flow.html',
+        outputWithout: 'screen-flow.html'
+      },
+      {
+        name: 'desktop-settings-flow',
+        outputWith: 'screen-flow.html',
+        outputWithout: 'screen-flow.html'
+      }
+    ]
+  }
+];
+
+// ── Build Tabs ──
+const tabList = document.getElementById('tabList');
+const main = document.getElementById('main');
+let activeSkill = 0;
+
+SKILLS.forEach((skill, i) => {
+  // Tab button
+  const btn = document.createElement('button');
+  btn.className = 'tab' + (i === 0 ? ' active' : '');
+  btn.innerHTML = `
+    <span class="tab-name">${skill.name}</span>
+    <span class="tab-scores">
+      <span class="score-with">${skill.benchmarkWith}</span>
+      <span style="color:#444">vs</span>
+      <span class="score-without">${skill.benchmarkWithout}</span>
+    </span>
+  `;
+  btn.addEventListener('click', () => switchSkill(i));
+  tabList.appendChild(btn);
+
+  // Panel
+  const panel = document.createElement('div');
+  panel.className = 'skill-panel' + (i === 0 ? ' active' : '');
+  panel.id = `panel-${i}`;
+  panel.innerHTML = `
+    <div class="skill-header">
+      <div class="skill-title">${skill.name}</div>
+      <div class="skill-subtitle">${skill.iteration} &middot; ${skill.evals.length} eval cases &middot; Benchmark: <span class="score-with">${skill.benchmarkWith}</span> with skill vs <span class="score-without">${skill.benchmarkWithout}</span> without</div>
+    </div>
+  `;
+
+  skill.evals.forEach(ev => {
+    const card = buildEvalCard(skill, ev);
+    panel.appendChild(card);
+  });
+
+  main.appendChild(panel);
+});
+
+function switchSkill(index) {
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === index));
+  document.querySelectorAll('.skill-panel').forEach((p, i) => p.classList.toggle('active', i === index));
+  activeSkill = index;
+}
+
+function buildEvalCard(skill, ev) {
+  const card = document.createElement('div');
+  card.className = 'eval-card';
+
+  const withUrl = `${BASE}/${skill.workspace}/${ev.name}/with_skill/outputs/${ev.outputWith}`;
+  const withoutUrl = `${BASE}/${skill.workspace}/${ev.name}/without_skill/outputs/${ev.outputWithout}`;
+  const gradingWithUrl = `${BASE}/${skill.workspace}/${ev.name}/with_skill/grading.json`;
+  const gradingWithoutUrl = `${BASE}/${skill.workspace}/${ev.name}/without_skill/grading.json`;
+  const metadataUrl = `${BASE}/${skill.workspace}/${ev.name}/eval_metadata.json`;
+
+  const displayName = ev.name.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+  card.innerHTML = `
+    <div class="eval-header" onclick="this.parentElement.classList.toggle('open'); this.parentElement.querySelector('.eval-body') && loadEvalData(this.parentElement)">
+      <div class="eval-name">${displayName}</div>
+      <div class="eval-badges">
+        <span class="badge badge-with" id="badge-w-${ev.name}">--</span>
+        <span class="badge badge-without" id="badge-wo-${ev.name}">--</span>
+      </div>
+      <svg class="chevron" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="eval-prompt">
+      <div class="prompt-label">Prompt</div>
+      <div class="prompt-text" id="prompt-${ev.name}">Loading...</div>
+    </div>
+    <div class="eval-body">
+      <div class="comparison">
+        <div class="config-col">
+          <div class="config-label with">&#9679; With Skill</div>
+          <div class="iframe-wrap">
+            <iframe data-src="${withUrl}" loading="lazy"></iframe>
+          </div>
+          <div class="grading" id="grading-with-${ev.name}">
+            <div class="grading-loading">Loading grading results...</div>
+          </div>
+        </div>
+        <div class="config-col">
+          <div class="config-label without">&#9679; Without Skill</div>
+          <div class="iframe-wrap">
+            <iframe data-src="${withoutUrl}" loading="lazy"></iframe>
+          </div>
+          <div class="grading" id="grading-without-${ev.name}">
+            <div class="grading-loading">Loading grading results...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Store URLs on the card for lazy loading
+  card.dataset.loaded = 'false';
+  card.dataset.gradingWith = gradingWithUrl;
+  card.dataset.gradingWithout = gradingWithoutUrl;
+  card.dataset.metadata = metadataUrl;
+  card.dataset.evalName = ev.name;
+
+  // Pre-load badges (grading summary)
+  loadBadges(ev.name, gradingWithUrl, gradingWithoutUrl);
+
+  return card;
+}
+
+async function loadBadges(evalName, withUrl, withoutUrl) {
+  try {
+    const [wRes, woRes] = await Promise.all([fetch(withUrl), fetch(withoutUrl)]);
+    const [wData, woData] = await Promise.all([wRes.json(), woRes.json()]);
+
+    const wPassed = wData.expectations.filter(e => e.passed).length;
+    const wTotal = wData.expectations.length;
+    const woPassed = woData.expectations.filter(e => e.passed).length;
+    const woTotal = woData.expectations.length;
+
+    const wBadge = document.getElementById(`badge-w-${evalName}`);
+    const woBadge = document.getElementById(`badge-wo-${evalName}`);
+    if (wBadge) wBadge.textContent = `${wPassed}/${wTotal}`;
+    if (woBadge) woBadge.textContent = `${woPassed}/${woTotal}`;
+  } catch (e) {
+    // Silently fail for badges
+  }
+}
+
+function loadEvalData(card) {
+  if (card.dataset.loaded === 'true') return;
+  card.dataset.loaded = 'true';
+
+  const evalName = card.dataset.evalName;
+
+  // Load iframes
+  card.querySelectorAll('iframe[data-src]').forEach(iframe => {
+    iframe.src = iframe.dataset.src;
+  });
+
+  // Load prompt
+  fetch(card.dataset.metadata)
+    .then(r => r.json())
+    .then(data => {
+      const el = document.getElementById(`prompt-${evalName}`);
+      if (el) el.textContent = data.prompt || 'No prompt available';
+    })
+    .catch(() => {
+      const el = document.getElementById(`prompt-${evalName}`);
+      if (el) el.textContent = 'Could not load prompt';
+    });
+
+  // Load grading
+  loadGrading(`grading-with-${evalName}`, card.dataset.gradingWith);
+  loadGrading(`grading-without-${evalName}`, card.dataset.gradingWithout);
+}
+
+async function loadGrading(elementId, url) {
+  const container = document.getElementById(elementId);
+  if (!container) return;
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+
+    const passed = data.expectations.filter(e => e.passed).length;
+    const total = data.expectations.length;
+    const rate = total > 0 ? (passed / total) * 100 : 0;
+
+    let rateClass = 'high';
+    if (rate < 90) rateClass = 'mid';
+    if (rate < 70) rateClass = 'low';
+
+    let html = `
+      <div class="grading-header">
+        <span>Assertions</span>
+        <span class="grading-pass-rate ${rateClass}">${passed}/${total} (${rate.toFixed(0)}%)</span>
+      </div>
+    `;
+
+    data.expectations.forEach(exp => {
+      const icon = exp.passed
+        ? '<span class="assertion-icon pass">&#10003;</span>'
+        : '<span class="assertion-icon fail">&#10007;</span>';
+      html += `
+        <div class="assertion">
+          ${icon}
+          <span class="assertion-text ${exp.passed ? '' : 'fail'}">${escapeHtml(exp.text)}</span>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = '<div class="grading-error">Failed to load grading results</div>';
+  }
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// Auto-load benchmark scores from JSON files
+SKILLS.forEach((skill, i) => {
+  fetch(`${BASE}/${skill.workspace}/benchmark.json`)
+    .then(r => r.json())
+    .then(data => {
+      skill.benchmarkWith = data.with_skill_avg + '%';
+      skill.benchmarkWithout = data.without_skill_avg + '%';
+      // Update tab
+      const tab = tabList.children[i];
+      if (tab) {
+        tab.querySelector('.score-with').textContent = skill.benchmarkWith;
+        tab.querySelector('.score-without').textContent = skill.benchmarkWithout;
+      }
+      // Update panel subtitle
+      const panel = document.getElementById(`panel-${i}`);
+      if (panel) {
+        const subtitle = panel.querySelector('.skill-subtitle');
+        if (subtitle) {
+          subtitle.innerHTML = `${skill.iteration} &middot; ${skill.evals.length} eval cases &middot; Benchmark: <span class="score-with">${skill.benchmarkWith}</span> with skill vs <span class="score-without">${skill.benchmarkWithout}</span> without`;
+        }
+      }
+    })
+    .catch(() => {}); // Silent fail if benchmark not yet available
+});
+</script>
+</body>
+</html>

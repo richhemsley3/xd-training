@@ -1,0 +1,15 @@
+{
+  "prompt": "Create an interactive customer journey map for a SaaS onboarding experience with 4 phases: Awareness (landing page, pricing page), Sign Up (registration, email verification), Onboarding (product tour, first project, invite team), and Adoption (daily usage, feature discovery). Include emotion scores showing excitement during sign up dropping to frustration during onboarding then recovering. Add pain points and opportunities for each phase.",
+  "assertions": [
+    {"type": "file_exists", "name": "HTML file exists", "pattern": "*.html"},
+    {"type": "contains", "name": "Uses D3.js from CDN", "text": "d3js.org"},
+    {"type": "contains", "name": "Standalone (no external CSS)", "text": "<style"},
+    {"type": "contains", "name": "Has 4 phases", "text": "Awareness", "also_contains": ["Sign Up", "Onboarding", "Adoption"]},
+    {"type": "contains", "name": "Emotion curve present", "text": "curveMonotone"},
+    {"type": "contains", "name": "Grid/table layout", "text": "grid"},
+    {"type": "contains", "name": "Pain points section", "text": "pain"},
+    {"type": "contains", "name": "Opportunities section", "text": "opportunit"},
+    {"type": "contains", "name": "SVG element for chart", "text": "<svg"},
+    {"type": "contains", "name": "Interactive behavior", "text": "addEventListener"}
+  ]
+}

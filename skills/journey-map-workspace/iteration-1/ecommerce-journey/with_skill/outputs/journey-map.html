@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>E-Commerce Purchase — Customer Journey Map</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #F8F9FA;
+      color: #212529;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 24px;
+    }
+
+    .title-bar { margin-bottom: 24px; }
+    .title-bar h1 { font-size: 24px; font-weight: 700; color: #212529; margin-bottom: 4px; }
+    .title-bar .subtitle { font-size: 14px; color: #868E96; }
+
+    .journey-container {
+      overflow-x: auto;
+      position: relative;
+      border-radius: 12px;
+      background: #FFFFFF;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .journey-grid {
+      display: grid;
+      min-width: max-content;
+    }
+
+    .row-label {
+      position: sticky;
+      left: 0;
+      z-index: 10;
+      background: #F1F3F5;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #868E96;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      border-right: 1px solid #E9ECEF;
+      min-width: 140px;
+      width: 140px;
+    }
+
+    .phase-header {
+      padding: 12px 16px;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+    }
+    .phase-header .phase-icon {
+      width: 20px; height: 20px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+    }
+
+    .step-header {
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #495057;
+      background: #F8F9FA;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #E9ECEF;
+    }
+
+    .cell {
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #495057;
+      border-bottom: 1px solid #E9ECEF;
+      border-right: 1px solid #E9ECEF;
+      min-height: 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+      transition: background 0.15s ease;
+    }
+    .cell:hover {
+      background: rgba(91, 141, 239, 0.05);
+      box-shadow: inset 0 0 0 1px rgba(91, 141, 239, 0.1);
+    }
+
+    .pain-text { color: #E53E3E; }
+    .opp-text { color: #48BB78; }
+
+    .role-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0 10px;
+      height: 24px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      margin: 2px 4px 2px 0;
+    }
+
+    .touchpoint-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: #495057;
+    }
+
+    .phase-separator { border-left: 2px solid #DEE2E6; }
+
+    .tooltip {
+      position: fixed;
+      background: #212529;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      pointer-events: none;
+      z-index: 100;
+      max-width: 240px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+    .tooltip.visible { opacity: 1; }
+
+    @media print {
+      body { background: white; }
+      .journey-container { box-shadow: none; overflow: visible; }
+      .row-label { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <div class="title-bar">
+    <h1>E-Commerce Purchase — Customer Journey Map</h1>
+    <div class="subtitle">End-to-end shopping experience: Browse to Post-Purchase</div>
+  </div>
+  <div class="journey-container">
+    <div class="journey-grid" id="journeyGrid"></div>
+  </div>
+  <div class="tooltip" id="tooltip"></div>
+
+  <script>
+    const journeyData = {
+      title: "E-Commerce Purchase Journey",
+      roles: [
+        { name: "Marketing", abbrev: "MKT", color: "#7C5CFC" },
+        { name: "Product", abbrev: "PRD", color: "#5B8DEF" },
+        { name: "Support", abbrev: "SUP", color: "#38B2AC" },
+        { name: "Logistics", abbrev: "LOG", color: "#ED8936" }
+      ],
+      phases: [
+        {
+          id: "browse", label: "Browse", color: "#7C5CFC",
+          steps: [
+            {
+              id: "homepage", label: "Homepage Visit",
+              emotion: { score: 0.7, label: "Curious", annotation: "User arrives and starts browsing" },
+              touchpoints: ["📱 Mobile App", "💻 Website"],
+              roles: ["Marketing", "Product"],
+              painPoints: [],
+              opportunities: ["Personalized recommendations"]
+            },
+            {
+              id: "category-browse", label: "Category Browse",
+              emotion: { score: 0.65, label: "Exploring", annotation: "User browses categories looking for items" },
+              touchpoints: ["💻 Website", "📱 Mobile App"],
+              roles: ["Product"],
+              painPoints: ["Filters don't work well on mobile"],
+              opportunities: ["AI-powered search suggestions"]
+            }
+          ]
+        },
+        {
+          id: "compare", label: "Compare", color: "#5B8DEF",
+          steps: [
+            {
+              id: "product-detail", label: "Product Details",
+              emotion: { score: 0.6, label: "Evaluating", annotation: "User reads reviews and compares specs" },
+              touchpoints: ["💻 Website"],
+              roles: ["Product", "Marketing"],
+              painPoints: ["Inconsistent product information"],
+              opportunities: ["Side-by-side comparison tool"]
+            },
+            {
+              id: "price-compare", label: "Price Comparison",
+              emotion: { score: 0.55, label: "Uncertain", annotation: "User checks prices across sellers" },
+              touchpoints: ["💻 Website", "📧 Email"],
+              roles: ["Marketing"],
+              painPoints: ["No price match guarantee visible"],
+              opportunities: ["Price alert notifications"]
+            }
+          ]
+        },
+        {
+          id: "purchase", label: "Purchase", color: "#38B2AC",
+          steps: [
+            {
+              id: "add-to-cart", label: "Add to Cart",
+              emotion: { score: 0.7, label: "Decided", annotation: "User has made a choice and adds to cart" },
+              touchpoints: ["💻 Website", "📱 Mobile App"],
+              roles: ["Product"],
+              painPoints: [],
+              opportunities: ["Bundle suggestions at cart"]
+            },
+            {
+              id: "checkout", label: "Checkout",
+              emotion: { score: 0.35, label: "Frustrated", annotation: "Checkout process has too many steps and requires account creation" },
+              touchpoints: ["💻 Website"],
+              roles: ["Product", "Support"],
+              painPoints: ["Too many steps", "Forced account creation", "Payment errors"],
+              opportunities: ["Guest checkout", "One-click purchase", "Apple Pay / Google Pay"]
+            }
+          ]
+        },
+        {
+          id: "delivery", label: "Delivery", color: "#48BB78",
+          steps: [
+            {
+              id: "order-confirm", label: "Order Confirmation",
+              emotion: { score: 0.6, label: "Hopeful", annotation: "User receives confirmation and tracking info" },
+              touchpoints: ["📧 Email", "📱 Mobile App"],
+              roles: ["Logistics"],
+              painPoints: ["Vague delivery estimates"],
+              opportunities: ["Real-time tracking from warehouse"]
+            },
+            {
+              id: "shipping", label: "Shipping & Tracking",
+              emotion: { score: 0.4, label: "Anxious", annotation: "User waits and checks tracking repeatedly" },
+              touchpoints: ["📧 Email", "📱 Mobile App", "📞 Phone"],
+              roles: ["Logistics", "Support"],
+              painPoints: ["Delivery delays", "Tracking not updated", "No proactive delay notification"],
+              opportunities: ["SMS updates", "Proactive delay notifications"]
+            }
+          ]
+        },
+        {
+          id: "post-purchase", label: "Post-Purchase", color: "#ED8936",
+          steps: [
+            {
+              id: "unboxing", label: "Unboxing & Use",
+              emotion: { score: 0.8, label: "Delighted", annotation: "Product arrives and meets expectations" },
+              touchpoints: ["📧 Email"],
+              roles: ["Marketing", "Support"],
+              painPoints: [],
+              opportunities: ["Request review, suggest accessories"]
+            },
+            {
+              id: "support", label: "Returns / Support",
+              emotion: { score: 0.45, label: "Neutral", annotation: "If issue arises, user contacts support" },
+              touchpoints: ["📞 Phone", "💻 Website", "📧 Email"],
+              roles: ["Support"],
+              painPoints: ["Complicated return process"],
+              opportunities: ["Self-serve returns portal, chatbot"]
+            }
+          ]
+        }
+      ]
+    };
+
+    const allSteps = journeyData.phases.flatMap(p => p.steps);
+    const totalSteps = allSteps.length;
+    const colWidth = 180;
+    const rowLabelWidth = 140;
+
+    const rowDefs = [
+      { key: 'phase', label: 'Phase' },
+      { key: 'steps', label: 'Steps' },
+      { key: 'touchpoints', label: 'Touchpoints' },
+      { key: 'roles', label: 'Teams' },
+      { key: 'emotion', label: 'Sentiment' },
+      { key: 'painPoints', label: 'Pain Points' },
+      { key: 'opportunities', label: 'Opportunities' }
+    ];
+
+    const grid = document.getElementById('journeyGrid');
+    grid.style.gridTemplateColumns = `${rowLabelWidth}px repeat(${totalSteps}, ${colWidth}px)`;
+
+    const roleColorMap = {};
+    journeyData.roles.forEach(r => { roleColorMap[r.name] = r.color; });
+
+    function hexToRgb(hex) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `${r}, ${g}, ${b}`;
+    }
+
+    function makeRoleBadge(roleName) {
+      const color = roleColorMap[roleName] || '#868E96';
+      return `<span class="role-badge" style="background:rgba(${hexToRgb(color)},0.15);color:${color};border:1px solid rgba(${hexToRgb(color)},0.3)">${roleName}</span>`;
+    }
+
+    let row = 1;
+
+    // Phase headers
+    const phaseCorner = document.createElement('div');
+    phaseCorner.className = 'row-label';
+    phaseCorner.textContent = 'Phase';
+    phaseCorner.style.gridRow = `${row}`;
+    phaseCorner.style.gridColumn = '1';
+    grid.appendChild(phaseCorner);
+
+    let col = 2;
+    journeyData.phases.forEach((phase, pi) => {
+      const span = phase.steps.length;
+      const header = document.createElement('div');
+      header.className = 'phase-header' + (pi > 0 ? ' phase-separator' : '');
+      header.style.background = phase.color;
+      header.style.gridRow = `${row}`;
+      header.style.gridColumn = `${col} / span ${span}`;
+      if (pi === 0) header.style.borderRadius = '8px 0 0 0';
+      if (pi === journeyData.phases.length - 1) header.style.borderRadius = '0 8px 0 0';
+      header.innerHTML = `<span class="phase-icon">${pi + 1}</span> ${phase.label}`;
+      grid.appendChild(header);
+      col += span;
+    });
+    row++;
+
+    // Step headers
+    const stepCorner = document.createElement('div');
+    stepCorner.className = 'row-label';
+    stepCorner.textContent = 'Steps';
+    stepCorner.style.gridRow = `${row}`;
+    stepCorner.style.gridColumn = '1';
+    grid.appendChild(stepCorner);
+
+    col = 2;
+    journeyData.phases.forEach((phase, pi) => {
+      phase.steps.forEach((step, si) => {
+        const el = document.createElement('div');
+        el.className = 'step-header' + (si === 0 && pi > 0 ? ' phase-separator' : '');
+        el.style.gridRow = `${row}`;
+        el.style.gridColumn = `${col}`;
+        el.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;
+        el.textContent = step.label;
+        grid.appendChild(el);
+        col++;
+      });
+    });
+    row++;
+
+    // Touchpoints row
+    const tpLabel = document.createElement('div');
+    tpLabel.className = 'row-label';
+    tpLabel.textContent = 'Touchpoints';
+    tpLabel.style.gridRow = `${row}`;
+    tpLabel.style.gridColumn = '1';
+    grid.appendChild(tpLabel);
+
+    col = 2;
+    journeyData.phases.forEach((phase, pi) => {
+      phase.steps.forEach((step, si) => {
+        const cell = document.createElement('div');
+        cell.className = 'cell' + (si === 0 && pi > 0 ? ' phase-separator' : '');
+        cell.style.gridRow = `${row}`;
+        cell.style.gridColumn = `${col}`;
+        cell.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;
+        cell.innerHTML = (step.touchpoints || []).map(tp => `<span class="touchpoint-item">${tp}</span>`).join('');
+        grid.appendChild(cell);
+        col++;
+      });
+    });
+    row++;
+
+    // Roles row
+    const roleLabel = document.createElement('div');
+    roleLabel.className = 'row-label';
+    roleLabel.textContent = 'Teams';
+    roleLabel.style.gridRow = `${row}`;
+    roleLabel.style.gridColumn = '1';
+    grid.appendChild(roleLabel);
+
+    col = 2;
+    journeyData.phases.forEach((phase, pi) => {
+      phase.steps.forEach((step, si) => {
+        const cell = document.createElement('div');
+        cell.className = 'cell' + (si === 0 && pi > 0 ? ' phase-separator' : '');
+        cell.style.gridRow = `${row}`;
+        cell.style.gridColumn = `${col}`;
+        cell.style.flexDirection = 'row';
+        cell.style.flexWrap = 'wrap';
+        cell.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;
+        cell.innerHTML = (step.roles || []).map(r => makeRoleBadge(r)).join('');
+        grid.appendChild(cell);
+        col++;
+      });
+    });
+    row++;
+
+    // Emotion row
+    const emotionLabel = document.createElement('div');
+    emotionLabel.className = 'row-label';
+    emotionLabel.textContent = 'Sentiment';
+    emotionLabel.style.gridRow = `${row}`;
+    emotionLabel.style.gridColumn = '1';
+    emotionLabel.style.minHeight = '120px';
+    grid.appendChild(emotionLabel);
+
+    const emotionContainer = document.createElement('div');
+    emotionContainer.style.gridRow = `${row}`;
+    emotionContainer.style.gridColumn = `2 / span ${totalSteps}`;
+    emotionContainer.style.position = 'relative';
+    emotionContainer.style.minHeight = '120px';
+    emotionContainer.style.borderBottom = '1px solid #E9ECEF';
+    grid.appendChild(emotionContainer);
+    row++;
+
+    // Pain points
+    const painLabel = document.createElement('div');
+    painLabel.className = 'row-label';
+    painLabel.textContent = 'Pain Points';
+    painLabel.style.gridRow = `${row}`;
+    painLabel.style.gridColumn = '1';
+    grid.appendChild(painLabel);
+
+    col = 2;
+    journeyData.phases.forEach((phase, pi) => {
+      phase.steps.forEach((step, si) => {
+        const cell = document.createElement('div');
+        cell.className = 'cell' + (si === 0 && pi > 0 ? ' phase-separator' : '');
+        cell.style.gridRow = `${row}`;
+        cell.style.gridColumn = `${col}`;
+        cell.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;
+        if (step.painPoints && step.painPoints.length > 0) {
+          cell.innerHTML = step.painPoints.map(p => `<span class="pain-text">⚠️ ${p}</span>`).join('');
+        } else {
+          cell.textContent = '—';
+          cell.style.color = '#CED4DA';
+        }
+        grid.appendChild(cell);
+        col++;
+      });
+    });
+    row++;
+
+    // Opportunities
+    const oppLabel = document.createElement('div');
+    oppLabel.className = 'row-label';
+    oppLabel.textContent = 'Opportunities';
+    oppLabel.style.gridRow = `${row}`;
+    oppLabel.style.gridColumn = '1';
+    grid.appendChild(oppLabel);
+
+    col = 2;
+    journeyData.phases.forEach((phase, pi) => {
+      phase.steps.forEach((step, si) => {
+        const cell = document.createElement('div');
+        cell.className = 'cell' + (si === 0 && pi > 0 ? ' phase-separator' : '');
+        cell.style.gridRow = `${row}`;
+        cell.style.gridColumn = `${col}`;
+        cell.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;
+        if (step.opportunities && step.opportunities.length > 0) {
+          cell.innerHTML = step.opportunities.map(o => `<span class="opp-text">💡 ${o}</span>`).join('');
+        } else {
+          cell.textContent = '—';
+          cell.style.color = '#CED4DA';
+        }
+        grid.appendChild(cell);
+        col++;
+      });
+    });
+
+    // D3 Emotion Curve
+    const emotionWidth = totalSteps * colWidth;
+    const emotionHeight = 110;
+    const tooltip = document.getElementById('tooltip');
+
+    const svg = d3.select(emotionContainer)
+      .append('svg')
+      .attr('width', emotionWidth)
+      .attr('height', emotionHeight);
+
+    svg.append('rect').attr('x',0).attr('y',0).attr('width',emotionWidth).attr('height',emotionHeight/3).attr('fill','rgba(72,187,120,0.05)');
+    svg.append('rect').attr('x',0).attr('y',emotionHeight/3).attr('width',emotionWidth).attr('height',emotionHeight/3).attr('fill','rgba(91,141,239,0.05)');
+    svg.append('rect').attr('x',0).attr('y',2*emotionHeight/3).attr('width',emotionWidth).attr('height',emotionHeight/3).attr('fill','rgba(229,62,62,0.05)');
+
+    const xScale = d3.scaleLinear().domain([0, allSteps.length - 1]).range([colWidth / 2, emotionWidth - colWidth / 2]);
+    const yScale = d3.scaleLinear().domain([0, 1]).range([emotionHeight - 15, 15]);
+
+    const line = d3.line().x((d, i) => xScale(i)).y(d => yScale(d.emotion.score)).curve(d3.curveMonotoneX);
+
+    svg.append('path').datum(allSteps).attr('d', line).attr('fill', 'none').attr('stroke', '#5B8DEF').attr('stroke-width', 2.5);
+
+    svg.selectAll('.dot').data(allSteps).join('circle')
+      .attr('cx', (d, i) => xScale(i)).attr('cy', d => yScale(d.emotion.score)).attr('r', 6)
+      .attr('fill', d => d.emotion.score > 0.6 ? '#48BB78' : d.emotion.score > 0.3 ? '#5B8DEF' : '#E53E3E')
+      .attr('stroke', '#fff').attr('stroke-width', 2).style('cursor', 'pointer')
+      .on('mouseover', function(event, d) {
+        d3.select(this).attr('r', 10);
+        tooltip.innerHTML = `<strong>${d.label}</strong><br>${d.emotion.label} (${d.emotion.score})<br><em>${d.emotion.annotation}</em>`;
+        tooltip.classList.add('visible');
+      })
+      .on('mousemove', function(event) {
+        tooltip.style.left = (event.clientX + 12) + 'px';
+        tooltip.style.top = (event.clientY - 10) + 'px';
+      })
+      .on('mouseout', function() {
+        d3.select(this).attr('r', 6);
+        tooltip.classList.remove('visible');
+      });
+
+    svg.selectAll('.emoji').data(allSteps).join('text')
+      .attr('x', (d, i) => xScale(i)).attr('y', d => yScale(d.emotion.score) - 14)
+      .attr('text-anchor', 'middle').attr('font-size', '14px')
+      .text(d => d.emotion.score > 0.6 ? '😊' : d.emotion.score > 0.3 ? '😐' : '😞');
+  </script>
+</body>
+</html>

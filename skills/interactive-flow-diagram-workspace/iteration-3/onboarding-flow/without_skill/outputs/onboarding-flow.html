@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Onboarding Flow</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface-hover: #242836;
+    --border: #2e3345;
+    --border-active: #6366f1;
+    --text: #e2e4ed;
+    --text-muted: #8b8fa3;
+    --accent: #6366f1;
+    --accent-light: #818cf8;
+    --green: #34d399;
+    --blue: #60a5fa;
+    --orange: #fb923c;
+    --pink: #f472b6;
+    --cyan: #22d3ee;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* Top bar */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 52px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 100;
+  }
+  .topbar h1 {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .topbar-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .zoom-display {
+    font-size: 12px;
+    color: var(--text-muted);
+    min-width: 48px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .btn {
+    background: var(--surface-hover);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .btn:hover { background: #2f3447; border-color: #3d4259; }
+  .btn-icon { padding: 6px 8px; font-size: 16px; }
+
+  /* Canvas */
+  .canvas-wrapper {
+    position: fixed;
+    top: 52px; left: 0; right: 0; bottom: 0;
+    overflow: hidden;
+    cursor: grab;
+  }
+  .canvas-wrapper.dragging { cursor: grabbing; }
+  .canvas {
+    position: absolute;
+    transform-origin: 0 0;
+    will-change: transform;
+  }
+
+  /* Flow nodes */
+  .flow-container {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    top: 300px;
+    left: 400px;
+  }
+
+  .node-group {
+    display: flex;
+    align-items: center;
+  }
+
+  .node {
+    width: 200px;
+    border-radius: 14px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  .node:hover {
+    border-color: var(--border-active);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 32px rgba(99, 102, 241, 0.15);
+  }
+  .node.active {
+    border-color: var(--border-active);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2), 0 8px 32px rgba(99, 102, 241, 0.2);
+  }
+
+  .node-accent {
+    height: 4px;
+    width: 100%;
+  }
+  .node-body {
+    padding: 20px 18px 18px;
+  }
+  .node-step {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+  .node-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .node-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .node-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  /* Connectors */
+  .connector {
+    width: 80px;
+    height: 2px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .connector-line {
+    width: 100%;
+    height: 2px;
+    background: var(--border);
+    position: relative;
+  }
+  .connector-line::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0; height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 8px solid var(--border);
+  }
+  .connector.active .connector-line {
+    background: var(--accent);
+  }
+  .connector.active .connector-line::after {
+    border-left-color: var(--accent);
+  }
+
+  /* Animated pulse on active connector */
+  .connector.active .connector-line::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: -2px;
+    width: 12px;
+    height: 6px;
+    background: var(--accent-light);
+    border-radius: 3px;
+    animation: flowPulse 1.5s ease-in-out infinite;
+  }
+  @keyframes flowPulse {
+    0% { left: 0; opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { left: calc(100% - 12px); opacity: 0; }
+  }
+
+  /* Detail panel */
+  .detail-panel {
+    position: fixed;
+    top: 52px;
+    right: -440px;
+    width: 420px;
+    bottom: 0;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    z-index: 90;
+    transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .detail-panel.open { right: 0; }
+
+  .panel-header {
+    padding: 24px 24px 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  .panel-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.15s;
+  }
+  .panel-close:hover { color: var(--text); background: var(--surface-hover); }
+
+  .panel-accent-bar {
+    height: 4px;
+    border-radius: 2px;
+    margin: 0 24px;
+    margin-top: 20px;
+  }
+
+  .panel-body {
+    padding: 20px 24px 32px;
+    flex: 1;
+  }
+  .panel-icon { font-size: 40px; margin-bottom: 16px; display: block; }
+  .panel-step {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+  .panel-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+  }
+  .panel-description {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+
+  .panel-section {
+    margin-bottom: 24px;
+  }
+  .panel-section-title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .feature-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .feature-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 10px 12px;
+    background: var(--bg);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .feature-list li .feat-icon {
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+    font-size: 14px;
+    margin-top: 1px;
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .metric-card {
+    padding: 14px;
+    background: var(--bg);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .metric-value {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .metric-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .nav-buttons {
+    display: flex;
+    gap: 8px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+  }
+  .nav-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .nav-btn:hover { border-color: var(--accent); background: var(--surface-hover); }
+  .nav-btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .nav-btn.primary:hover { background: var(--accent-light); }
+  .nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  /* Minimap */
+  .minimap {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    width: 180px;
+    height: 100px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    z-index: 80;
+    overflow: hidden;
+  }
+  .minimap-viewport {
+    position: absolute;
+    border: 1.5px solid var(--accent);
+    border-radius: 2px;
+    background: rgba(99, 102, 241, 0.08);
+    pointer-events: none;
+  }
+  .minimap-nodes {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .minimap-node {
+    position: absolute;
+    border-radius: 2px;
+    opacity: 0.6;
+  }
+  .minimap-node.active { opacity: 1; }
+
+  /* Keyboard hint */
+  .keyboard-hint {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    display: flex;
+    gap: 12px;
+    z-index: 80;
+  }
+  .hint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .kbd {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-family: inherit;
+  }
+
+  /* Grid pattern */
+  .grid-pattern {
+    position: absolute;
+    top: 0; left: 0;
+    width: 10000px;
+    height: 10000px;
+    background-image:
+      radial-gradient(circle, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>User Onboarding Flow</h1>
+  <div class="topbar-controls">
+    <button class="btn btn-icon" onclick="zoomOut()" title="Zoom out">-</button>
+    <span class="zoom-display" id="zoomDisplay">100%</span>
+    <button class="btn btn-icon" onclick="zoomIn()" title="Zoom in">+</button>
+    <button class="btn" onclick="resetView()">Fit View</button>
+  </div>
+</div>
+
+<div class="canvas-wrapper" id="canvasWrapper">
+  <div class="canvas" id="canvas">
+    <div class="grid-pattern"></div>
+    <div class="flow-container" id="flowContainer">
+    </div>
+  </div>
+</div>
+
+<div class="detail-panel" id="detailPanel">
+  <div class="panel-header">
+    <div>
+      <span class="panel-icon" id="panelIcon"></span>
+      <span class="panel-step" id="panelStep"></span>
+      <h2 class="panel-title" id="panelTitle"></h2>
+    </div>
+    <button class="panel-close" onclick="closePanel()">&times;</button>
+  </div>
+  <div class="panel-accent-bar" id="panelAccent"></div>
+  <div class="panel-body" id="panelBody"></div>
+  <div class="nav-buttons">
+    <button class="nav-btn" id="prevBtn" onclick="navigateStep(-1)">Previous</button>
+    <button class="nav-btn primary" id="nextBtn" onclick="navigateStep(1)">Next</button>
+  </div>
+</div>
+
+<div class="minimap" id="minimap">
+  <div class="minimap-nodes" id="minimapNodes"></div>
+  <div class="minimap-viewport" id="minimapViewport"></div>
+</div>
+
+<div class="keyboard-hint">
+  <span class="hint"><span class="kbd">Scroll</span> Zoom</span>
+  <span class="hint"><span class="kbd">Drag</span> Pan</span>
+  <span class="hint"><span class="kbd">1-5</span> Steps</span>
+  <span class="hint"><span class="kbd">Esc</span> Close</span>
+</div>
+
+<script>
+const steps = [
+  {
+    id: 'welcome',
+    title: 'Welcome',
+    icon: '👋',
+    color: '#6366f1',
+    step: 'Step 1',
+    shortDesc: 'First impression and value proposition',
+    description: 'The welcome screen is the user\'s first interaction with the product. It sets the tone, communicates the core value proposition, and guides users to begin their onboarding journey.',
+    features: [
+      { icon: '🎨', text: 'Branded splash screen with animated logo and tagline' },
+      { icon: '✨', text: 'Highlight 3 key benefits of the platform' },
+      { icon: '🔐', text: 'Sign-up / sign-in options (email, Google, SSO)' },
+      { icon: '📱', text: 'Responsive layout optimized for all devices' }
+    ],
+    metrics: [
+      { value: '3s', label: 'Avg. time on screen' },
+      { value: '94%', label: 'Proceed rate' },
+      { value: '62%', label: 'SSO sign-up' },
+      { value: '< 1%', label: 'Bounce rate' }
+    ]
+  },
+  {
+    id: 'profile',
+    title: 'Profile Setup',
+    icon: '👤',
+    color: '#34d399',
+    step: 'Step 2',
+    shortDesc: 'Collect user info and preferences',
+    description: 'Profile setup collects essential information to personalize the experience. The form is broken into micro-steps to reduce cognitive load and improve completion rates.',
+    features: [
+      { icon: '📝', text: 'Progressive form: name, role, company size' },
+      { icon: '🖼️', text: 'Optional avatar upload with auto-crop' },
+      { icon: '🎯', text: 'Goal selection to tailor the onboarding path' },
+      { icon: '⏭️', text: 'Skip option with smart defaults applied' }
+    ],
+    metrics: [
+      { value: '45s', label: 'Avg. completion' },
+      { value: '87%', label: 'Completion rate' },
+      { value: '73%', label: 'Upload avatar' },
+      { value: '12%', label: 'Skip rate' }
+    ]
+  },
+  {
+    id: 'connect',
+    title: 'Connect Account',
+    icon: '🔗',
+    color: '#60a5fa',
+    step: 'Step 3',
+    shortDesc: 'Link external services and data sources',
+    description: 'Users connect their existing accounts and data sources. This step enables the platform to provide immediate value by importing existing data and configurations.',
+    features: [
+      { icon: '🔌', text: 'One-click OAuth integrations (Slack, GitHub, Jira)' },
+      { icon: '📊', text: 'Import existing data with progress indicator' },
+      { icon: '🛡️', text: 'Permission scopes displayed with explanations' },
+      { icon: '⏩', text: 'Async import with email notification on completion' }
+    ],
+    metrics: [
+      { value: '2.1', label: 'Avg. connections' },
+      { value: '78%', label: 'Connect at least 1' },
+      { value: '< 30s', label: 'Auth time' },
+      { value: '96%', label: 'Import success' }
+    ]
+  },
+  {
+    id: 'tutorial',
+    title: 'Tutorial',
+    icon: '📖',
+    color: '#fb923c',
+    step: 'Step 4',
+    shortDesc: 'Interactive guided walkthrough',
+    description: 'An interactive tutorial walks users through core features using their own data. Tooltips, highlights, and guided actions teach by doing rather than telling.',
+    features: [
+      { icon: '🎬', text: 'Interactive walkthrough with 5 guided actions' },
+      { icon: '💡', text: 'Contextual tooltips highlighting key features' },
+      { icon: '🏆', text: 'Progress milestones with celebratory animations' },
+      { icon: '📹', text: 'Optional video explanations for complex features' }
+    ],
+    metrics: [
+      { value: '2m', label: 'Avg. duration' },
+      { value: '82%', label: 'Completion rate' },
+      { value: '4.6/5', label: 'Helpfulness' },
+      { value: '31%', label: 'Replay rate' }
+    ]
+  },
+  {
+    id: 'dashboard',
+    title: 'Dashboard',
+    icon: '📊',
+    color: '#f472b6',
+    step: 'Step 5',
+    shortDesc: 'Personalized home with next steps',
+    description: 'The dashboard serves as the user\'s personalized home base. It surfaces relevant data, suggests next actions, and provides quick access to key features.',
+    features: [
+      { icon: '📈', text: 'Personalized widgets based on role and goals' },
+      { icon: '✅', text: 'Getting-started checklist with progress tracking' },
+      { icon: '🔔', text: 'Smart notifications for imported data status' },
+      { icon: '🚀', text: 'Quick-action buttons for common workflows' }
+    ],
+    metrics: [
+      { value: '5.2', label: 'Sessions / week' },
+      { value: '89%', label: 'Day-7 retention' },
+      { value: '3.1min', label: 'Avg. session' },
+      { value: '92%', label: 'Satisfaction' }
+    ]
+  }
+];
+
+let currentStep = -1;
+let scale = 1;
+let panX = 0, panY = 0;
+let isDragging = false;
+let dragStartX, dragStartY, startPanX, startPanY;
+
+// Build nodes
+const flowContainer = document.getElementById('flowContainer');
+steps.forEach((step, i) => {
+  const group = document.createElement('div');
+  group.className = 'node-group';
+
+  const node = document.createElement('div');
+  node.className = 'node';
+  node.id = `node-${step.id}`;
+  node.onclick = (e) => { e.stopPropagation(); selectStep(i); };
+  node.innerHTML = `
+    <div class="node-accent" style="background: ${step.color}"></div>
+    <div class="node-body">
+      <span class="node-icon">${step.icon}</span>
+      <span class="node-step" style="color: ${step.color}">${step.step}</span>
+      <div class="node-title">${step.title}</div>
+      <div class="node-desc">${step.shortDesc}</div>
+    </div>
+  `;
+  group.appendChild(node);
+
+  if (i < steps.length - 1) {
+    const connector = document.createElement('div');
+    connector.className = 'connector';
+    connector.id = `connector-${i}`;
+    connector.innerHTML = '<div class="connector-line"></div>';
+    group.appendChild(connector);
+  }
+
+  flowContainer.appendChild(group);
+});
+
+// Pan and zoom
+const wrapper = document.getElementById('canvasWrapper');
+const canvas = document.getElementById('canvas');
+
+function updateTransform() {
+  canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+  document.getElementById('zoomDisplay').textContent = Math.round(scale * 100) + '%';
+  updateMinimap();
+}
+
+wrapper.addEventListener('mousedown', (e) => {
+  if (e.target.closest('.node')) return;
+  isDragging = true;
+  dragStartX = e.clientX;
+  dragStartY = e.clientY;
+  startPanX = panX;
+  startPanY = panY;
+  wrapper.classList.add('dragging');
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  panX = startPanX + (e.clientX - dragStartX);
+  panY = startPanY + (e.clientY - dragStartY);
+  updateTransform();
+});
+
+window.addEventListener('mouseup', () => {
+  isDragging = false;
+  wrapper.classList.remove('dragging');
+});
+
+wrapper.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const rect = wrapper.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  const oldScale = scale;
+  const delta = e.deltaY > 0 ? 0.9 : 1.1;
+  scale = Math.min(3, Math.max(0.2, scale * delta));
+
+  panX = mx - (mx - panX) * (scale / oldScale);
+  panY = my - (my - panY) * (scale / oldScale);
+  updateTransform();
+}, { passive: false });
+
+function zoomIn() {
+  const cx = wrapper.clientWidth / 2;
+  const cy = wrapper.clientHeight / 2;
+  const oldScale = scale;
+  scale = Math.min(3, scale * 1.25);
+  panX = cx - (cx - panX) * (scale / oldScale);
+  panY = cy - (cy - panY) * (scale / oldScale);
+  updateTransform();
+}
+
+function zoomOut() {
+  const cx = wrapper.clientWidth / 2;
+  const cy = wrapper.clientHeight / 2;
+  const oldScale = scale;
+  scale = Math.max(0.2, scale * 0.8);
+  panX = cx - (cx - panX) * (scale / oldScale);
+  panY = cy - (cy - panY) * (scale / oldScale);
+  updateTransform();
+}
+
+function resetView() {
+  const flowRect = flowContainer.getBoundingClientRect();
+  const wrapperRect = wrapper.getBoundingClientRect();
+
+  const flowW = 200 * 5 + 80 * 4; // nodes + connectors
+  const flowH = 180;
+
+  const padX = 80;
+  const padY = 80;
+
+  const scaleX = (wrapperRect.width - padX * 2) / flowW;
+  const scaleY = (wrapperRect.height - padY * 2) / flowH;
+  scale = Math.min(scaleX, scaleY, 1.2);
+
+  panX = (wrapperRect.width - flowW * scale) / 2 - 400 * scale;
+  panY = (wrapperRect.height - flowH * scale) / 2 - 300 * scale;
+  updateTransform();
+}
+
+// Selection
+function selectStep(i) {
+  currentStep = i;
+  const step = steps[i];
+
+  // Highlight nodes
+  document.querySelectorAll('.node').forEach((n, idx) => {
+    n.classList.toggle('active', idx === i);
+  });
+
+  // Highlight connectors
+  document.querySelectorAll('.connector').forEach((c, idx) => {
+    c.classList.toggle('active', idx < i);
+  });
+
+  // Fill panel
+  document.getElementById('panelIcon').textContent = step.icon;
+  document.getElementById('panelStep').textContent = step.step;
+  document.getElementById('panelStep').style.color = step.color;
+  document.getElementById('panelTitle').textContent = step.title;
+  document.getElementById('panelAccent').style.background = step.color;
+
+  let body = `<p class="panel-description">${step.description}</p>`;
+
+  body += `<div class="panel-section">
+    <div class="panel-section-title">Screen Elements</div>
+    <ul class="feature-list">
+      ${step.features.map(f => `<li><span class="feat-icon">${f.icon}</span><span>${f.text}</span></li>`).join('')}
+    </ul>
+  </div>`;
+
+  body += `<div class="panel-section">
+    <div class="panel-section-title">Key Metrics</div>
+    <div class="metrics-grid">
+      ${step.metrics.map(m => `<div class="metric-card"><div class="metric-value" style="color:${step.color}">${m.value}</div><div class="metric-label">${m.label}</div></div>`).join('')}
+    </div>
+  </div>`;
+
+  document.getElementById('panelBody').innerHTML = body;
+
+  // Nav buttons
+  document.getElementById('prevBtn').disabled = i === 0;
+  document.getElementById('nextBtn').disabled = i === steps.length - 1;
+  document.getElementById('nextBtn').textContent = i === steps.length - 1 ? 'Done' : 'Next';
+
+  // Open panel
+  document.getElementById('detailPanel').classList.add('open');
+
+  updateMinimap();
+}
+
+function closePanel() {
+  document.getElementById('detailPanel').classList.remove('open');
+  document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.connector').forEach(c => c.classList.remove('active'));
+  currentStep = -1;
+  updateMinimap();
+}
+
+function navigateStep(dir) {
+  const next = currentStep + dir;
+  if (next >= 0 && next < steps.length) {
+    selectStep(next);
+  }
+}
+
+// Keyboard
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closePanel();
+  if (e.key >= '1' && e.key <= '5') selectStep(parseInt(e.key) - 1);
+  if (e.key === 'ArrowRight' && currentStep >= 0) navigateStep(1);
+  if (e.key === 'ArrowLeft' && currentStep >= 0) navigateStep(-1);
+  if (e.key === '+' || e.key === '=') zoomIn();
+  if (e.key === '-') zoomOut();
+  if (e.key === '0') resetView();
+});
+
+// Minimap
+function updateMinimap() {
+  const minimap = document.getElementById('minimap');
+  const mmW = minimap.clientWidth;
+  const mmH = minimap.clientHeight;
+
+  const totalW = 200 * 5 + 80 * 4 + 800;
+  const totalH = 800;
+
+  const mmScale = Math.min(mmW / totalW, mmH / totalH);
+
+  // Draw nodes
+  const nodesEl = document.getElementById('minimapNodes');
+  nodesEl.innerHTML = '';
+  steps.forEach((step, i) => {
+    const x = 400 + i * 280;
+    const y = 300;
+    const div = document.createElement('div');
+    div.className = 'minimap-node' + (i === currentStep ? ' active' : '');
+    div.style.cssText = `
+      left: ${x * mmScale}px;
+      top: ${y * mmScale}px;
+      width: ${200 * mmScale}px;
+      height: ${140 * mmScale}px;
+      background: ${step.color};
+    `;
+    nodesEl.appendChild(div);
+  });
+
+  // Viewport indicator
+  const wrapperRect = wrapper.getBoundingClientRect();
+  const vpEl = document.getElementById('minimapViewport');
+  const vpW = (wrapperRect.width / scale) * mmScale;
+  const vpH = (wrapperRect.height / scale) * mmScale;
+  const vpX = (-panX / scale) * mmScale;
+  const vpY = (-panY / scale) * mmScale;
+  vpEl.style.cssText = `
+    left: ${vpX}px;
+    top: ${vpY}px;
+    width: ${vpW}px;
+    height: ${vpH}px;
+  `;
+}
+
+// Init
+resetView();
+window.addEventListener('resize', () => { resetView(); });
+</script>
+</body>
+</html>

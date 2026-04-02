@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Flow Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f1117;
+    color: #e1e4e8;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 20px 32px;
+    border-bottom: 1px solid #21262d;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #161b22;
+  }
+
+  header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #f0f3f6;
+  }
+
+  .legend {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: #8b949e;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .legend-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+
+  .canvas-wrapper {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+  }
+
+  svg {
+    width: 100%;
+    height: 100%;
+    min-height: calc(100vh - 70px);
+  }
+
+  /* Node base styles */
+  .node {
+    cursor: pointer;
+    transition: filter 0.2s ease;
+  }
+
+  .node:hover {
+    filter: brightness(1.15);
+  }
+
+  .node rect, .node path {
+    transition: stroke-width 0.2s ease, filter 0.2s ease;
+  }
+
+  .node:hover rect, .node:hover path {
+    stroke-width: 3;
+    filter: drop-shadow(0 0 8px rgba(255,255,255,0.15));
+  }
+
+  .node.active rect, .node.active path {
+    stroke-width: 3.5;
+    filter: drop-shadow(0 0 12px rgba(88, 166, 255, 0.5));
+  }
+
+  .node-label {
+    font-size: 14px;
+    font-weight: 500;
+    fill: #f0f3f6;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .edge-label {
+    font-size: 12px;
+    fill: #8b949e;
+    pointer-events: none;
+  }
+
+  /* Edges */
+  .edge line, .edge path {
+    stroke: #30363d;
+    stroke-width: 2;
+    fill: none;
+    transition: stroke 0.3s ease;
+  }
+
+  .edge.highlight line, .edge.highlight path {
+    stroke: #58a6ff;
+    stroke-width: 2.5;
+  }
+
+  .edge marker path {
+    fill: #30363d;
+  }
+
+  /* Info panel */
+  .info-panel {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: #1c2128;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 16px 24px;
+    min-width: 320px;
+    max-width: 480px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+    opacity: 0;
+    z-index: 10;
+  }
+
+  .info-panel.visible {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+
+  .info-panel h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #f0f3f6;
+  }
+
+  .info-panel p {
+    font-size: 13px;
+    color: #8b949e;
+    line-height: 1.5;
+  }
+
+  .info-panel .step-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .info-panel .nav-hint {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #484f58;
+    border-top: 1px solid #21262d;
+    padding-top: 8px;
+  }
+
+  .info-panel .nav-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .info-panel .nav-buttons button {
+    flex: 1;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #30363d;
+    background: #21262d;
+    color: #c9d1d9;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .info-panel .nav-buttons button:hover {
+    background: #30363d;
+  }
+
+  .info-panel .nav-buttons button:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Product Purchase Flow</h1>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch" style="background:#2ea043"></div> Start / End</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#388bfd"></div> Action</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#d29922"></div> Decision</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#da3633"></div> Alternate Path</div>
+  </div>
+</header>
+
+<div class="canvas-wrapper">
+<svg viewBox="0 0 1200 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="10" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 3.5 L 0 7 z" fill="#30363d"/>
+    </marker>
+    <marker id="arrow-hi" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="10" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 3.5 L 0 7 z" fill="#58a6ff"/>
+    </marker>
+  </defs>
+
+  <!-- Edges (drawn first, behind nodes) -->
+  <!-- A -> B -->
+  <g class="edge" data-from="A" data-to="B">
+    <line x1="135" y1="250" x2="195" y2="250" marker-end="url(#arrow)"/>
+  </g>
+  <!-- B -> C -->
+  <g class="edge" data-from="B" data-to="C">
+    <line x1="325" y1="250" x2="395" y2="250" marker-end="url(#arrow)"/>
+  </g>
+  <!-- C -> D (Yes) -->
+  <g class="edge" data-from="C" data-to="D">
+    <line x1="475" y1="220" x2="535" y2="180" marker-end="url(#arrow)"/>
+    <text class="edge-label" x="490" y="206">Yes</text>
+  </g>
+  <!-- C -> E (No) -->
+  <g class="edge" data-from="C" data-to="E">
+    <line x1="475" y1="280" x2="535" y2="340" marker-end="url(#arrow)"/>
+    <text class="edge-label" x="490" y="320">No</text>
+  </g>
+  <!-- E -> B (loop back) -->
+  <g class="edge" data-from="E" data-to="B">
+    <path d="M 600 370 L 600 420 L 260 420 L 260 280" marker-end="url(#arrow)"/>
+  </g>
+  <!-- D -> F -->
+  <g class="edge" data-from="D" data-to="F">
+    <line x1="665" y1="180" x2="735" y2="180" marker-end="url(#arrow)"/>
+  </g>
+  <!-- F -> G (Yes) -->
+  <g class="edge" data-from="F" data-to="G">
+    <line x1="815" y1="150" x2="875" y2="110" marker-end="url(#arrow)"/>
+    <text class="edge-label" x="830" y="126">Yes</text>
+  </g>
+  <!-- F -> H (No) -->
+  <g class="edge" data-from="F" data-to="H">
+    <line x1="815" y1="210" x2="855" y2="280" marker-end="url(#arrow)"/>
+    <text class="edge-label" x="815" y="260">No</text>
+  </g>
+  <!-- G -> I -->
+  <g class="edge" data-from="G" data-to="I">
+    <line x1="1000" y1="110" x2="1035" y2="110" marker-end="url(#arrow)"/>
+  </g>
+  <!-- I -> J -->
+  <g class="edge" data-from="I" data-to="J">
+    <line x1="1105" y1="140" x2="1105" y2="195" marker-end="url(#arrow)"/>
+  </g>
+
+  <!-- Nodes -->
+  <!-- A: Start (stadium/rounded) -->
+  <g class="node" data-id="A" tabindex="0">
+    <rect x="60" y="225" width="75" height="50" rx="25" ry="25" fill="#2ea04322" stroke="#2ea043" stroke-width="2"/>
+    <text class="node-label" x="97" y="255" text-anchor="middle">Start</text>
+  </g>
+
+  <!-- B: Search Products -->
+  <g class="node" data-id="B" tabindex="0">
+    <rect x="195" y="220" width="130" height="60" rx="8" ry="8" fill="#388bfd18" stroke="#388bfd" stroke-width="2"/>
+    <text class="node-label" x="260" y="255" text-anchor="middle">Search Products</text>
+  </g>
+
+  <!-- C: Found results? (diamond) -->
+  <g class="node" data-id="C" tabindex="0">
+    <path d="M 435 200 L 475 250 L 435 300 L 395 250 Z" fill="#d2992218" stroke="#d29922" stroke-width="2"/>
+    <text class="node-label" x="435" y="247" text-anchor="middle" font-size="12">Found</text>
+    <text class="node-label" x="435" y="262" text-anchor="middle" font-size="12">results?</text>
+  </g>
+
+  <!-- D: Product Detail -->
+  <g class="node" data-id="D" tabindex="0">
+    <rect x="535" y="150" width="130" height="60" rx="8" ry="8" fill="#388bfd18" stroke="#388bfd" stroke-width="2"/>
+    <text class="node-label" x="600" y="185" text-anchor="middle">Product Detail</text>
+  </g>
+
+  <!-- E: No Results Page -->
+  <g class="node" data-id="E" tabindex="0">
+    <rect x="535" y="310" width="130" height="60" rx="8" ry="8" fill="#da363318" stroke="#da3633" stroke-width="2"/>
+    <text class="node-label" x="600" y="338" text-anchor="middle" font-size="13">No Results</text>
+    <text class="node-label" x="600" y="354" text-anchor="middle" font-size="13">Page</text>
+  </g>
+
+  <!-- F: In Stock? (diamond) -->
+  <g class="node" data-id="F" tabindex="0">
+    <path d="M 775 130 L 815 180 L 775 230 L 735 180 Z" fill="#d2992218" stroke="#d29922" stroke-width="2"/>
+    <text class="node-label" x="775" y="177" text-anchor="middle" font-size="12">In</text>
+    <text class="node-label" x="775" y="192" text-anchor="middle" font-size="12">Stock?</text>
+  </g>
+
+  <!-- G: Add to Cart -->
+  <g class="node" data-id="G" tabindex="0">
+    <rect x="875" y="80" width="125" height="60" rx="8" ry="8" fill="#388bfd18" stroke="#388bfd" stroke-width="2"/>
+    <text class="node-label" x="937" y="115" text-anchor="middle">Add to Cart</text>
+  </g>
+
+  <!-- H: Notify When Available -->
+  <g class="node" data-id="H" tabindex="0">
+    <rect x="855" y="270" width="150" height="60" rx="8" ry="8" fill="#da363318" stroke="#da3633" stroke-width="2"/>
+    <text class="node-label" x="930" y="296" text-anchor="middle" font-size="12">Notify When</text>
+    <text class="node-label" x="930" y="312" text-anchor="middle" font-size="12">Available</text>
+  </g>
+
+  <!-- I: Checkout -->
+  <g class="node" data-id="I" tabindex="0">
+    <rect x="1035" y="80" width="130" height="60" rx="8" ry="8" fill="#388bfd18" stroke="#388bfd" stroke-width="2"/>
+    <text class="node-label" x="1100" y="115" text-anchor="middle">Checkout</text>
+  </g>
+
+  <!-- J: Order Confirmed (stadium) -->
+  <g class="node" data-id="J" tabindex="0">
+    <rect x="1040" y="195" width="130" height="50" rx="25" ry="25" fill="#2ea04322" stroke="#2ea043" stroke-width="2"/>
+    <text class="node-label" x="1105" y="224" text-anchor="middle" font-size="13">Order Confirmed</text>
+  </g>
+</svg>
+</div>
+
+<div class="info-panel" id="infoPanel">
+  <div class="step-badge" id="stepBadge"></div>
+  <h3 id="panelTitle"></h3>
+  <p id="panelDesc"></p>
+  <div class="nav-buttons">
+    <button id="btnPrev" onclick="navigateNode(-1)">Previous</button>
+    <button id="btnNext" onclick="navigateNode(1)">Next</button>
+  </div>
+  <div class="nav-hint">Click a node or use arrow keys to navigate</div>
+</div>
+
+<script>
+const nodeData = {
+  A: {
+    title: 'Start',
+    desc: 'The user begins their shopping journey. This is the entry point to the product purchase flow.',
+    type: 'terminal',
+    color: '#2ea043',
+    next: ['B'],
+    prev: []
+  },
+  B: {
+    title: 'Search Products',
+    desc: 'User enters a search query to find products. The system queries the product catalog and returns matching results.',
+    type: 'action',
+    color: '#388bfd',
+    next: ['C'],
+    prev: ['A', 'E']
+  },
+  C: {
+    title: 'Found Results?',
+    desc: 'Decision point: did the search return any matching products? The flow branches based on whether results exist.',
+    type: 'decision',
+    color: '#d29922',
+    next: ['D', 'E'],
+    prev: ['B']
+  },
+  D: {
+    title: 'Product Detail',
+    desc: 'User views the detailed product page including images, specifications, pricing, and availability information.',
+    type: 'action',
+    color: '#388bfd',
+    next: ['F'],
+    prev: ['C']
+  },
+  E: {
+    title: 'No Results Page',
+    desc: 'No products matched the search. The user is shown suggestions and can refine their search to try again.',
+    type: 'alternate',
+    color: '#da3633',
+    next: ['B'],
+    prev: ['C']
+  },
+  F: {
+    title: 'In Stock?',
+    desc: 'Decision point: is the selected product currently in stock and available for purchase?',
+    type: 'decision',
+    color: '#d29922',
+    next: ['G', 'H'],
+    prev: ['D']
+  },
+  G: {
+    title: 'Add to Cart',
+    desc: 'The product is in stock. User adds it to their shopping cart with the desired quantity.',
+    type: 'action',
+    color: '#388bfd',
+    next: ['I'],
+    prev: ['F']
+  },
+  H: {
+    title: 'Notify When Available',
+    desc: 'The product is out of stock. User opts in to receive a notification when the product becomes available again.',
+    type: 'alternate',
+    color: '#da3633',
+    next: [],
+    prev: ['F']
+  },
+  I: {
+    title: 'Checkout',
+    desc: 'User proceeds to checkout: reviews cart, enters shipping and payment details, and confirms the order.',
+    type: 'action',
+    color: '#388bfd',
+    next: ['J'],
+    prev: ['G']
+  },
+  J: {
+    title: 'Order Confirmed',
+    desc: 'The order has been successfully placed. User receives a confirmation with order number and estimated delivery.',
+    type: 'terminal',
+    color: '#2ea043',
+    next: [],
+    prev: ['I']
+  }
+};
+
+const typeLabels = {
+  terminal: 'Terminal',
+  action: 'Action Step',
+  decision: 'Decision',
+  alternate: 'Alternate Path'
+};
+
+let activeNode = null;
+const panel = document.getElementById('infoPanel');
+const mainPath = ['A', 'B', 'C', 'D', 'F', 'G', 'I', 'J'];
+
+function selectNode(id) {
+  // Deselect previous
+  document.querySelectorAll('.node.active').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.edge.highlight').forEach(e => {
+    e.classList.remove('highlight');
+    e.querySelector('line, path').setAttribute('marker-end', 'url(#arrow)');
+  });
+
+  if (activeNode === id) {
+    activeNode = null;
+    panel.classList.remove('visible');
+    return;
+  }
+
+  activeNode = id;
+  const data = nodeData[id];
+  const nodeEl = document.querySelector(`.node[data-id="${id}"]`);
+  nodeEl.classList.add('active');
+
+  // Highlight connected edges
+  document.querySelectorAll('.edge').forEach(edge => {
+    const from = edge.dataset.from;
+    const to = edge.dataset.to;
+    if (from === id || to === id) {
+      edge.classList.add('highlight');
+      const lineOrPath = edge.querySelector('line, path');
+      lineOrPath.setAttribute('marker-end', 'url(#arrow-hi)');
+    }
+  });
+
+  // Update panel
+  const badge = document.getElementById('stepBadge');
+  badge.textContent = typeLabels[data.type];
+  badge.style.background = data.color + '25';
+  badge.style.color = data.color;
+
+  document.getElementById('panelTitle').textContent = data.title;
+  document.getElementById('panelDesc').textContent = data.desc;
+
+  // Nav buttons
+  const idx = mainPath.indexOf(id);
+  const allNodes = Object.keys(nodeData);
+  document.getElementById('btnPrev').disabled = data.prev.length === 0;
+  document.getElementById('btnNext').disabled = data.next.length === 0;
+
+  panel.classList.add('visible');
+}
+
+function navigateNode(dir) {
+  if (!activeNode) return;
+  const data = nodeData[activeNode];
+  if (dir === 1 && data.next.length > 0) {
+    selectNode(data.next[0]);
+  } else if (dir === -1 && data.prev.length > 0) {
+    selectNode(data.prev[0]);
+  }
+}
+
+// Click handlers
+document.querySelectorAll('.node').forEach(node => {
+  node.addEventListener('click', () => selectNode(node.dataset.id));
+  node.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      selectNode(node.dataset.id);
+    }
+  });
+});
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') navigateNode(1);
+  if (e.key === 'ArrowLeft') navigateNode(-1);
+  if (e.key === 'Escape') {
+    if (activeNode) selectNode(activeNode); // toggle off
+  }
+});
+
+// Click outside to dismiss
+document.querySelector('.canvas-wrapper').addEventListener('click', (e) => {
+  if (!e.target.closest('.node') && activeNode) {
+    selectNode(activeNode);
+  }
+});
+</script>
+
+</body>
+</html>

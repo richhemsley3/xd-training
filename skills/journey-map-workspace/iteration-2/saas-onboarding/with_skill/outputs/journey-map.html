@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SaaS Onboarding Journey — Customer Journey Map</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    /* ─── CSS Custom Properties (SDS Tokens) ─── */
+    :root {
+      --bg-canvas: #FAF8F5;
+      --bg-card: #FFFFFF;
+      --bg-header: #F4F1EB;
+      --bg-elevated: #FFFFFF;
+
+      --border-subtle: #EBE6DD;
+      --border-default: #E0DCD3;
+      --border-strong: #D0CBC3;
+      --border-focus: #013D5B;
+
+      --text-primary: #1C1A17;
+      --text-secondary: #54514D;
+      --text-tertiary: #6B6760;
+      --text-disabled: #B0ABA2;
+      --text-on-primary: #FFFFFF;
+
+      --interactive-primary: #013D5B;
+      --interactive-primary-hover: #05314D;
+      --interactive-primary-subtle: #D9EBED;
+
+      --phase-1: #805AA1;
+      --phase-2: #013D5B;
+      --phase-3: #0C4A69;
+      --phase-4: #7A9A01;
+
+      --emotion-positive: #7A9A01;
+      --emotion-neutral: #0C4A69;
+      --emotion-negative: #CF6253;
+
+      --accent-pain: #BF5547;
+      --accent-pain-bg: #FFEEEB;
+      --accent-opportunity: #62800B;
+      --accent-opportunity-bg: #F4FAEB;
+      --accent-need: #8A7515;
+      --accent-need-bg: #FCF9D9;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 32px;
+    }
+
+    /* ─── Title Bar ─── */
+    .title-bar {
+      margin-bottom: 24px;
+    }
+    .title-bar h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .persona-info {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-top: 8px;
+    }
+    .persona-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--bg-header);
+      border: 2px solid var(--border-default);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: var(--text-tertiary);
+    }
+    .persona-detail {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .persona-detail strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+    .persona-detail .role {
+      color: var(--text-tertiary);
+      font-size: 12px;
+    }
+    .persona-detail .goal {
+      color: var(--text-secondary);
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    /* ─── Grid Container ─── */
+    .journey-grid-wrapper {
+      overflow-x: auto;
+      border: 1px solid var(--border-default);
+      border-radius: 12px;
+      background: var(--border-subtle);
+    }
+
+    .journey-grid {
+      display: grid;
+      gap: 1px;
+      min-width: max-content;
+    }
+
+    /* ─── Row Labels (sticky left column) ─── */
+    .row-label {
+      position: sticky;
+      left: 0;
+      z-index: 10;
+      background: var(--bg-header);
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      min-height: 48px;
+      border-right: 2px solid var(--border-strong);
+    }
+    .row-label.emotion-label {
+      min-height: 120px;
+    }
+
+    /* ─── Phase Headers ─── */
+    .phase-header {
+      padding: 0 16px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-on-primary);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: filter 0.15s;
+    }
+    .phase-header:hover {
+      filter: brightness(0.9);
+    }
+    .phase-header .phase-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+    .phase-header-corner-left {
+      border-top-left-radius: 8px;
+    }
+    .phase-header-corner-right {
+      border-top-right-radius: 8px;
+    }
+
+    /* ─── Step Headers ─── */
+    .step-header {
+      background: var(--bg-card);
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      height: 32px;
+      display: flex;
+      align-items: center;
+    }
+
+    /* ─── Content Cells ─── */
+    .cell {
+      background: var(--bg-card);
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--text-secondary);
+      min-height: 64px;
+      display: flex;
+      align-items: flex-start;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+      transition: background 0.15s, box-shadow 0.15s;
+      cursor: default;
+    }
+    .cell:hover {
+      background: rgba(1, 61, 91, 0.05);
+      box-shadow: inset 0 0 0 1px rgba(1, 61, 91, 0.08);
+    }
+
+    /* ─── Pain Point Cells ─── */
+    .cell.pain-cell {
+      background: var(--accent-pain-bg);
+    }
+    .cell.pain-cell:hover {
+      background: #FFE0DB;
+    }
+    .pain-marker {
+      color: var(--accent-pain);
+      font-weight: 500;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    /* ─── Opportunity Cells ─── */
+    .cell.opportunity-cell {
+      background: var(--accent-opportunity-bg);
+    }
+    .cell.opportunity-cell:hover {
+      background: #E8F5D6;
+    }
+    .opportunity-marker {
+      color: var(--accent-opportunity);
+      font-weight: 500;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    /* ─── Need Cells ─── */
+    .cell.need-cell {
+      background: var(--accent-need-bg);
+    }
+    .cell.need-cell:hover {
+      background: #F5F0C0;
+    }
+    .need-marker {
+      color: var(--accent-need);
+      font-weight: 500;
+      font-size: 12px;
+      font-style: italic;
+      line-height: 1.4;
+    }
+
+    /* ─── Emotion Row ─── */
+    .emotion-row-container {
+      background: var(--bg-card);
+      position: relative;
+      min-height: 120px;
+      display: flex;
+      align-items: center;
+    }
+    .emotion-row-container svg {
+      display: block;
+    }
+
+    /* ─── Empty Cells ─── */
+    .cell.empty-cell {
+      border: 1px dashed var(--border-default);
+      background: transparent;
+      color: var(--text-disabled);
+      font-style: italic;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* ─── Touchpoint Icons ─── */
+    .touchpoint-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* ─── Tooltip ─── */
+    .tooltip {
+      position: fixed;
+      pointer-events: none;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-default);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      z-index: 1000;
+      max-width: 260px;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .tooltip.visible {
+      opacity: 1;
+    }
+    .tooltip .tt-label {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    .tooltip .tt-score {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    .tooltip .tt-annotation {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      line-height: 1.4;
+    }
+
+    /* ─── Phase Column Separator ─── */
+    .phase-separator {
+      border-left: 2px solid var(--border-strong);
+    }
+
+    /* ─── Reliance on Support ─── */
+    .support-bar-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      width: 100%;
+    }
+    .support-bar {
+      width: 80%;
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .support-label {
+      font-size: 10px;
+      color: var(--text-tertiary);
+      font-weight: 500;
+    }
+
+    /* ─── Print Styles ─── */
+    @media print {
+      body { padding: 16px; background: white; }
+      .journey-grid-wrapper { border: none; border-radius: 0; overflow: visible; }
+      .journey-grid { min-width: unset; }
+      .row-label { position: relative; }
+      .tooltip { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="title-bar">
+    <h1>SaaS Onboarding — Customer Journey Map</h1>
+    <div class="persona-info">
+      <div class="persona-avatar">&#128100;</div>
+      <div class="persona-detail">
+        <strong>New SaaS Customer</strong>
+        <div class="role">B2B SaaS Prospect / Trial User</div>
+        <div class="goal">Evaluate, sign up, and adopt the product for their team</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="journey-grid-wrapper">
+    <div class="journey-grid" id="journeyGrid"></div>
+  </div>
+
+  <div class="tooltip" id="tooltip"></div>
+
+  <script>
+    // ─── Journey Data ───
+    const journeyData = {
+      title: "SaaS Onboarding Journey",
+      persona: {
+        name: "New SaaS Customer",
+        role: "B2B SaaS Prospect / Trial User",
+        goal: "Evaluate, sign up, and adopt the product for their team"
+      },
+      phases: [
+        {
+          id: "awareness",
+          label: "Awareness",
+          icon: "&#128269;",
+          color: "#805AA1",
+          steps: [
+            {
+              id: "landing-page",
+              label: "Landing Page",
+              emotion: {
+                score: 0.65,
+                label: "Curious",
+                annotation: "User discovers the product through an ad or referral and lands on the homepage"
+              },
+              needs: "Quickly understand the product's value proposition and relevance to their problem",
+              actions: "Scans hero section, reads feature highlights, watches demo video",
+              touchpoints: ["Website", "Social Media"],
+              painPoints: ["Value proposition is unclear; too much jargon and buzzwords on the page"],
+              opportunities: ["Add a 60-second interactive product demo directly on the landing page"],
+              metrics: { name: "Bounce Rate", value: "52%" },
+              supportReliance: "light"
+            },
+            {
+              id: "pricing-page",
+              label: "Pricing Page",
+              emotion: {
+                score: 0.55,
+                label: "Cautious",
+                annotation: "User compares plans and tries to understand which tier fits their needs"
+              },
+              needs: "Clear comparison of plans and transparent pricing without hidden costs",
+              actions: "Compares plan tiers, checks feature matrix, looks for free trial option",
+              touchpoints: ["Website"],
+              painPoints: ["Pricing tiers are confusing; unclear which features are in which plan"],
+              opportunities: ["Add a plan recommendation quiz based on team size and use case"],
+              metrics: { name: "Pricing Page Exit Rate", value: "38%" },
+              supportReliance: "light"
+            }
+          ]
+        },
+        {
+          id: "signup",
+          label: "Sign Up",
+          icon: "&#9997;",
+          color: "#013D5B",
+          steps: [
+            {
+              id: "registration",
+              label: "Registration",
+              emotion: {
+                score: 0.78,
+                label: "Excited",
+                annotation: "User decides to try the product and fills out the sign-up form with high motivation"
+              },
+              needs: "A quick, frictionless sign-up process with minimal required fields",
+              actions: "Fills in name, email, company; selects plan; submits registration form",
+              touchpoints: ["Website"],
+              painPoints: ["Too many required fields; no SSO option slows down the process"],
+              opportunities: ["Offer Google/Microsoft SSO and reduce form to email-only with progressive profiling"],
+              metrics: { name: "Form Completion Rate", value: "71%" },
+              supportReliance: "light"
+            },
+            {
+              id: "email-verification",
+              label: "Email Verification",
+              emotion: {
+                score: 0.60,
+                label: "Impatient",
+                annotation: "User waits for a verification email and checks inbox to confirm their account"
+              },
+              needs: "Instant delivery of verification email with a clear call-to-action",
+              actions: "Checks inbox, searches spam folder, clicks verification link",
+              touchpoints: ["Email"],
+              painPoints: ["Verification email lands in spam; delay in receiving the email causes drop-off"],
+              opportunities: ["Use magic-link or auto-verify via OAuth to eliminate this step entirely"],
+              metrics: { name: "Verification Completion", value: "84%" },
+              supportReliance: "medium"
+            }
+          ]
+        },
+        {
+          id: "onboarding",
+          label: "Onboarding",
+          icon: "&#128640;",
+          color: "#0C4A69",
+          steps: [
+            {
+              id: "product-tour",
+              label: "Product Tour",
+              emotion: {
+                score: 0.50,
+                label: "Overwhelmed",
+                annotation: "User starts an in-app tour but feels overwhelmed by the number of features shown"
+              },
+              needs: "A focused, relevant tour highlighting only the features they need first",
+              actions: "Clicks through tooltips, skips some steps, tries to orient in the interface",
+              touchpoints: ["Web App"],
+              painPoints: ["Tour is too long and generic; not personalized to the user's role or goals"],
+              opportunities: ["Implement role-based onboarding with contextual walkthroughs for top 3 tasks"],
+              metrics: { name: "Tour Completion Rate", value: "34%" },
+              supportReliance: "medium"
+            },
+            {
+              id: "first-project",
+              label: "First Project",
+              emotion: {
+                score: 0.30,
+                label: "Frustrated",
+                annotation: "User struggles to set up their first real project and encounters confusing configuration options"
+              },
+              needs: "A guided setup wizard or template to create their first project without friction",
+              actions: "Attempts manual setup, searches help docs, considers reaching out to support",
+              touchpoints: ["Web App", "Help Center"],
+              painPoints: ["No templates available; setup requires too many configuration steps with no guidance"],
+              opportunities: ["Provide industry-specific project templates with pre-filled settings and a setup wizard"],
+              metrics: { name: "First Project Created", value: "48%" },
+              supportReliance: "heavy"
+            },
+            {
+              id: "invite-team",
+              label: "Invite Team",
+              emotion: {
+                score: 0.35,
+                label: "Uncertain",
+                annotation: "User tries to invite teammates but is unsure about roles, permissions, and seat limits"
+              },
+              needs: "Simple team invitation flow with clear role descriptions and seat management",
+              actions: "Enters colleague emails, guesses at permission levels, sends invites",
+              touchpoints: ["Web App", "Email"],
+              painPoints: ["Role permissions are confusing; unclear how many seats are included in the plan"],
+              opportunities: ["Add a visual role-comparison chart and a bulk-invite CSV upload option"],
+              metrics: { name: "Teams with 2+ Members", value: "29%" },
+              supportReliance: "heavy"
+            }
+          ]
+        },
+        {
+          id: "adoption",
+          label: "Adoption",
+          icon: "&#11088;",
+          color: "#7A9A01",
+          steps: [
+            {
+              id: "daily-usage",
+              label: "Daily Usage",
+              emotion: {
+                score: 0.62,
+                label: "Gaining Confidence",
+                annotation: "User starts using the product regularly and begins to see value in their workflow"
+              },
+              needs: "Consistent experience, keyboard shortcuts, and efficiency features for power usage",
+              actions: "Logs in daily, uses core features, develops personal workflows",
+              touchpoints: ["Web App", "Mobile App"],
+              painPoints: ["Performance is slow during peak hours; lack of keyboard shortcuts slows power users"],
+              opportunities: ["Add keyboard shortcut overlay, performance optimizations, and a daily digest email"],
+              metrics: { name: "DAU/MAU Ratio", value: "38%" },
+              supportReliance: "light"
+            },
+            {
+              id: "feature-discovery",
+              label: "Feature Discovery",
+              emotion: {
+                score: 0.75,
+                label: "Delighted",
+                annotation: "User discovers advanced features that significantly improve their workflow and feels the product is worth the investment"
+              },
+              needs: "Contextual feature recommendations based on usage patterns and goals",
+              actions: "Explores settings, tries integrations, reads release notes, shares with team",
+              touchpoints: ["Web App", "Email", "Blog"],
+              painPoints: ["Advanced features are hidden in menus; no proactive nudges to discover them"],
+              opportunities: ["Implement contextual feature suggestions based on usage patterns and in-app announcements"],
+              metrics: { name: "Feature Adoption", value: "22%" },
+              supportReliance: "light"
+            }
+          ]
+        }
+      ]
+    };
+
+    // ─── Flatten Steps ───
+    const allSteps = journeyData.phases.flatMap(p => p.steps);
+    const totalSteps = allSteps.length;
+
+    // ─── Dimension Rows ───
+    const dimensions = [
+      { key: "touchpoints", label: "Touchpoints" },
+      { key: "emotion", label: "Emotion / CX Score" },
+      { key: "needs", label: "Critical Unmet Needs" },
+      { key: "actions", label: "Actions / Workarounds" },
+      { key: "painPoints", label: "Pain Points" },
+      { key: "opportunities", label: "Opportunities" },
+      { key: "metrics", label: "Metrics / KPIs" },
+      { key: "supportReliance", label: "Reliance on Support" }
+    ];
+
+    // ─── Build Grid ───
+    const grid = document.getElementById('journeyGrid');
+    const colWidth = 190;
+    const labelWidth = 140;
+
+    // Grid template columns: label + step columns
+    grid.style.gridTemplateColumns = `${labelWidth}px repeat(${totalSteps}, ${colWidth}px)`;
+
+    // ─── Row 1: Phase Headers ───
+    // Corner cell
+    const corner = document.createElement('div');
+    corner.className = 'row-label';
+    corner.style.minHeight = '44px';
+    corner.style.borderTopLeftRadius = '11px';
+    corner.style.background = 'var(--bg-header)';
+    corner.textContent = '';
+    grid.appendChild(corner);
+
+    // Phase header cells (spanning step columns)
+    journeyData.phases.forEach((phase, pi) => {
+      phase.steps.forEach((step, si) => {
+        const cell = document.createElement('div');
+        cell.className = 'phase-header';
+        cell.style.background = phase.color;
+
+        // Only show label on first step of phase
+        if (si === 0) {
+          cell.style.gridColumn = `span ${phase.steps.length}`;
+          // Corner radius
+          cell.classList.add('phase-header-corner-left');
+          if (pi === 0) cell.style.borderTopLeftRadius = '0';
+
+          const icon = document.createElement('span');
+          icon.className = 'phase-icon';
+          icon.innerHTML = phase.icon;
+          cell.appendChild(icon);
+
+          const label = document.createElement('span');
+          label.textContent = phase.label;
+          cell.appendChild(label);
+
+          // Add right radius on last step
+          cell.classList.add('phase-header-corner-right');
+
+          grid.appendChild(cell);
+        }
+      });
+    });
+
+    // ─── Row 2: Step Headers ───
+    const stepCorner = document.createElement('div');
+    stepCorner.className = 'row-label';
+    stepCorner.style.minHeight = '32px';
+    stepCorner.textContent = 'Steps';
+    grid.appendChild(stepCorner);
+
+    let stepIndex = 0;
+    journeyData.phases.forEach((phase, pi) => {
+      phase.steps.forEach((step, si) => {
+        const cell = document.createElement('div');
+        cell.className = 'step-header';
+        if (si === 0 && pi > 0) cell.classList.add('phase-separator');
+        cell.style.borderBottom = `2px solid ${phase.color}`;
+        cell.textContent = step.label;
+        // Subtle phase tint
+        cell.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;
+        grid.appendChild(cell);
+        stepIndex++;
+      });
+    });
+
+    // ─── Dimension Rows ───
+    dimensions.forEach(dim => {
+      // Row label
+      const label = document.createElement('div');
+      label.className = 'row-label' + (dim.key === 'emotion' ? ' emotion-label' : '');
+      label.textContent = dim.label;
+      grid.appendChild(label);
+
+      if (dim.key === 'emotion') {
+        // Single cell spanning all step columns for the emotion curve
+        const emotionContainer = document.createElement('div');
+        emotionContainer.className = 'emotion-row-container';
+        emotionContainer.id = 'emotion-row';
+        emotionContainer.style.gridColumn = `2 / ${totalSteps + 2}`;
+        grid.appendChild(emotionContainer);
+      } else {
+        // Content cells
+        let colIdx = 0;
+        journeyData.phases.forEach((phase, pi) => {
+          phase.steps.forEach((step, si) => {
+            const cell = document.createElement('div');
+            cell.style.background = `rgba(${hexToRgb(phase.color)}, 0.03)`;
+
+            if (si === 0 && pi > 0) cell.classList.add('phase-separator');
+
+            if (dim.key === 'touchpoints') {
+              cell.className = 'cell';
+              if (step.touchpoints && step.touchpoints.length) {
+                const icons = { 'Website': '🌐', 'Social Media': '📱', 'Email': '📧', 'Web App': '💻', 'Mobile App': '📱', 'Help Center': '📖', 'Blog': '📝' };
+                step.touchpoints.forEach(tp => {
+                  const item = document.createElement('div');
+                  item.className = 'touchpoint-item';
+                  item.textContent = `${icons[tp] || '🔗'} ${tp}`;
+                  cell.appendChild(item);
+                });
+              } else {
+                cell.classList.add('empty-cell');
+                cell.textContent = '—';
+              }
+            } else if (dim.key === 'needs') {
+              cell.className = 'cell need-cell';
+              if (step.needs) {
+                const marker = document.createElement('div');
+                marker.className = 'need-marker';
+                marker.textContent = step.needs;
+                cell.appendChild(marker);
+              } else {
+                cell.className = 'cell empty-cell';
+                cell.textContent = '—';
+              }
+            } else if (dim.key === 'actions') {
+              cell.className = 'cell';
+              cell.textContent = step.actions || '—';
+              if (!step.actions) cell.classList.add('empty-cell');
+            } else if (dim.key === 'painPoints') {
+              cell.className = 'cell pain-cell';
+              if (step.painPoints && step.painPoints.length) {
+                step.painPoints.forEach(pp => {
+                  const marker = document.createElement('div');
+                  marker.className = 'pain-marker';
+                  marker.textContent = `⚠️ ${pp}`;
+                  cell.appendChild(marker);
+                });
+              } else {
+                cell.className = 'cell empty-cell';
+                cell.textContent = '—';
+              }
+            } else if (dim.key === 'opportunities') {
+              cell.className = 'cell opportunity-cell';
+              if (step.opportunities && step.opportunities.length) {
+                step.opportunities.forEach(opp => {
+                  const marker = document.createElement('div');
+                  marker.className = 'opportunity-marker';
+                  marker.textContent = `💡 ${opp}`;
+                  cell.appendChild(marker);
+                });
+              } else {
+                cell.className = 'cell empty-cell';
+                cell.textContent = '—';
+              }
+            } else if (dim.key === 'metrics') {
+              cell.className = 'cell';
+              if (step.metrics) {
+                cell.innerHTML = `
+                  <div style="font-size:10px;color:var(--text-tertiary);font-weight:500;text-transform:uppercase;letter-spacing:0.3px;">${step.metrics.name}</div>
+                  <div style="font-size:16px;font-weight:700;color:${phase.color};margin-top:2px;">${step.metrics.value}</div>
+                `;
+              } else {
+                cell.classList.add('empty-cell');
+                cell.textContent = '—';
+              }
+            } else if (dim.key === 'supportReliance') {
+              cell.className = 'cell';
+              const container = document.createElement('div');
+              container.className = 'support-bar-container';
+              const bar = document.createElement('div');
+              bar.className = 'support-bar';
+              const level = step.supportReliance || 'light';
+              const barColors = { heavy: 'var(--text-primary)', medium: 'var(--text-secondary)', light: 'var(--text-disabled)' };
+              const barWidths = { heavy: '100%', medium: '60%', light: '30%' };
+              bar.style.background = `linear-gradient(to right, ${barColors[level]} ${barWidths[level]}, var(--border-subtle) ${barWidths[level]})`;
+              container.appendChild(bar);
+              const lbl = document.createElement('div');
+              lbl.className = 'support-label';
+              lbl.textContent = level.charAt(0).toUpperCase() + level.slice(1);
+              container.appendChild(lbl);
+              cell.appendChild(container);
+            }
+
+            grid.appendChild(cell);
+            colIdx++;
+          });
+        });
+      }
+    });
+
+    // ─── Emotion Curve (D3.js) ───
+    const emotionRow = document.getElementById('emotion-row');
+    const totalContentWidth = totalSteps * colWidth;
+    const chartHeight = 100;
+    const chartPadding = { top: 14, bottom: 14, left: colWidth / 2, right: colWidth / 2 };
+
+    const emotionSvg = d3.select('#emotion-row')
+      .append('svg')
+      .attr('width', totalContentWidth)
+      .attr('height', chartHeight + 20);
+
+    // Background bands
+    const bandData = [
+      { y: 0, height: chartHeight * 0.33, color: 'rgba(122,154,1, 0.05)' },
+      { y: chartHeight * 0.33, height: chartHeight * 0.34, color: 'rgba(12,74,105, 0.05)' },
+      { y: chartHeight * 0.67, height: chartHeight * 0.33, color: 'rgba(207,98,83, 0.05)' }
+    ];
+
+    bandData.forEach(b => {
+      emotionSvg.append('rect')
+        .attr('x', 0)
+        .attr('y', b.y + 10)
+        .attr('width', totalContentWidth)
+        .attr('height', b.height)
+        .attr('fill', b.color);
+    });
+
+    // Band labels
+    const bandLabels = [
+      { text: '😊', y: chartHeight * 0.17 + 10 },
+      { text: '😐', y: chartHeight * 0.5 + 10 },
+      { text: '😞', y: chartHeight * 0.83 + 10 }
+    ];
+    bandLabels.forEach(bl => {
+      emotionSvg.append('text')
+        .attr('x', 8)
+        .attr('y', bl.y + 4)
+        .attr('font-size', '12px')
+        .text(bl.text);
+    });
+
+    // Scales
+    const xScale = d3.scaleLinear()
+      .domain([0, allSteps.length - 1])
+      .range([colWidth / 2, totalContentWidth - colWidth / 2]);
+
+    const yScale = d3.scaleLinear()
+      .domain([0, 1])
+      .range([chartHeight, 10]);
+
+    // Line
+    const line = d3.line()
+      .x((d, i) => xScale(i))
+      .y(d => yScale(d.emotion.score))
+      .curve(d3.curveMonotoneX);
+
+    emotionSvg.append('path')
+      .datum(allSteps)
+      .attr('d', line)
+      .attr('fill', 'none')
+      .attr('stroke', 'var(--emotion-neutral)')
+      .attr('stroke-width', 2.5)
+      .attr('transform', 'translate(0, 10)');
+
+    // Data points
+    const tooltip = document.getElementById('tooltip');
+
+    emotionSvg.selectAll('.emotion-dot')
+      .data(allSteps)
+      .join('circle')
+      .attr('class', 'emotion-dot')
+      .attr('cx', (d, i) => xScale(i))
+      .attr('cy', d => yScale(d.emotion.score) + 10)
+      .attr('r', 6)
+      .attr('fill', d => d.emotion.score > 0.6 ? 'var(--emotion-positive)'
+                        : d.emotion.score > 0.3 ? 'var(--emotion-neutral)' : 'var(--emotion-negative)')
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 2)
+      .style('cursor', 'pointer')
+      .on('mouseenter', function(event, d) {
+        d3.select(this).transition().duration(150).attr('r', 10);
+        const scoreColor = d.emotion.score > 0.6 ? 'var(--emotion-positive)'
+                         : d.emotion.score > 0.3 ? 'var(--emotion-neutral)' : 'var(--emotion-negative)';
+        const emoji = d.emotion.score > 0.6 ? '😊' : d.emotion.score > 0.3 ? '😐' : '😞';
+        tooltip.innerHTML = `
+          <div class="tt-label">${d.label}</div>
+          <div class="tt-score" style="color:${scoreColor}">${emoji} ${d.emotion.label} (${(d.emotion.score * 100).toFixed(0)}%)</div>
+          <div class="tt-annotation">${d.emotion.annotation}</div>
+        `;
+        tooltip.classList.add('visible');
+      })
+      .on('mousemove', function(event) {
+        tooltip.style.left = (event.clientX + 14) + 'px';
+        tooltip.style.top = (event.clientY - 10) + 'px';
+      })
+      .on('mouseleave', function() {
+        d3.select(this).transition().duration(150).attr('r', 6);
+        tooltip.classList.remove('visible');
+      });
+
+    // Emoji markers above dots
+    emotionSvg.selectAll('.emotion-emoji')
+      .data(allSteps)
+      .join('text')
+      .attr('class', 'emotion-emoji')
+      .attr('x', (d, i) => xScale(i))
+      .attr('y', d => yScale(d.emotion.score) + 10 - 14)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '13px')
+      .text(d => d.emotion.score > 0.6 ? '😊' : d.emotion.score > 0.3 ? '😐' : '😞');
+
+    // Score labels below dots
+    emotionSvg.selectAll('.emotion-score-label')
+      .data(allSteps)
+      .join('text')
+      .attr('class', 'emotion-score-label')
+      .attr('x', (d, i) => xScale(i))
+      .attr('y', d => yScale(d.emotion.score) + 10 + 18)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '10px')
+      .attr('font-weight', '600')
+      .attr('fill', d => d.emotion.score > 0.6 ? 'var(--emotion-positive)'
+                        : d.emotion.score > 0.3 ? 'var(--emotion-neutral)' : 'var(--emotion-negative)')
+      .text(d => d.emotion.label);
+
+    // ─── Utility ───
+    function hexToRgb(hex) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `${r}, ${g}, ${b}`;
+    }
+  </script>
+</body>
+</html>

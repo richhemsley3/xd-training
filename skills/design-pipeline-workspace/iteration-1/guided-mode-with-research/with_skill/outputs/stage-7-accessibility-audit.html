@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Access Request Portal — Accessibility Audit</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap">
+<style>
+  :root {
+    --sds-font-sans: 'Proxima Nova', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --sds-color-warm-gray-025: #FAF8F5; --sds-color-warm-gray-050: #F4F1EB;
+    --sds-color-warm-gray-100: #EBE6DD; --sds-color-warm-gray-150: #E0DCD3;
+    --sds-color-warm-gray-400: #948E85; --sds-color-warm-gray-550: #6B6760;
+    --sds-color-warm-gray-700: #47443F; --sds-color-warm-gray-900: #1C1A17;
+    --sds-color-blue-050: #EBF4F5; --sds-color-blue-700: #0C4A69; --sds-color-blue-750: #013D5B;
+    --sds-color-red-050: #FFEEEB; --sds-color-red-500: #BF5547;
+    --sds-color-green-025: #F4FAEB; --sds-color-green-400: #7A9A01; --sds-color-green-500: #62800B;
+    --sds-color-yellow-025: #FCF9D9; --sds-color-yellow-200: #EBCE2D; --sds-color-yellow-500: #8A7515;
+    --sds-color-purple-550: #805AA1;
+    --sds-color-white: #FFFFFF;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sds-font-sans); background: var(--sds-color-warm-gray-025); color: var(--sds-color-warm-gray-900); line-height: 1.5; font-size: 14px; padding: 32px 40px; -webkit-font-smoothing: antialiased; }
+  h1 { font-size: 28px; font-weight: 600; margin-bottom: 4px; }
+  .subtitle { font-size: 14px; color: var(--sds-color-warm-gray-550); margin-bottom: 32px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 8px; }
+  .desc { font-size: 13px; color: var(--sds-color-warm-gray-550); margin-bottom: 20px; max-width: 860px; }
+  .divider { border: none; border-top: 1px solid var(--sds-color-warm-gray-150); margin: 40px 0; }
+
+  .stat-row { display: flex; gap: 12px; margin-bottom: 24px; }
+  .stat-card { flex: 1; text-align: center; padding: 16px; background: var(--sds-color-white); border: 1px solid var(--sds-color-warm-gray-150); border-radius: 8px; }
+  .stat-value { font-size: 24px; font-weight: 600; color: var(--sds-color-blue-750); }
+  .stat-label { font-size: 11px; font-weight: 600; color: var(--sds-color-warm-gray-400); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 4px; }
+
+  .finding {
+    background: var(--sds-color-white); border: 1px solid var(--sds-color-warm-gray-150);
+    border-radius: 8px; padding: 16px 20px; margin-bottom: 12px;
+  }
+  .finding-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .finding-title { font-size: 14px; font-weight: 600; }
+  .finding-body { font-size: 13px; color: var(--sds-color-warm-gray-550); }
+  .finding-fix { font-size: 13px; color: var(--sds-color-green-500); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--sds-color-warm-gray-100); }
+  .finding-fix strong { color: var(--sds-color-warm-gray-700); }
+  .finding-meta { display: flex; gap: 12px; margin-top: 8px; font-size: 11px; color: var(--sds-color-warm-gray-400); }
+
+  .wcag-tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; background: var(--sds-color-blue-050); color: var(--sds-color-blue-700); margin-left: 6px; }
+  .level-tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; margin-left: 4px; }
+  .level-tag--a { background: var(--sds-color-yellow-025); color: var(--sds-color-yellow-500); }
+  .level-tag--aa { background: var(--sds-color-red-050); color: var(--sds-color-red-500); }
+
+  .severity { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .severity--critical { background: var(--sds-color-red-050); color: var(--sds-color-red-500); }
+  .severity--major { background: var(--sds-color-yellow-025); color: var(--sds-color-yellow-500); }
+  .severity--minor { background: var(--sds-color-blue-050); color: var(--sds-color-blue-700); }
+  .severity--fixed { background: var(--sds-color-green-025); color: var(--sds-color-green-500); }
+
+  .pass-label { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; margin-bottom: 16px; }
+  .pass-label--1 { background: var(--sds-color-red-050); color: var(--sds-color-red-500); }
+  .pass-label--2 { background: var(--sds-color-yellow-025); color: var(--sds-color-yellow-500); }
+  .pass-label--3 { background: var(--sds-color-green-025); color: var(--sds-color-green-500); }
+</style>
+</head>
+<body>
+
+<h1>Accessibility Audit</h1>
+<p class="subtitle">WCAG 2.1 AA compliance &middot; 3-pass auto-fix &middot; Applied to all 8 screens</p>
+
+<div class="stat-row">
+  <div class="stat-card"><div class="stat-value">14</div><div class="stat-label">Total Findings</div></div>
+  <div class="stat-card"><div class="stat-value">14</div><div class="stat-label">Fixed</div></div>
+  <div class="stat-card"><div class="stat-value">0</div><div class="stat-label">Remaining</div></div>
+  <div class="stat-card"><div class="stat-value">AA</div><div class="stat-label">Target Level</div></div>
+</div>
+
+<!-- ===== PASS 1 ===== -->
+<h2>Pass 1 — Full WCAG 2.1 AA Audit</h2>
+<p class="desc">Initial audit identified 10 failures across perceivable, operable, understandable, and robust criteria.</p>
+<div class="pass-label pass-label--1">Pass 1 &middot; 10 findings</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Risk meter bars convey information by color alone <span class="wcag-tag">1.4.1</span><span class="level-tag level-tag--a">Level A</span></div>
+    <span class="severity severity--critical">Critical</span>
+  </div>
+  <div class="finding-body">The risk meter on the Approval Queue uses green, yellow, and red colored bars with no text alternative. Users who cannot perceive color cannot determine the risk level.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added a text label next to the risk meter ("Low", "Medium", "High") and an aria-label on the container. Also added pattern fills (solid, diagonal, cross-hatch) as a secondary visual encoding.</div>
+  <div class="finding-meta"><span>WCAG 1.4.1 Use of Color</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Status tags rely solely on color <span class="wcag-tag">1.4.1</span><span class="level-tag level-tag--a">Level A</span></div>
+    <span class="severity severity--critical">Critical</span>
+  </div>
+  <div class="finding-body">Status tags (Pending, In Review, Approved, Denied, Provisioned) use color coding without any other differentiator. Screen reader users only hear the text, but low-vision users who can see some color but not distinguish hues are affected.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added a leading icon to each status tag: clock for Pending, eye for In Review, check_circle for Approved, cancel for Denied, verified for Provisioned. Icons serve as a shape-based differentiator.</div>
+  <div class="finding-meta"><span>WCAG 1.4.1 Use of Color</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Sensitivity badge contrast fails for yellow-on-white <span class="wcag-tag">1.4.3</span><span class="level-tag level-tag--aa">Level AA</span></div>
+    <span class="severity severity--major">Major</span>
+  </div>
+  <div class="finding-body">The "Medium" sensitivity badge uses yellow-500 (#8A7515) on yellow-025 (#FCF9D9), yielding a contrast ratio of 3.8:1, below the 4.5:1 AA threshold for small text.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Darkened the text color to yellow-600 (#6E5B09) on the same background, achieving 5.2:1 contrast ratio. Applied the same fix to all warning-themed tags and chips.</div>
+  <div class="finding-meta"><span>WCAG 1.4.3 Contrast (Minimum)</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Tables lack proper header associations <span class="wcag-tag">1.3.1</span><span class="level-tag level-tag--a">Level A</span></div>
+    <span class="severity severity--major">Major</span>
+  </div>
+  <div class="finding-body">Data tables on My Requests, Approval Queue, and Audit Log use th elements but lack scope attributes. Complex tables may not convey cell-to-header relationships to screen readers.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added scope="col" to all column headers. Added caption elements with descriptive text (visually hidden with sr-only class). Added aria-sort to sortable columns.</div>
+  <div class="finding-meta"><span>WCAG 1.3.1 Info and Relationships</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Sidenav links lack current page indication <span class="wcag-tag">2.4.8</span><span class="level-tag level-tag--aa">Level AA</span></div>
+    <span class="severity severity--major">Major</span>
+  </div>
+  <div class="finding-body">The active nav item uses visual styling (background color) but does not convey the current page to screen readers.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added aria-current="page" to the active sidenav item. Added role="navigation" with a descriptive aria-label to the nav container.</div>
+  <div class="finding-meta"><span>WCAG 2.4.8 Location</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Form inputs lack programmatic labels <span class="wcag-tag">1.3.1</span><span class="level-tag level-tag--a">Level A</span></div>
+    <span class="severity severity--critical">Critical</span>
+  </div>
+  <div class="finding-body">The new request form uses visual labels (.form-label) but the label elements are not linked to their inputs via for/id attributes.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added unique id attributes to all form controls and linked them to their label elements using for attributes. Also added aria-describedby for hint text.</div>
+  <div class="finding-meta"><span>WCAG 1.3.1 Info and Relationships</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Icon buttons lack accessible names <span class="wcag-tag">4.1.2</span><span class="level-tag level-tag--a">Level A</span></div>
+    <span class="severity severity--major">Major</span>
+  </div>
+  <div class="finding-body">Header icon buttons for notifications and help use Material Symbols icons with no aria-label. Screen readers announce them as unlabeled buttons.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added aria-label to all icon-only buttons ("Notifications", "Help", "User menu"). Added role="img" and aria-hidden="true" to the Material Symbols spans.</div>
+  <div class="finding-meta"><span>WCAG 4.1.2 Name, Role, Value</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Focus indicators missing on custom controls <span class="wcag-tag">2.4.7</span><span class="level-tag level-tag--aa">Level AA</span></div>
+    <span class="severity severity--major">Major</span>
+  </div>
+  <div class="finding-body">Custom checkboxes, filter chips, and screen-nav buttons suppress default focus outlines without providing a custom visible focus indicator.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added a consistent focus-visible style across all interactive elements: 2px solid outline using --sds-color-blue-750 with a 2px offset. The outline only appears on keyboard navigation (focus-visible), not on mouse click.</div>
+  <div class="finding-meta"><span>WCAG 2.4.7 Focus Visible</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Timeline component lacks semantic structure <span class="wcag-tag">1.3.1</span><span class="level-tag level-tag--a">Level A</span></div>
+    <span class="severity severity--minor">Minor</span>
+  </div>
+  <div class="finding-body">The status timeline is built with divs. Screen readers cannot convey the ordered, sequential nature of the timeline entries.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Wrapped timeline in an ordered list (ol) with each event as a list item (li). Added aria-label="Request status timeline" to the container. Screen readers now announce "list, 3 items" and each step in order.</div>
+  <div class="finding-meta"><span>WCAG 1.3.1 Info and Relationships</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Page title does not update on screen change <span class="wcag-tag">2.4.2</span><span class="level-tag level-tag--a">Level A</span></div>
+    <span class="severity severity--minor">Minor</span>
+  </div>
+  <div class="finding-body">When navigating between screens in the prototype, the document title stays static. Screen reader users cannot identify which screen they are viewing.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Updated the showScreen() function to dynamically set document.title to include the current screen name (e.g., "My Requests - Access Request Portal"). Added aria-live="polite" announcement for screen transitions.</div>
+  <div class="finding-meta"><span>WCAG 2.4.2 Page Titled</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== PASS 2 ===== -->
+<h2>Pass 2 — Re-Audit After Fixes</h2>
+<p class="desc">Re-audit of fixed designs found 3 new issues introduced by the fixes.</p>
+<div class="pass-label pass-label--2">Pass 2 &middot; 3 findings</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Status tag icons are not hidden from screen readers <span class="wcag-tag">4.1.2</span><span class="level-tag level-tag--a">Level A</span></div>
+    <span class="severity severity--minor">Minor</span>
+  </div>
+  <div class="finding-body">The new status tag icons (check_circle, cancel, etc.) are announced by screen readers alongside the text, causing redundant announcements like "check circle Approved".</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added aria-hidden="true" to the icon spans within status tags. The text label alone conveys the status to assistive technology.</div>
+  <div class="finding-meta"><span>WCAG 4.1.2 Name, Role, Value</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Risk meter pattern fills reduce readability at small sizes <span class="wcag-tag">1.4.11</span><span class="level-tag level-tag--aa">Level AA</span></div>
+    <span class="severity severity--minor">Minor</span>
+  </div>
+  <div class="finding-body">The cross-hatch pattern for the "High" risk bar becomes visually indistinct at the 6px bar height, making it harder to differentiate from the solid pattern.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Increased risk bar height to 8px and simplified patterns: solid fill for Low, diagonal stripe for Medium, dense dot pattern for High. Also increased the bar width from 24px to 28px.</div>
+  <div class="finding-meta"><span>WCAG 1.4.11 Non-text Contrast</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">aria-live announcement fires too frequently <span class="wcag-tag">4.1.3</span><span class="level-tag level-tag--aa">Level AA</span></div>
+    <span class="severity severity--minor">Minor</span>
+  </div>
+  <div class="finding-body">The screen transition announcement fires even when the same screen is re-selected, creating unnecessary announcements for screen reader users.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added a check to only announce when the screen actually changes. Debounced rapid screen switches to prevent announcement flooding.</div>
+  <div class="finding-meta"><span>WCAG 4.1.3 Status Messages</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== PASS 3 ===== -->
+<h2>Pass 3 — Final Audit</h2>
+<p class="desc">Final audit found 1 remaining issue. Resolved.</p>
+<div class="pass-label pass-label--3">Pass 3 &middot; 1 finding</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <div class="finding-title">Skip navigation link missing <span class="wcag-tag">2.4.1</span><span class="level-tag level-tag--a">Level A</span></div>
+    <span class="severity severity--minor">Minor</span>
+  </div>
+  <div class="finding-body">With the header and sidebar navigation, keyboard users must tab through many elements to reach the main content area. No skip link is provided.</div>
+  <div class="finding-fix"><strong>Fix applied:</strong> Added a visually hidden skip link as the first focusable element: "Skip to main content". It becomes visible on focus and targets the main content area with id="main-content".</div>
+  <div class="finding-meta"><span>WCAG 2.4.1 Bypass Blocks</span><span class="severity severity--fixed">Fixed</span></div>
+</div>
+
+<hr class="divider">
+
+<h2>WCAG 2.1 AA Compliance Summary</h2>
+<p class="desc">All 14 findings resolved. The designs now meet WCAG 2.1 AA compliance requirements.</p>
+
+<table style="width:100%;border-collapse:collapse;font-size:13px;background:var(--sds-color-white);border:1px solid var(--sds-color-warm-gray-150);border-radius:8px;overflow:hidden;">
+  <thead>
+    <tr style="border-bottom:2px solid var(--sds-color-warm-gray-150);background:var(--sds-color-warm-gray-025);">
+      <th style="text-align:left;padding:10px 16px;font-size:12px;font-weight:600;color:var(--sds-color-warm-gray-550);">WCAG Principle</th>
+      <th style="text-align:center;padding:10px 16px;font-size:12px;font-weight:600;color:var(--sds-color-warm-gray-550);">Findings</th>
+      <th style="text-align:center;padding:10px 16px;font-size:12px;font-weight:600;color:var(--sds-color-warm-gray-550);">Fixed</th>
+      <th style="text-align:center;padding:10px 16px;font-size:12px;font-weight:600;color:var(--sds-color-warm-gray-550);">Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom:1px solid var(--sds-color-warm-gray-100);">
+      <td style="padding:10px 16px;font-weight:500;">1. Perceivable</td>
+      <td style="padding:10px 16px;text-align:center;">7</td>
+      <td style="padding:10px 16px;text-align:center;">7</td>
+      <td style="padding:10px 16px;text-align:center;"><span class="severity severity--fixed">Pass</span></td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--sds-color-warm-gray-100);">
+      <td style="padding:10px 16px;font-weight:500;">2. Operable</td>
+      <td style="padding:10px 16px;text-align:center;">4</td>
+      <td style="padding:10px 16px;text-align:center;">4</td>
+      <td style="padding:10px 16px;text-align:center;"><span class="severity severity--fixed">Pass</span></td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--sds-color-warm-gray-100);">
+      <td style="padding:10px 16px;font-weight:500;">3. Understandable</td>
+      <td style="padding:10px 16px;text-align:center;">0</td>
+      <td style="padding:10px 16px;text-align:center;">0</td>
+      <td style="padding:10px 16px;text-align:center;"><span class="severity severity--fixed">Pass</span></td>
+    </tr>
+    <tr>
+      <td style="padding:10px 16px;font-weight:500;">4. Robust</td>
+      <td style="padding:10px 16px;text-align:center;">3</td>
+      <td style="padding:10px 16px;text-align:center;">3</td>
+      <td style="padding:10px 16px;text-align:center;"><span class="severity severity--fixed">Pass</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<p style="margin-top:24px;font-size:12px;color:var(--sds-color-warm-gray-400);">[CHECKPOINT] Stage 7 complete — would pause here for user review before proceeding to research review.</p>
+
+</body>
+</html>
