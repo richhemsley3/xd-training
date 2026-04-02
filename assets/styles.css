@@ -857,16 +857,16 @@ p:last-child { margin-bottom: 0; }
 
 /* ── Home Hero ─────────────────────────────────────── */
 .hero {
-  padding: clamp(40px, 5vw, 64px) 0 clamp(32px, 4vw, 48px);
+  padding: clamp(40px, 5vw, 64px) 24px clamp(32px, 4vw, 48px);
+  margin-top: calc(-1 * clamp(32px, 4vw, 64px));
   margin-bottom: 0;
   text-align: center;
-  background: linear-gradient(160deg, #F2F7F7 0%, #FFFFFF 40%, #FAF8F5 100%);
+  background: transparent;
   border-bottom: none;
-  margin-left: -48px;
-  margin-right: -48px;
-  padding-left: 48px;
-  padding-right: 48px;
   position: relative;
+  width: 100vw;
+  margin-left: 50%;
+  transform: translateX(-50%);
 }
 .hero::after {
   content: '';
@@ -928,61 +928,80 @@ p:last-child { margin-bottom: 0; }
 }
 
 /* Pattern: Neural — connected nodes (Claude / how AI thinks) */
+/* Pattern: Neural — automation loops (Claude / cyclical process) — BLUE family */
 .pattern-neural {
-  background: #F2F7F7;
+  background: #EBF4F5;
 }
 .pattern-neural::before {
   content: '';
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle 5px at 30% 35%, #A6CBD6 100%, transparent),
-    radial-gradient(circle 4px at 65% 25%, #A6CBD6 100%, transparent),
-    radial-gradient(circle 6px at 80% 60%, #C1DDE3 100%, transparent),
-    radial-gradient(circle 4px at 45% 70%, #A6CBD6 100%, transparent),
-    radial-gradient(circle 3px at 20% 75%, #C1DDE3 100%, transparent),
-    radial-gradient(circle 5px at 55% 45%, #D9EBED 100%, transparent),
-    radial-gradient(circle 3px at 90% 30%, #C1DDE3 100%, transparent);
+    /* Concentric rings — automation loops */
+    radial-gradient(circle at 35% 45%, transparent 18px, #6AA5B8 18.5px, #6AA5B8 20.5px, transparent 21px),
+    radial-gradient(circle at 35% 45%, transparent 28px, #8EC0D1 28.5px, #8EC0D1 30px, transparent 30.5px),
+    radial-gradient(circle at 35% 45%, transparent 38px, #A6CBD6 38.5px, #A6CBD6 40px, transparent 40.5px),
+    /* Second gear / loop offset */
+    radial-gradient(circle at 75% 50%, transparent 14px, #77B2C7 14.5px, #77B2C7 16px, transparent 16.5px),
+    radial-gradient(circle at 75% 50%, transparent 24px, #A6CBD6 24.5px, #A6CBD6 26px, transparent 26.5px),
+    radial-gradient(circle at 75% 50%, transparent 34px, #C1DDE3 34.5px, #C1DDE3 36px, transparent 36.5px);
 }
 .pattern-neural::after {
   content: '';
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(25deg, transparent 49.5%, #C1DDE3 49.5%, #C1DDE3 50.5%, transparent 50.5%) 0 0 / 100% 100% no-repeat,
-    linear-gradient(-15deg, transparent 49.5%, #D9EBED 49.5%, #D9EBED 50.5%, transparent 50.5%) 0 0 / 100% 100% no-repeat,
-    linear-gradient(50deg, transparent 49.5%, #C1DDE3 49.5%, #C1DDE3 50.5%, transparent 50.5%) 0 0 / 100% 100% no-repeat;
+    /* Arrow-like chevrons suggesting flow */
+    linear-gradient(45deg, transparent 42%, #A6CBD6 42.5%, #A6CBD6 44%, transparent 44.5%),
+    linear-gradient(-45deg, transparent 42%, #A6CBD6 42.5%, #A6CBD6 44%, transparent 44.5%),
+    /* Center dots */
+    radial-gradient(circle 4px at 35% 45%, #5E96AB 100%, transparent 100%),
+    radial-gradient(circle 3px at 75% 50%, #6AA5B8 100%, transparent 100%);
 }
 
-/* Pattern: Layers — stacked horizontal bands (Context Engineering / layered context) */
+/* Pattern: Layers — connected nodes (Context Engineering / system) — GREEN family */
 .pattern-layers {
+  background: #F4FAEB;
+}
+.pattern-layers::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   background:
-    linear-gradient(0deg,
-      #F2F7F7 0%, #F2F7F7 15%,
-      #D9EBED 15%, #D9EBED 18%,
-      #F2F7F7 18%, #F2F7F7 32%,
-      #C1DDE3 32%, #C1DDE3 35%,
-      #F2F7F7 35%, #F2F7F7 50%,
-      #D9EBED 50%, #D9EBED 52.5%,
-      #F2F7F7 52.5%, #F2F7F7 68%,
-      #A6CBD6 68%, #A6CBD6 70.5%,
-      #F2F7F7 70.5%, #F2F7F7 85%,
-      #D9EBED 85%, #D9EBED 87%,
-      #F2F7F7 87%
-    );
+    /* Connection lines between nodes */
+    linear-gradient(30deg, transparent 49%, #BBCF8A 49.3%, #BBCF8A 50.7%, transparent 51%) 0 0 / 100% 100% no-repeat,
+    linear-gradient(-20deg, transparent 49%, #D1E0B1 49.3%, #D1E0B1 50.7%, transparent 51%) 0 0 / 100% 100% no-repeat,
+    linear-gradient(65deg, transparent 49%, #AAC267 49.3%, #AAC267 50.7%, transparent 51%) 0 0 / 100% 100% no-repeat,
+    linear-gradient(-50deg, transparent 49.2%, #D1E0B1 49.5%, #D1E0B1 50.5%, transparent 50.8%) 0 0 / 100% 100% no-repeat;
+}
+.pattern-layers::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    /* Nodes — connected dots forming a system */
+    radial-gradient(circle 7px at 20% 30%, #88A61B 100%, transparent 100%),
+    radial-gradient(circle 6px at 55% 40%, #98B43B 100%, transparent 100%),
+    radial-gradient(circle 8px at 80% 25%, #AAC267 100%, transparent 100%),
+    radial-gradient(circle 5px at 35% 70%, #BBCF8A 100%, transparent 100%),
+    radial-gradient(circle 7px at 70% 65%, #98B43B 100%, transparent 100%),
+    radial-gradient(circle 4px at 90% 55%, #88A61B 100%, transparent 100%),
+    /* Outer rings on key nodes */
+    radial-gradient(circle at 20% 30%, transparent 9px, #BBCF8A 9.5px, #BBCF8A 11px, transparent 11.5px),
+    radial-gradient(circle at 80% 25%, transparent 10px, #D1E0B1 10.5px, #D1E0B1 12px, transparent 12.5px);
 }
 
-/* Pattern: Blocks — modular grid (Skills / reusable building blocks) */
+/* Pattern: Blocks — modular grid (Skills / reusable building blocks) — YELLOW family */
 .pattern-blocks {
-  background: #F4FAEB;
+  background: #FCF9D9;
 }
 .pattern-blocks::before {
   content: '';
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(to right, transparent 0%, transparent 48%, #E2EDCC 48%, #E2EDCC 52%, transparent 52%) 0 0 / 36px 100%,
-    linear-gradient(to bottom, transparent 0%, transparent 48%, #E2EDCC 48%, #E2EDCC 52%, transparent 52%) 0 0 / 100% 36px;
+    linear-gradient(to right, transparent 0%, transparent 48%, #F7EC88 48%, #F7EC88 52%, transparent 52%) 0 0 / 36px 100%,
+    linear-gradient(to bottom, transparent 0%, transparent 48%, #F7EC88 48%, #F7EC88 52%, transparent 52%) 0 0 / 100% 36px;
 }
 .pattern-blocks::after {
   content: '';
@@ -991,50 +1010,59 @@ p:last-child { margin-bottom: 0; }
   bottom: 12px;
   width: 28px;
   height: 28px;
-  background: #D1E0B1;
+  background: #EBCE2D;
   border-radius: 4px;
   box-shadow:
-    -36px 0 0 #BBCF8A,
-    0 -36px 0 #D1E0B1,
-    -36px -36px 0 #E2EDCC;
+    -36px 0 0 #D6BB31,
+    0 -36px 0 #F0DE54,
+    -36px -36px 0 #F7EC88;
 }
 
-/* Pattern: Brush — flowing curves (Designing with Claude / creative exploration) */
+/* Pattern: Brush — design comp layers (Designing with Claude / creative) — RED family */
 .pattern-brush {
-  background: #F2F7F7;
+  background: #FFF6F5;
 }
 .pattern-brush::before {
   content: '';
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 300% 80% at -20% 150%, transparent 56%, #A6CBD6 56.3%, transparent 57%),
-    radial-gradient(ellipse 250% 90% at 120% -50%, transparent 56%, #C1DDE3 56.3%, transparent 57%),
-    radial-gradient(ellipse 280% 70% at -10% 180%, transparent 60%, #D9EBED 60.3%, transparent 61%);
+    /* Overlapping colour fields — like design comp layers */
+    linear-gradient(135deg, transparent 10%, rgba(233,145,133,0.25) 10%, rgba(233,145,133,0.25) 35%, transparent 35%),
+    linear-gradient(135deg, transparent 40%, rgba(242,189,182,0.2) 40%, rgba(242,189,182,0.2) 65%, transparent 65%),
+    /* Diagonal construction line */
+    linear-gradient(135deg, transparent 48%, #E99185 48.5%, #E99185 49.5%, transparent 50%),
+    /* Anchor points */
+    radial-gradient(circle 5px at 30% 25%, #CF6253 100%, transparent 100%),
+    radial-gradient(circle 5px at 70% 75%, #DB7060 100%, transparent 100%),
+    radial-gradient(circle 3px at 50% 50%, #E57D6E 100%, transparent 100%),
+    /* Cross-hatch alignment marks */
+    linear-gradient(45deg, transparent 46%, rgba(238,167,158,0.2) 46%, rgba(238,167,158,0.2) 54%, transparent 54%),
+    linear-gradient(-45deg, transparent 46%, rgba(247,204,198,0.15) 46%, rgba(247,204,198,0.15) 54%, transparent 54%);
 }
 
-/* Pattern: Radiate — expanding search rings (UX Research / finding insights) */
+/* Pattern: Radiate — expanding search rings (UX Research / finding insights) — PURPLE family */
 .pattern-radiate {
   background:
-    radial-gradient(circle at 70% 55%, transparent 15px, #D1E0B1 15.5px, #D1E0B1 17px, transparent 17.5px),
-    radial-gradient(circle at 70% 55%, transparent 28px, #BBCF8A 28.5px, #BBCF8A 30px, transparent 30.5px),
-    radial-gradient(circle at 70% 55%, transparent 41px, #D1E0B1 41.5px, #D1E0B1 43px, transparent 43.5px),
-    radial-gradient(circle at 70% 55%, transparent 54px, #E2EDCC 54.5px, #E2EDCC 56px, transparent 56.5px),
-    radial-gradient(circle at 70% 55%, transparent 67px, #D1E0B1 67.5px, #D1E0B1 69px, transparent 69.5px),
-    #F4FAEB;
+    radial-gradient(circle at 70% 55%, transparent 15px, rgba(195,157,227,0.5) 15.5px, rgba(195,157,227,0.5) 17px, transparent 17.5px),
+    radial-gradient(circle at 70% 55%, transparent 28px, #C39DE3 28.5px, #C39DE3 30px, transparent 30.5px),
+    radial-gradient(circle at 70% 55%, transparent 41px, rgba(195,157,227,0.4) 41.5px, rgba(195,157,227,0.4) 43px, transparent 43.5px),
+    radial-gradient(circle at 70% 55%, transparent 54px, rgba(128,90,161,0.25) 54.5px, rgba(128,90,161,0.25) 56px, transparent 56.5px),
+    radial-gradient(circle at 70% 55%, transparent 67px, rgba(195,157,227,0.3) 67.5px, rgba(195,157,227,0.3) 69px, transparent 69.5px),
+    #F8F0FC;
 }
 
-/* Pattern: Scaffold — wireframe grid (Prototyping / building structure) */
+/* Pattern: Scaffold — wireframe grid (Prototyping / building structure) — WARM GRAY family */
 .pattern-scaffold {
-  background: #FFF6F5;
+  background: #FAF8F5;
 }
 .pattern-scaffold::before {
   content: '';
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(to right, #F7CCC6 1px, transparent 1px) 20px 0 / 40px 100%,
-    linear-gradient(to bottom, #F7CCC6 1px, transparent 1px) 0 16px / 100% 32px;
+    linear-gradient(to right, #D0CBC3 1px, transparent 1px) 20px 0 / 40px 100%,
+    linear-gradient(to bottom, #D0CBC3 1px, transparent 1px) 0 16px / 100% 32px;
 }
 .pattern-scaffold::after {
   content: '';
@@ -1043,11 +1071,11 @@ p:last-child { margin-bottom: 0; }
   top: 16px;
   width: 80px;
   height: 32px;
-  border: 2px solid #EEA79E;
+  border: 2px solid #B0ABA2;
   border-radius: 4px;
   box-shadow:
     -120px 0 0 0 transparent,
-    0 32px 0 -1px #F7CCC6,
+    0 32px 0 -1px #D0CBC3,
     -40px 32px 0 0 transparent;
 }
 
@@ -1067,7 +1095,12 @@ p:last-child { margin-bottom: 0; }
   top: 16px;
   left: 20px;
   box-shadow: none;
+  z-index: 2;
 }
+
+/* Shape differentiator: Fundamentals = circle, Workflows = rounded square */
+.feature-card .feature-icon--circle { border-radius: 50%; }
+.feature-card .feature-icon--square { border-radius: 10px; }
 
 /* Card body */
 .feature-card__body {
@@ -2270,7 +2303,7 @@ blockquote strong { color: #1C1A17; }
 @media (max-width: 768px) {
   .setup-banner { flex-direction: column; text-align: center; }
   .home-section { margin-left: -16px; margin-right: -16px; padding-left: 16px; padding-right: 16px; }
-  .hero { margin-left: -16px; margin-right: -16px; padding-left: 16px; padding-right: 16px; }
+  .hero { width: 100vw; margin-left: 50%; transform: translateX(-50%); }
 }
 
 /* ── Stat pills (homepage) ────────────────────────── */
