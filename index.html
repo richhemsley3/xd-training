@@ -79,159 +79,134 @@
               <a class="sds-btn sds-btn--ghost sds-btn--md" href="#learn-by-topic" onclick="document.getElementById('learn-by-topic').scrollIntoView({behavior:'smooth'}); return false;"><span class="material-symbols-outlined" style="font-size:18px">school</span> Learn by topic</a>
               <a class="sds-btn sds-btn--ghost sds-btn--md" href="#" onclick="showPage('curriculum'); return false;"><span class="material-symbols-outlined" style="font-size:18px">timeline</span> Follow the 12-week program</a>
             </div>
-          </div>
-
-          <!-- ── Quick Start: Get Set Up ───────────── -->
-          <div class="callout callout--tip" style="margin-bottom:40px">
-            <span class="material-symbols-outlined callout__icon">terminal</span>
-            <div class="callout__body">
-              <strong>New to Claude Code?</strong> Install Claude Code, set up your environment, and run your first session in about 30 minutes.
-              <div style="margin-top:12px">
-                <a class="sds-btn sds-btn--primary sds-btn--sm" href="#" onclick="showPage('getting-started'); return false;">Getting started guide</a>
-              </div>
+            <div class="stat-pills">
+              <div class="stat-pill"><span class="stat-pill__num">6</span> training phases</div>
+              <div class="stat-pill"><span class="stat-pill__num">8</span> design workflows</div>
+              <div class="stat-pill"><span class="stat-pill__num">56</span> tested prompts</div>
+              <div class="stat-pill"><span class="stat-pill__num">12</span> week program</div>
             </div>
           </div>
 
+          <!-- ── Setup Banner ──────────────────────── -->
+          <div class="setup-banner">
+            <div class="setup-banner__icon"><span class="material-symbols-outlined">terminal</span></div>
+            <div class="setup-banner__body">
+              <div class="setup-banner__title">New to Claude Code?</div>
+              <div class="setup-banner__desc">Install Claude Code, set up your environment, and run your first session in about 30 minutes.</div>
+            </div>
+            <a class="sds-btn sds-btn--primary sds-btn--md" href="#" onclick="showPage('getting-started'); return false;">Getting started guide</a>
+          </div>
+
           <!-- ── Learn by Topic ────────────────────── -->
-          <div id="learn-by-topic">
+          <div id="learn-by-topic" class="home-section">
             <span class="explainer-label">Learn by Topic</span>
             <h2 class="section-heading" style="margin-top:8px">Build your knowledge</h2>
 
-            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#54514D;margin-bottom:12px;margin-top:32px">Fundamentals</div>
+            <div class="sub-label">Fundamentals</div>
             <div class="feature-cards">
-              <button class="feature-card" onclick="showPage('adoption-101')">
-                <div class="feature-icon"><span class="material-symbols-outlined">psychology</span></div>
-                <h3>Working with AI</h3>
-                <p>The mindset shift, mental models, and how to build the adoption case for your team.</p>
-              </button>
-              <button class="feature-card" onclick="showPage('claude-101')">
-                <div class="feature-icon"><span class="material-symbols-outlined">smart_toy</span></div>
+              <button class="feature-card feature-card--blue" onclick="showPage('claude-101')">
+                <div class="feature-icon feature-icon--blue"><span class="material-symbols-outlined">smart_toy</span></div>
                 <h3>Claude</h3>
                 <p>How Claude works — sessions, context windows, CLAUDE.md, skills, and the session loop.</p>
               </button>
-              <button class="feature-card" onclick="showPage('cli-101')">
-                <div class="feature-icon"><span class="material-symbols-outlined">terminal</span></div>
-                <h3>Terminal</h3>
-                <p>Essential commands, reading output, dev servers, and navigating the command line.</p>
-              </button>
-              <button class="feature-card" onclick="showPage('git-101')">
-                <div class="feature-icon"><span class="material-symbols-outlined">account_tree</span></div>
-                <h3>Git</h3>
-                <p>Your safety net — commits, branches, undoing changes, and keeping your work clean.</p>
-              </button>
-              <button class="feature-card" onclick="showPage('prompting-101')">
-                <div class="feature-icon"><span class="material-symbols-outlined">edit_note</span></div>
+              <button class="feature-card feature-card--green" onclick="showPage('prompting-101')">
+                <div class="feature-icon feature-icon--green"><span class="material-symbols-outlined">edit_note</span></div>
                 <h3>Context Engineering</h3>
                 <p>Beyond prompting — shaping the full context that determines Claude's output quality.</p>
               </button>
-              <button class="feature-card" onclick="showPage('skills-101')">
-                <div class="feature-icon"><span class="material-symbols-outlined">bolt</span></div>
+              <button class="feature-card feature-card--purple" onclick="showPage('skills-101')">
+                <div class="feature-icon feature-icon--purple"><span class="material-symbols-outlined">bolt</span></div>
                 <h3>Skills</h3>
                 <p>Reusable prompt templates that encode your design judgment for consistent output.</p>
               </button>
             </div>
+            <div class="view-all-row">
+              <a class="sds-btn sds-btn--ghost sds-btn--sm" href="#" onclick="toggleFundamentalsDropdown(event); return false;">View all 6 fundamentals <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span></a>
+            </div>
 
-            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#54514D;margin-bottom:12px;margin-top:32px">Workflows — Apply Claude to real design work</div>
+            <div class="sub-label" style="margin-top:40px">Workflows — Apply Claude to real design work</div>
             <div class="feature-cards">
-              <button class="feature-card" onclick="showPage('design-101')">
-                <div class="feature-icon"><span class="material-symbols-outlined">brush</span></div>
+              <button class="feature-card feature-card--teal" onclick="showPage('design-101')">
+                <div class="feature-icon feature-icon--teal"><span class="material-symbols-outlined">brush</span></div>
                 <h3>Designing with Claude</h3>
                 <p>Design exploration, component creation, iteration patterns, and when to use what.</p>
               </button>
-              <button class="feature-card" onclick="showPage('research-101')">
-                <div class="feature-icon"><span class="material-symbols-outlined">search_insights</span></div>
+              <button class="feature-card feature-card--coral" onclick="showPage('research-101')">
+                <div class="feature-icon feature-icon--coral"><span class="material-symbols-outlined">search_insights</span></div>
                 <h3>UX Research</h3>
                 <p>From raw transcripts to stakeholder-ready insights using the full research pipeline.</p>
               </button>
-              <button class="feature-card" onclick="showPage('market-research')">
-                <div class="feature-icon"><span class="material-symbols-outlined">monitoring</span></div>
-                <h3>Competitive &amp; Market Research</h3>
-                <p>Define scope, identify competitors, surface opportunities, and build a strategic narrative.</p>
-              </button>
-              <button class="feature-card" onclick="showPage('concept-design')">
-                <div class="feature-icon"><span class="material-symbols-outlined">lightbulb</span></div>
-                <h3>Concept Design</h3>
-                <p>Go from a fuzzy problem to evaluated design concepts with clear rationale.</p>
-              </button>
-              <button class="feature-card" onclick="showPage('prototyping')">
-                <div class="feature-icon"><span class="material-symbols-outlined">play_circle</span></div>
+              <button class="feature-card feature-card--amber" onclick="showPage('prototyping')">
+                <div class="feature-icon feature-icon--amber"><span class="material-symbols-outlined">play_circle</span></div>
                 <h3>Prototyping &amp; Validation</h3>
                 <p>Build interactive prototypes that answer design questions static mockups can't.</p>
               </button>
-              <button class="feature-card" onclick="showPage('ux-eval')">
-                <div class="feature-icon"><span class="material-symbols-outlined">checklist</span></div>
-                <h3>UX Evaluation</h3>
-                <p>Scope audits, apply heuristics, synthesize findings, and prioritize improvements.</p>
-              </button>
-              <button class="feature-card" onclick="showPage('ds-components')">
-                <div class="feature-icon"><span class="material-symbols-outlined">widgets</span></div>
-                <h3>Design System Components</h3>
-                <p>Audit usage, spec components, build them, test for consistency, and document.</p>
-              </button>
-              <button class="feature-card" onclick="showPage('handoff')">
-                <div class="feature-icon"><span class="material-symbols-outlined">handshake</span></div>
-                <h3>Handoff &amp; Specs</h3>
-                <p>Audit completeness, spec all states, build documentation, and validate with engineering.</p>
-              </button>
+            </div>
+            <div class="view-all-row">
+              <a class="sds-btn sds-btn--ghost sds-btn--sm" href="#" onclick="toggleWorkflowsDropdown(event); return false;">View all 8 workflows <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span></a>
             </div>
           </div>
 
           <!-- ── Follow a Program ──────────────────── -->
-          <span class="explainer-label">Structured Learning</span>
-          <h2 class="section-heading" style="margin-top:8px">Follow a program</h2>
-          <div class="learning-paths" style="grid-template-columns:repeat(2, 1fr)">
-            <div class="learning-path">
-              <div class="learning-path__icon"><span class="material-symbols-outlined">timeline</span></div>
-              <div class="learning-path__label">12-week curriculum</div>
-              <div class="learning-path__title">Training Phases</div>
-              <div class="learning-path__steps">
-                <button class="learning-path__step" onclick="showPage('curriculum'); setTimeout(() => switchPhase(0), 100)"><span class="learning-path__step-label">Phase 1 — Foundations</span></button>
-                <button class="learning-path__step" onclick="showPage('curriculum'); setTimeout(() => switchPhase(1), 100)"><span class="learning-path__step-label">Phase 2 — Front-End Fluency</span></button>
-                <button class="learning-path__step" onclick="showPage('curriculum'); setTimeout(() => switchPhase(2), 100)"><span class="learning-path__step-label">Phase 3 — Prompting as Design</span></button>
-                <button class="learning-path__step" onclick="showPage('curriculum'); setTimeout(() => switchPhase(3), 100)"><span class="learning-path__step-label">Phase 4 — Design Systems</span></button>
-                <button class="learning-path__step" onclick="showPage('curriculum'); setTimeout(() => switchPhase(4), 100)"><span class="learning-path__step-label">Phase 5 — Claude Skills</span></button>
-                <button class="learning-path__step" onclick="showPage('curriculum'); setTimeout(() => switchPhase(5), 100)"><span class="learning-path__step-label">Phase 6 — Advanced Workflows</span></button>
+          <div class="home-section home-section--tinted">
+            <span class="explainer-label">Structured Learning</span>
+            <h2 class="section-heading" style="margin-top:8px">Follow a program</h2>
+            <div class="learning-paths" style="grid-template-columns:repeat(2, 1fr)">
+              <div class="learning-path">
+                <div class="learning-path__icon"><span class="material-symbols-outlined">timeline</span></div>
+                <div class="learning-path__label">12-week curriculum</div>
+                <div class="learning-path__title">Training Phases</div>
+                <div class="learning-path__steps">
+                  <button class="learning-path__step" onclick="showPage('curriculum'); setTimeout(() => switchPhase(0), 100)"><span class="learning-path__step-label">Phase 1 — Foundations</span></button>
+                  <button class="learning-path__step" onclick="showPage('curriculum'); setTimeout(() => switchPhase(1), 100)"><span class="learning-path__step-label">Phase 2 — Front-End Fluency</span></button>
+                  <button class="learning-path__step" onclick="showPage('curriculum'); setTimeout(() => switchPhase(2), 100)"><span class="learning-path__step-label">Phase 3 — Prompting as Design</span></button>
+                  <button class="learning-path__step" onclick="showPage('curriculum'); setTimeout(() => switchPhase(3), 100)"><span class="learning-path__step-label">Phase 4 — Design Systems</span></button>
+                  <button class="learning-path__step" onclick="showPage('curriculum'); setTimeout(() => switchPhase(4), 100)"><span class="learning-path__step-label">Phase 5 — Claude Skills</span></button>
+                  <button class="learning-path__step" onclick="showPage('curriculum'); setTimeout(() => switchPhase(5), 100)"><span class="learning-path__step-label">Phase 6 — Advanced Workflows</span></button>
+                </div>
+                <div style="margin-top:12px">
+                  <a class="sds-btn sds-btn--ghost sds-btn--sm" href="#" onclick="showPage('curriculum'); return false;">View full program <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span></a>
+                </div>
               </div>
-              <div style="margin-top:12px">
-                <a class="sds-btn sds-btn--ghost sds-btn--sm" href="#" onclick="showPage('curriculum'); return false;">View full program <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span></a>
-              </div>
-            </div>
-            <div class="learning-path">
-              <div class="learning-path__icon"><span class="material-symbols-outlined">groups</span></div>
-              <div class="learning-path__label">Team sessions</div>
-              <div class="learning-path__title">Workshops</div>
-              <div class="learning-path__steps">
-                <button class="learning-path__step" onclick="goToWorkshop(0)"><span class="learning-path__step-label">Workshop 01 — The First Session</span></button>
-                <button class="learning-path__step" onclick="goToWorkshop(1)"><span class="learning-path__step-label">Workshop 02 — Prompt Craft</span></button>
-                <button class="learning-path__step" onclick="goToWorkshop(2)"><span class="learning-path__step-label">Workshop 03 — Design Systems</span></button>
-                <button class="learning-path__step" onclick="goToWorkshop(3)"><span class="learning-path__step-label">Workshop 04 — Research Workflows</span></button>
-                <button class="learning-path__step" onclick="goToWorkshop(7)"><span class="learning-path__step-label">Workshop 08 — Launch the Skill Library</span></button>
-              </div>
-              <div style="margin-top:12px">
-                <a class="sds-btn sds-btn--ghost sds-btn--sm" href="#" onclick="showPage('workshops'); return false;">View all workshops <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span></a>
+              <div class="learning-path">
+                <div class="learning-path__icon"><span class="material-symbols-outlined">groups</span></div>
+                <div class="learning-path__label">Team sessions</div>
+                <div class="learning-path__title">Workshops</div>
+                <div class="learning-path__steps">
+                  <button class="learning-path__step" onclick="goToWorkshop(0)"><span class="learning-path__step-label">Workshop 01 — The First Session</span></button>
+                  <button class="learning-path__step" onclick="goToWorkshop(1)"><span class="learning-path__step-label">Workshop 02 — Prompt Craft</span></button>
+                  <button class="learning-path__step" onclick="goToWorkshop(2)"><span class="learning-path__step-label">Workshop 03 — Design Systems</span></button>
+                  <button class="learning-path__step" onclick="goToWorkshop(3)"><span class="learning-path__step-label">Workshop 04 — Research Workflows</span></button>
+                  <button class="learning-path__step" onclick="goToWorkshop(7)"><span class="learning-path__step-label">Workshop 08 — Launch the Skill Library</span></button>
+                </div>
+                <div style="margin-top:12px">
+                  <a class="sds-btn sds-btn--ghost sds-btn--sm" href="#" onclick="showPage('workshops'); return false;">View all workshops <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span></a>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- ── Reference Tools ───────────────────── -->
-          <span class="explainer-label">Reference</span>
-          <h2 class="section-heading" style="margin-top:8px">Tools and references</h2>
-          <div class="home-sections-grid">
-            <button class="home-section-card" onclick="showPage('prompts')">
-              <div class="home-section-card__title">Prompt Library</div>
-              <div class="home-section-card__desc">56 tested prompts across setup, UI, iteration, design systems, accessibility, and handoff.</div>
-              <span class="material-symbols-outlined home-section-card__arrow">arrow_forward</span>
-            </button>
-            <button class="home-section-card" onclick="showPage('templates')">
-              <div class="home-section-card__title">CLAUDE.md Templates</div>
-              <div class="home-section-card__desc">Downloadable project briefs that define your design standards for every Claude session.</div>
-              <span class="material-symbols-outlined home-section-card__arrow">arrow_forward</span>
-            </button>
-            <button class="home-section-card" onclick="showPage('glossary')">
-              <div class="home-section-card__title">Glossary</div>
-              <div class="home-section-card__desc">28 concepts mapped from Figma terms to their code equivalents, with examples.</div>
-              <span class="material-symbols-outlined home-section-card__arrow">arrow_forward</span>
-            </button>
+          <div class="home-section">
+            <span class="explainer-label">Reference</span>
+            <h2 class="section-heading" style="margin-top:8px">Tools and references</h2>
+            <div class="home-sections-grid">
+              <button class="home-section-card" onclick="showPage('prompts')">
+                <div class="home-section-card__title">Prompt Library</div>
+                <div class="home-section-card__desc">56 tested prompts across setup, UI, iteration, design systems, accessibility, and handoff.</div>
+                <span class="material-symbols-outlined home-section-card__arrow">arrow_forward</span>
+              </button>
+              <button class="home-section-card" onclick="showPage('templates')">
+                <div class="home-section-card__title">CLAUDE.md Templates</div>
+                <div class="home-section-card__desc">Downloadable project briefs that define your design standards for every Claude session.</div>
+                <span class="material-symbols-outlined home-section-card__arrow">arrow_forward</span>
+              </button>
+              <button class="home-section-card" onclick="showPage('glossary')">
+                <div class="home-section-card__title">Glossary</div>
+                <div class="home-section-card__desc">28 concepts mapped from Figma terms to their code equivalents, with examples.</div>
+                <span class="material-symbols-outlined home-section-card__arrow">arrow_forward</span>
+              </button>
+            </div>
           </div>
 
         </section>
