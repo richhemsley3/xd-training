@@ -1756,15 +1756,6 @@ blockquote strong {
   font-weight: 400;
   font-style: italic;
 }
-/* Closing flourish beneath pull quotes */
-blockquote::after {
-  content: '';
-  display: block;
-  width: 24px;
-  height: 1px;
-  background: #D0CBC3;
-  margin-top: 32px;
-}
 
 /* ── Skill List ────────────────────────────────────── */
 .skill-list {
@@ -1885,12 +1876,7 @@ blockquote::after {
   position: relative;
 }
 .explainer-section::before {
-  content: '';
-  display: block;
-  width: 48px;
-  height: 1px;
-  background: #D0CBC3;
-  margin-bottom: clamp(48px, 6vw, 80px);
+  display: none;
 }
 .explainer-section:first-of-type { margin-top: 0; padding-top: 0; }
 .explainer-section:first-of-type::before { display: none; }
