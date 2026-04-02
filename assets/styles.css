@@ -898,39 +898,152 @@ p:last-child { margin-bottom: 0; }
 .feature-cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: 20px;
   margin-bottom: 32px;
 }
 .feature-card {
   background: #FFFFFF;
-  border: 1px solid #EBE6DD;
+  border: 1px solid #E0DCD3;
   border-radius: 16px;
-  padding: 24px;
   cursor: pointer;
   box-shadow: 0 2px 12px rgba(0, 19, 43, 0.06);
-  transition: border-color 150ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  font-family: inherit;
 }
-.feature-card:hover { border-color: #013D5B; box-shadow: 0 8px 32px rgba(0, 19, 43, 0.10); }
+.feature-card:hover {
+  border-color: #013D5B;
+  box-shadow: 0 8px 32px rgba(0, 19, 43, 0.10);
+  transform: translateY(-2px);
+}
+
+/* Pattern area */
+.feature-card__pattern {
+  height: 100px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Pattern: Waves — concentric arcs */
+.pattern-waves {
+  background:
+    radial-gradient(ellipse 200% 100% at 10% 120%, transparent 58%, #A6CBD6 58.5%, transparent 59.5%),
+    radial-gradient(ellipse 200% 100% at 10% 140%, transparent 58%, #C1DDE3 58.5%, transparent 59.5%),
+    radial-gradient(ellipse 200% 100% at 10% 160%, transparent 58%, #D9EBED 58.5%, transparent 59.5%),
+    #F2F7F7;
+}
+
+/* Pattern: Dots — scattered dot grid */
+.pattern-dots {
+  background:
+    radial-gradient(circle 3px at 20% 30%, #A6CBD6 100%, transparent),
+    radial-gradient(circle 2px at 45% 20%, #C1DDE3 100%, transparent),
+    radial-gradient(circle 4px at 70% 55%, #D9EBED 100%, transparent),
+    radial-gradient(circle 2.5px at 85% 25%, #A6CBD6 100%, transparent),
+    radial-gradient(circle 3px at 30% 70%, #C1DDE3 100%, transparent),
+    radial-gradient(circle 2px at 60% 80%, #D9EBED 100%, transparent),
+    radial-gradient(circle 3.5px at 15% 50%, #D9EBED 100%, transparent),
+    radial-gradient(circle 2px at 90% 65%, #C1DDE3 100%, transparent),
+    radial-gradient(circle 4px at 50% 45%, #A6CBD6 100%, transparent),
+    radial-gradient(circle 2px at 75% 15%, #D9EBED 100%, transparent),
+    radial-gradient(circle 3px at 40% 85%, #A6CBD6 100%, transparent),
+    radial-gradient(circle 2.5px at 55% 60%, #C1DDE3 100%, transparent),
+    #F2F7F7;
+}
+
+/* Pattern: Chevrons — stacked V shapes */
+.pattern-chevrons {
+  background: #F4FAEB;
+}
+.pattern-chevrons::before {
+  content: '';
+  position: absolute;
+  right: -10px;
+  top: -10px;
+  width: 120px;
+  height: 120px;
+  background:
+    linear-gradient(135deg, transparent 42%, #D1E0B1 42.5%, #D1E0B1 44%, transparent 44.5%),
+    linear-gradient(135deg, transparent 50%, #BBCF8A 50.5%, #BBCF8A 52%, transparent 52.5%),
+    linear-gradient(135deg, transparent 58%, #AAC267 58.5%, #AAC267 60%, transparent 60.5%),
+    linear-gradient(135deg, transparent 66%, #98B43B 66.5%, #98B43B 68%, transparent 68.5%);
+}
+
+/* Pattern: Diagonal lines */
+.pattern-diagonals {
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 8px,
+      #D9EBED 8px,
+      #D9EBED 9.5px
+    ),
+    #F2F7F7;
+}
+
+/* Pattern: Concentric circles */
+.pattern-circles {
+  background:
+    radial-gradient(circle at 75% 50%, transparent 25px, #E2EDCC 25.5px, #E2EDCC 27px, transparent 27.5px),
+    radial-gradient(circle at 75% 50%, transparent 35px, #D1E0B1 35.5px, #D1E0B1 37px, transparent 37.5px),
+    radial-gradient(circle at 75% 50%, transparent 45px, #E2EDCC 45.5px, #E2EDCC 47px, transparent 47.5px),
+    radial-gradient(circle at 75% 50%, transparent 55px, #D1E0B1 55.5px, #D1E0B1 57px, transparent 57.5px),
+    #F4FAEB;
+}
+
+/* Pattern: Confetti / sprinkles */
+.pattern-confetti {
+  background: #FFF6F5;
+}
+.pattern-confetti::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(35deg, transparent 48%, #F2BDB6 48.5%, #F2BDB6 51.5%, transparent 52%) 10px 10px / 20px 8px,
+    linear-gradient(-25deg, transparent 48%, #EEA79E 48.5%, #EEA79E 51.5%, transparent 52%) 50px 30px / 16px 6px,
+    linear-gradient(60deg, transparent 48%, #F7CCC6 48.5%, #F7CCC6 51.5%, transparent 52%) 80px 15px / 18px 7px,
+    linear-gradient(-40deg, transparent 48%, #F2BDB6 48.5%, #F2BDB6 51.5%, transparent 52%) 30px 60px / 14px 6px,
+    linear-gradient(15deg, transparent 48%, #EEA79E 48.5%, #EEA79E 51.5%, transparent 52%) 70px 55px / 20px 7px,
+    linear-gradient(-55deg, transparent 48%, #F7CCC6 48.5%, #F7CCC6 51.5%, transparent 52%) 15px 40px / 16px 6px;
+  background-repeat: repeat;
+}
+
+/* Card icon (sits on the pattern) */
 .feature-card .feature-icon {
-  width: 40px;
-  height: 40px;
-  background: #D9EBED;
-  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  background: #FFFFFF;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
   color: #013D5B;
-  font-size: 20px;
+  font-size: 22px;
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  box-shadow: 0 2px 8px rgba(0, 19, 43, 0.10);
+}
+
+/* Card body */
+.feature-card__body {
+  padding: 20px 20px 24px;
 }
 .feature-card h3 {
   font-size: 15px;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+  color: #1C1A17;
 }
 .feature-card p {
   font-size: 13px;
-  color: #54514D;
+  color: #6B6054;
+  line-height: 1.5;
 }
 
 /* ── Filter Bar ────────────────────────────────────── */
